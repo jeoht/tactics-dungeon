@@ -11,6 +11,12 @@ class Unit {
         this.cell = cell
         cell.unit = this
     }
+
+    moveTo(cell: Cell) {
+        this.cell.unit = undefined
+        cell.unit = this
+        this.cell = cell
+    }
 }
 
 class Cell {
@@ -35,7 +41,7 @@ class Cell {
 class Game {
     renderer: BoardRenderer
     @observable cells: Cell[][] = []
-    boardWidth: number = 8
+    boardWidth: number = 6
     boardHeight: number = 8
 
     @computed get allCells(): Cell[] {
@@ -60,7 +66,7 @@ class Game {
 
         for (const cell of this.allCells) {
             if (cell.pathable) {
-                new Unit(0, cell)
+                new Unit(3, cell)
                 break
             }
         }
@@ -110,6 +116,7 @@ class BoardRenderer {
     @observable canvasWidth: number = 0
     @observable canvasHeight: number = 0
     @observable draggingUnit: Unit|null = null
+    @observable dragPath: Cell[]|null = null
 
     constructor(game: Game) {
         this.game = game
@@ -157,28 +164,34 @@ class BoardRenderer {
 
     @action.bound onTouchStart(e: TouchEvent) {
         const cell = this.touchToCell(e.touches[0])
-        console.log(cell)
         if (cell.unit) {
             this.draggingUnit = cell.unit
+            this.dragPath = []
         }
     }
 
     @action.bound onTouchEnd() {
+        if (this.draggingUnit) {
+            this.draggingUnit.moveTo(_.last(this.dragPath!)!)
+        }
         this.draggingUnit = null
+        this.dragPath = null
     }
 
     @action.bound onTouchMove(e: TouchEvent) {
+        console.log(e)
         const unit = this.draggingUnit
         if (!unit) return
 
         const destCell = this.touchToCell(e.touches[0])
-        console.log(destCell)
+        if (destCell.pathable && this.dragPath!.indexOf(destCell) === -1)
+            this.dragPath!.push(destCell)
     }
 
     screenPointToCell(sx: number, sy: number): Cell {
         console.log(sx, this.cellScreenWidth, sx/this.cellScreenWidth)
-        const cx = Math.floor(sx / this.cellScreenWidth)
-        const cy = Math.floor(sy / this.cellScreenHeight)
+        const cx = Math.min(this.game.boardWidth-1, Math.max(0, Math.floor(sx / this.cellScreenWidth)))
+        const cy = Math.min(this.game.boardHeight-1, Math.max(0, Math.floor(sy / this.cellScreenHeight)))
         return this.game.cells[cx][cy]
     }
 
@@ -187,6 +200,12 @@ class BoardRenderer {
         let dx = cell.x * this.cellScreenWidth
         let dy = cell.y * this.cellScreenHeight
         return [dx, dy]
+    }
+
+    /** Position of the center of the cell in screen coordinates. */
+    cellToScreenPointCenter(cell: Cell) {
+        const [x, y] = this.cellToScreenPoint(cell)
+        return [x + this.cellScreenWidth/2, y + this.cellScreenHeight/2]
     }
 
     onResize() {
@@ -246,6 +265,21 @@ class BoardRenderer {
                     this.creaturesTilesheet.drawTile(ctx, unit.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
                 }
             }
+        }
+
+        if (this.dragPath && this.dragPath.length >= 2) {
+            const startCell = this.dragPath[0]
+            const [x, y] = this.cellToScreenPointCenter(startCell)
+            ctx.beginPath()
+            ctx.moveTo(x, y)
+
+            for (const cell of this.dragPath.slice(1)) {
+                const [nx, ny] = this.cellToScreenPointCenter(cell)
+                ctx.lineTo(nx, ny)
+            }
+
+            ctx.strokeStyle = "#fff"
+            ctx.stroke()
         }
 
         ctx.restore()
