@@ -3,34 +3,65 @@ import './index.scss'
 import { observable, computed, action, autorun } from 'mobx'
 const log = console.log
 
+class Unit {
+    tileIndex: number
+    cell: Cell
+    constructor(tileIndex: number, cell: Cell) {
+        this.tileIndex = tileIndex
+        this.cell = cell
+        cell.unit = this
+    }
+}
+
 class Cell {
     game: Game
     x: number
     y: number
-    color: string
+    tileIndex: number
+    unit?: Unit
 
     constructor(game: Game, x: number, y: number) {
         this.game = game
         this.x = x
         this.y = y
-        this.color = Math.random() > 0.5 ? "#f00" : "#0f0"
+        this.tileIndex = Math.random() > 0.5 ? 0 : 3
+    }
+
+    get pathable() {
+        return this.tileIndex !== 0
     }
 }
 
 class Game {
-    renderer: GameRenderer
-    cells: Cell[][] = []
+    renderer: BoardRenderer
+    @observable cells: Cell[][] = []
     boardWidth: number = 8
     boardHeight: number = 8
 
-    constructor() {
-        this.renderer = new GameRenderer(this)
+    @computed get allCells(): Cell[] {
+        const cells: Cell[] = []
+        for (let i = 0 ; i < this.boardWidth; i++) {
+            for (let j = 0; j < this.boardHeight; j++) {
+                cells.push(this.cells[i][j])
+            }
+        }
+        return cells
+    }
 
+    constructor() {
+        this.renderer = new BoardRenderer(this)
 
         for (let x = 0; x < this.boardWidth; x++) {
             this.cells[x] = []
             for (let y = 0; y < this.boardHeight; y++) {
                 this.cells[x][y] = new Cell(this, x, y)
+            }
+        }
+
+        for (const cell of this.allCells) {
+            if (cell.pathable) {
+                new Unit(0, cell)
+                break
             }
         }
     }
@@ -44,22 +75,60 @@ function loadImage(url: string): Promise<HTMLImageElement> {
     })
 }
 
-class GameRenderer {
+class Tilesheet {
+    image: HTMLImageElement
+    tileWidth: number
+    tileHeight: number
+    rows: number
+    columns: number
+
+    constructor(image: HTMLImageElement, tileWidth: number, tileHeight: number) {
+        this.image = image
+        this.tileWidth = tileWidth
+        this.tileHeight = tileHeight
+        this.rows = Math.floor(image.naturalHeight / tileHeight)
+        this.columns = Math.floor(image.naturalWidth / tileWidth)
+    }
+
+    drawTile(ctx: CanvasRenderingContext2D, tileIndex: number, dx: number, dy: number, dWidth: number, dHeight: number) {
+        const column = tileIndex % this.columns
+        const row = Math.floor(tileIndex / this.columns)
+        const sx = column * this.tileWidth
+        const sy = row * this.tileHeight
+        
+        ctx.drawImage(this.image, sx, sy, this.tileWidth, this.tileHeight, dx, dy, dWidth, dHeight)        
+    }
+}
+
+class BoardRenderer {
     game: Game
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
-    canvasWidth: number = 0
-    canvasHeight: number = 0
+    worldTilesheet!: Tilesheet
+    creaturesTilesheet!: Tilesheet
+
+    @observable canvasWidth: number = 0
+    @observable canvasHeight: number = 0
+    @observable draggingUnit: Unit|null = null
 
     constructor(game: Game) {
         this.game = game
-        this.canvas = document.getElementById("canvas") as HTMLCanvasElement
+        this.canvas = document.getElementById("board") as HTMLCanvasElement
         this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D
         this.startup()
     }
 
+    async loadImage(url: string): Promise<HTMLImageElement> {
+        return new Promise((resolve, reject) => {
+            const img = new Image()
+            img.src = url
+            img.onload = () => resolve(img)
+        })
+    }
+
     async loadSprites() {
-        
+        this.worldTilesheet = new Tilesheet(await this.loadImage('oryx_16bit_fantasy_world_trans.png'), 24, 24)
+        this.creaturesTilesheet = new Tilesheet(await this.loadImage('oryx_16bit_fantasy_creatures_trans.png'), 24, 24)
     }
 
     async startup() {
@@ -67,18 +136,67 @@ class GameRenderer {
         window.addEventListener("resize", this.onResize)
         this.onResize()
         this.startRenderLoop()
+
+        this.canvas.addEventListener('touchstart', this.onTouchStart)
+        this.canvas.addEventListener('touchend', this.onTouchEnd)
+        this.canvas.addEventListener('touchmove', this.onTouchMove)
+        
+    }
+
+    touchToScreenPoint(touch: Touch) {
+        const rect = this.canvas.getBoundingClientRect()
+        const x = touch.pageX - rect.left
+        const y = touch.pageY - rect.top
+        return [x, y]
+    }
+
+    touchToCell(touch: Touch): Cell {
+        const [sx, sy] = this.touchToScreenPoint(touch)
+        return this.screenPointToCell(sx, sy)
+    }
+
+    @action.bound onTouchStart(e: TouchEvent) {
+        const cell = this.touchToCell(e.touches[0])
+        console.log(cell)
+        if (cell.unit) {
+            this.draggingUnit = cell.unit
+        }
+    }
+
+    @action.bound onTouchEnd() {
+        this.draggingUnit = null
+    }
+
+    @action.bound onTouchMove(e: TouchEvent) {
+        const unit = this.draggingUnit
+        if (!unit) return
+
+        const destCell = this.touchToCell(e.touches[0])
+        console.log(destCell)
+    }
+
+    screenPointToCell(sx: number, sy: number): Cell {
+        console.log(sx, this.cellScreenWidth, sx/this.cellScreenWidth)
+        const cx = Math.floor(sx / this.cellScreenWidth)
+        const cy = Math.floor(sy / this.cellScreenHeight)
+        return this.game.cells[cx][cy]
+    }
+
+    /** Position of the upper left corner of the cell in screen coordinates. */
+    cellToScreenPoint(cell: Cell) {
+        let dx = cell.x * this.cellScreenWidth
+        let dy = cell.y * this.cellScreenHeight
+        return [dx, dy]
     }
 
     onResize() {
-        const width = this.canvas.parentElement!.offsetWidth
-        const height = this.canvas.parentElement!.offsetHeight
-
-        this.canvas.style.width = width+'px'
-        this.canvas.style.height = height+'px'
+        const width = this.canvas.offsetWidth
+        const height = width * (this.game.boardHeight/this.game.boardWidth)
 
         const scale = window.devicePixelRatio
         this.canvas.width = width*scale
         this.canvas.height = height*scale
+        this.ctx.scale(scale, scale)
 
         this.canvasWidth = width
         this.canvasHeight = height
@@ -99,13 +217,17 @@ class GameRenderer {
         this.animationHandle = requestAnimationFrame(frame)
     }
 
-
     @computed get cellScreenWidth(): number {
-        return this.canvas.width / this.game.boardWidth
+        return this.canvasWidth / this.game.boardWidth
     }
 
     @computed get cellScreenHeight(): number {
-        return this.canvas.height / this.game.boardHeight
+        return this.cellScreenWidth
+        // return this.canvas.height / this.game.boardHeight
+    }
+
+    @computed get mouseCell(): Cell {
+
     }
 
     render() {
@@ -116,10 +238,13 @@ class GameRenderer {
         for (let x = 0; x < game.boardWidth; x++) {
             for (let y = 0; y < game.boardHeight; y++) {
                 const cell = game.cells[x][y]
-                const sx = x * this.cellScreenWidth
-                const sy = y * this.cellScreenHeight
-                ctx.fillStyle = cell.color
-                ctx.fillRect(sx, sy, this.cellScreenWidth, this.cellScreenHeight)
+                const [dx, dy] = this.cellToScreenPoint(cell)
+                this.worldTilesheet.drawTile(ctx, cell.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
+
+                const { unit } = cell
+                if (unit) {
+                    this.creaturesTilesheet.drawTile(ctx, unit.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
+                }
             }
         }
 
