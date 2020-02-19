@@ -36,6 +36,10 @@ class Cell {
     get pathable() {
         return this.tileIndex !== 0
     }
+
+    isAdjacentTo(otherCell: Cell) {
+        return (Math.abs(otherCell.x - this.x) + Math.abs(otherCell.y - this.y)) == 1
+    }
 }
 
 class Game {
@@ -115,8 +119,7 @@ class BoardRenderer {
 
     @observable canvasWidth: number = 0
     @observable canvasHeight: number = 0
-    @observable draggingUnit: Unit|null = null
-    @observable dragPath: Cell[]|null = null
+    @observable drag: { unit: Unit, path: Cell[] }|null = null
 
     constructor(game: Game) {
         this.game = game
@@ -165,31 +168,34 @@ class BoardRenderer {
     @action.bound onTouchStart(e: TouchEvent) {
         const cell = this.touchToCell(e.touches[0])
         if (cell.unit) {
-            this.draggingUnit = cell.unit
-            this.dragPath = []
+            this.drag = { unit: cell.unit, path: [] }
         }
     }
 
     @action.bound onTouchEnd() {
-        if (this.draggingUnit) {
-            this.draggingUnit.moveTo(_.last(this.dragPath!)!)
+        const { drag } = this
+        if (!drag) return
+
+        const destCell = _.last(drag.path)
+        if (destCell) {
+            drag.unit.moveTo(destCell)
         }
-        this.draggingUnit = null
-        this.dragPath = null
+
+        this.drag = null
     }
 
     @action.bound onTouchMove(e: TouchEvent) {
-        console.log(e)
-        const unit = this.draggingUnit
-        if (!unit) return
+        const { drag } = this
+        if (!drag) return
 
-        const destCell = this.touchToCell(e.touches[0])
-        if (destCell.pathable && this.dragPath!.indexOf(destCell) === -1)
-            this.dragPath!.push(destCell)
+        const cell = this.touchToCell(e.touches[0])
+        const prevCell = _.last(drag.path) || drag.unit.cell
+        if (cell.pathable && cell.isAdjacentTo(prevCell) && !drag.path.includes(cell)) {
+            drag.path.push(cell)
+        }
     }
 
     screenPointToCell(sx: number, sy: number): Cell {
-        console.log(sx, this.cellScreenWidth, sx/this.cellScreenWidth)
         const cx = Math.min(this.game.boardWidth-1, Math.max(0, Math.floor(sx / this.cellScreenWidth)))
         const cy = Math.min(this.game.boardHeight-1, Math.max(0, Math.floor(sy / this.cellScreenHeight)))
         return this.game.cells[cx][cy]
@@ -245,10 +251,6 @@ class BoardRenderer {
         // return this.canvas.height / this.game.boardHeight
     }
 
-    @computed get mouseCell(): Cell {
-
-    }
-
     render() {
         const { game, ctx } = this
         ctx.save()
@@ -267,13 +269,14 @@ class BoardRenderer {
             }
         }
 
-        if (this.dragPath && this.dragPath.length >= 2) {
-            const startCell = this.dragPath[0]
+        const { drag } = this
+        if (drag && drag.path.length) {
+            const startCell = drag.unit.cell
             const [x, y] = this.cellToScreenPointCenter(startCell)
             ctx.beginPath()
             ctx.moveTo(x, y)
 
-            for (const cell of this.dragPath.slice(1)) {
+            for (const cell of drag.path) {
                 const [nx, ny] = this.cellToScreenPointCenter(cell)
                 ctx.lineTo(nx, ny)
             }
