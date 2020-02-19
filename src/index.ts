@@ -3,6 +3,8 @@ import './index.scss'
 import { observable, computed, action, autorun } from 'mobx'
 import { dijkstra } from './pathfinding'
 import { PointVector } from './PointVector'
+import * as PIXI from 'pixi.js'
+import { scaleBand } from 'd3-scale'
 const log = console.log
 
 class Unit {
@@ -112,76 +114,137 @@ function loadImage(url: string): Promise<HTMLImageElement> {
     })
 }
 
-class Tilesheet {
-    image: HTMLImageElement
+class Tileset {
+    texture: PIXI.Texture
     tileWidth: number
     tileHeight: number
     rows: number
     columns: number
+    tileCache: {[tileIndex: number]: PIXI.Texture|undefined} = {}
 
-    constructor(image: HTMLImageElement, tileWidth: number, tileHeight: number) {
-        this.image = image
+    constructor(texture: PIXI.Texture, tileWidth: number, tileHeight: number) {
+        this.texture = texture
         this.tileWidth = tileWidth
         this.tileHeight = tileHeight
-        this.rows = Math.floor(image.naturalHeight / tileHeight)
-        this.columns = Math.floor(image.naturalWidth / tileWidth)
+        this.columns = Math.floor(texture.width / tileWidth)
+        this.rows = Math.floor(texture.height / tileHeight)
     }
 
-    drawTile(ctx: CanvasRenderingContext2D, tileIndex: number, dx: number, dy: number, dWidth: number, dHeight: number) {
+    tile(tileIndex: number) {
+        const cached = this.tileCache[tileIndex]
+        if (cached) return cached
+
         const column = tileIndex % this.columns
         const row = Math.floor(tileIndex / this.columns)
         const sx = column * this.tileWidth
         const sy = row * this.tileHeight
-        
-        ctx.drawImage(this.image, sx, sy, this.tileWidth, this.tileHeight, dx, dy, dWidth, dHeight)        
+
+        const texture = new PIXI.Texture(this.texture.baseTexture, new PIXI.Rectangle(sx, sy, this.tileWidth, this.tileHeight))
+        this.tileCache[tileIndex] = texture
+        return texture
     }
 }
 
 class BoardRenderer {
     game: Game
-    canvas: HTMLCanvasElement
-    ctx: CanvasRenderingContext2D
-    worldTilesheet!: Tilesheet
-    creaturesTilesheet!: Tilesheet
 
     @observable canvasWidth: number = 0
     @observable canvasHeight: number = 0
     @observable drag: { unit: Unit, path: Cell[] }|null = null
+    app: PIXI.Application
+    graphics: PIXI.Graphics
+    worldTileset!: Tileset
+    creaturesTileset!: Tileset
 
     constructor(game: Game) {
         this.game = game
-        this.canvas = document.getElementById("board") as HTMLCanvasElement
-        this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D
-        this.startup()
+
+        const app = new PIXI.Application()
+        this.app = app
+
+        const graphics = new PIXI.Graphics()
+        this.graphics = graphics
+
+        document.querySelector("#root")!.appendChild(app.view)
+
+        app.loader
+            .add("world", "oryx_16bit_fantasy_world_trans.png")
+            .add("creatures", "oryx_16bit_fantasy_creatures_trans.png")
+            .load((loader, resources) => {
+                this.worldTileset = new Tileset(resources.world!.texture, 24, 24)
+                this.creaturesTileset = new Tileset(resources.creatures!.texture, 24, 24)
+                this.startup()
+            });
     }
 
-    async loadImage(url: string): Promise<HTMLImageElement> {
-        return new Promise((resolve, reject) => {
-            const img = new Image()
-            img.src = url
-            img.onload = () => resolve(img)
-        })
-    }
-
-    async loadSprites() {
-        this.worldTilesheet = new Tilesheet(await this.loadImage('oryx_16bit_fantasy_world_trans.png'), 24, 24)
-        this.creaturesTilesheet = new Tilesheet(await this.loadImage('oryx_16bit_fantasy_creatures_trans.png'), 24, 24)
-    }
-
-    async startup() {
-        await this.loadSprites()
+    async startup() {        
         window.addEventListener("resize", this.onResize)
         this.onResize()
-        this.startRenderLoop()
 
-        this.canvas.addEventListener('touchstart', this.onTouchStart)
-        this.canvas.addEventListener('touchend', this.onTouchEnd)
-        this.canvas.addEventListener('touchmove', this.onTouchMove)
+        const { app, worldTileset, creaturesTileset } = this
+
+        for (const cell of this.game.allCells) {
+            const tile = new PIXI.Sprite(worldTileset.tile(cell.tileIndex))
+            const [sx, sy] = this.cellToScreenPoint(cell)
+            tile.x = sx
+            tile.y = sy
+            const scale = this.cellScreenWidth/24
+            tile.scale = new PIXI.Point(scale, scale)
+            app.stage.addChild(tile)
+        }
+
+        for (const cell of this.game.allCells) {
+            if (!cell.unit) continue
+
+            const unit = cell.unit
+            const tile = new PIXI.Sprite(creaturesTileset.tile(unit.tileIndex))
+            const [sx, sy] = this.cellToScreenPoint(cell)
+            tile.x = sx
+            tile.y = sy
+            const scale = this.cellScreenWidth/24
+            tile.scale = new PIXI.Point(scale, scale)
+            app.stage.addChild(tile)
+        }
+
+        app.stage.addChild(this.graphics)
+
+        // await this.loadSprites()
+        // this.startRenderLoop()
+
+        autorun(() => {
+            const { drag } = this
+            if (!drag || !drag.path.length) {
+                this.graphics.clear()
+                return
+            }
+
+            const { graphics } = this
+            graphics.clear()
+
+            const startCell = drag.unit.cell
+            const [x, y] = this.cellToScreenPointCenter(startCell)
+            console.log(x, y)
+            graphics.moveTo(x, y)
+            graphics.lineStyle(1, 0xffffff, 1)
+
+            for (const cell of drag.path) {
+                const [nx, ny] = this.cellToScreenPointCenter(cell)
+                graphics.lineTo(nx, ny)
+            }
+
+            graphics.endFill()
+        })
+
+
+
+        app.view.addEventListener('touchstart', this.onTouchStart)
+        app.view.addEventListener('touchend', this.onTouchEnd)
+        app.view.addEventListener('touchmove', this.onTouchMove)
         
     }
 
     touchToScreenPoint(touch: Touch) {
-        const rect = this.canvas.getBoundingClientRect()
+        const rect = this.app.view.getBoundingClientRect()
         const x = touch.pageX - rect.left
         const y = touch.pageY - rect.top
         return [x, y]
@@ -194,6 +257,7 @@ class BoardRenderer {
 
     @action.bound onTouchStart(e: TouchEvent) {
         const cell = this.touchToCell(e.touches[0])
+        console.log(cell)
         if (cell.unit) {
             this.drag = { unit: cell.unit, path: [] }
         }
@@ -220,6 +284,9 @@ class BoardRenderer {
         if (cell.pathable) {
             drag.path = drag.unit.getPathTo(cell)
         }
+
+
+
     }
 
     screenPointToCell(sx: number, sy: number): Cell {
@@ -242,32 +309,19 @@ class BoardRenderer {
     }
 
     onResize() {
-        const width = this.canvas.offsetWidth
+        const width = this.app.view.offsetWidth
         const height = width * (this.game.boardHeight/this.game.boardWidth)
 
-        const scale = window.devicePixelRatio
-        this.canvas.width = width*scale
-        this.canvas.height = height*scale
-        this.ctx.scale(scale, scale)
+        const targetWidth = 24*this.game.boardWidth
+
+        // const scale = window.devicePixelRatio
+        this.app.renderer.resize(width, height)
+        // this.ctx.scale(scale, scale)
 
         this.canvasWidth = width
         this.canvasHeight = height
     }
 
-    animationHandle: number|null = null
-    startRenderLoop() {
-        if (this.animationHandle != null)
-            cancelAnimationFrame(this.animationHandle)
-
-        let start: number
-        const frame = (timestamp: number) => {
-            if (!start) start = timestamp
-            const timePassed = 100000 +timestamp-start
-            this.render()
-            this.animationHandle = requestAnimationFrame(frame)
-        }
-        this.animationHandle = requestAnimationFrame(frame)
-    }
 
     @computed get cellScreenWidth(): number {
         return this.canvasWidth / this.game.boardWidth
@@ -278,42 +332,30 @@ class BoardRenderer {
         // return this.canvas.height / this.game.boardHeight
     }
 
-    render() {
-        const { game, ctx } = this
-        ctx.save()
-        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    // render() {
+    //     const { game, ctx } = this
+    //     ctx.save()
+    //     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
-        for (let x = 0; x < game.boardWidth; x++) {
-            for (let y = 0; y < game.boardHeight; y++) {
-                const cell = game.cells[x][y]
-                const [dx, dy] = this.cellToScreenPoint(cell)
-                this.worldTilesheet.drawTile(ctx, cell.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
+    //     for (let x = 0; x < game.boardWidth; x++) {
+    //         for (let y = 0; y < game.boardHeight; y++) {
+    //             const cell = game.cells[x][y]
+    //             const [dx, dy] = this.cellToScreenPoint(cell)
+    //             this.worldTilesheet.drawTile(ctx, cell.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
 
-                const { unit } = cell
-                if (unit) {
-                    this.creaturesTilesheet.drawTile(ctx, unit.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
-                }
-            }
-        }
+    //             const { unit } = cell
+    //             if (unit) {
+    //                 this.creaturesTilesheet.drawTile(ctx, unit.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
+    //             }
+    //         }
+    //     }
 
-        const { drag } = this
-        if (drag && drag.path.length) {
-            const startCell = drag.unit.cell
-            const [x, y] = this.cellToScreenPointCenter(startCell)
-            ctx.beginPath()
-            ctx.moveTo(x, y)
+    //     const { drag } = this
+    //     if (drag && drag.path.length) {
+    //     }
 
-            for (const cell of drag.path) {
-                const [nx, ny] = this.cellToScreenPointCenter(cell)
-                ctx.lineTo(nx, ny)
-            }
-
-            ctx.strokeStyle = "#fff"
-            ctx.stroke()
-        }
-
-        ctx.restore()
-    }
+    //     ctx.restore()
+    // }
 }
 
 function main() {
