@@ -19,6 +19,18 @@ class Unit {
         cell.unit = this
         this.cell = cell
     }
+
+    canPathThrough(cell: Cell) {
+        return cell.pathable && (!cell.unit || cell.unit === this)
+    }
+
+    getPathTo(cell: Cell) {
+        return dijkstra({
+            start: this.cell,
+            goal: cell,
+            expand: node => node.neighbors().filter(n => this.canPathThrough(n))
+        })
+    }
 }
 
 class Cell {
@@ -50,14 +62,6 @@ class Cell {
 
     isAdjacentTo(otherCell: Cell) {
         return this.pos.manhattanDistance(otherCell.pos) === 1
-    }
-
-    pathTo(otherCell: Cell) {
-        return dijkstra({
-            start: this,
-            goal: otherCell,
-            expand: node => node.neighbors().filter(n => n.pathable)
-        })
     }
 }
 
@@ -214,7 +218,7 @@ class BoardRenderer {
         const cell = this.touchToCell(e.touches[0])
         const prevCell = _.last(drag.path) || drag.unit.cell
         if (cell.pathable) {
-            drag.path = drag.unit.cell.pathTo(cell)
+            drag.path = drag.unit.getPathTo(cell)
         }
     }
 
