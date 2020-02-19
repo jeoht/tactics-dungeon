@@ -1,6 +1,8 @@
 import * as _ from 'lodash'
 import './index.scss'
 import { observable, computed, action, autorun } from 'mobx'
+import { dijkstra } from './pathfinding'
+import { PointVector } from './PointVector'
 const log = console.log
 
 class Unit {
@@ -21,26 +23,44 @@ class Unit {
 
 class Cell {
     game: Game
-    x: number
-    y: number
+    pos: PointVector
     tileIndex: number
     unit?: Unit
 
     constructor(game: Game, x: number, y: number) {
         this.game = game
-        this.x = x
-        this.y = y
-        this.tileIndex = Math.random() > 0.5 ? 0 : 3
+        this.pos = new PointVector(x, y)
+        this.tileIndex = Math.random() > 0.9 ? 0 : 3
     }
 
     get pathable() {
         return this.tileIndex !== 0
     }
 
+    neighbors(): Cell[] {
+        const neighbors = []
+        for (const n of this.pos.neighbors()) {
+            const cell = this.game.cellAt(n)
+            if (cell) {
+                neighbors.push(cell)
+            }
+        }
+        return neighbors
+    }
+
     isAdjacentTo(otherCell: Cell) {
-        return (Math.abs(otherCell.x - this.x) + Math.abs(otherCell.y - this.y)) == 1
+        return this.pos.manhattanDistance(otherCell.pos) === 1
+    }
+
+    pathTo(otherCell: Cell) {
+        return dijkstra({
+            start: this,
+            goal: otherCell,
+            expand: node => node.neighbors().filter(n => n.pathable)
+        })
     }
 }
+
 
 class Game {
     renderer: BoardRenderer
@@ -58,6 +78,12 @@ class Game {
         return cells
     }
 
+    cellAt(pos: PointVector): Cell|undefined {
+        const col = this.cells[pos.x]
+        if (!col) return undefined
+        return col[pos.y]
+    }
+
     constructor() {
         this.renderer = new BoardRenderer(this)
 
@@ -68,12 +94,9 @@ class Game {
             }
         }
 
-        for (const cell of this.allCells) {
-            if (cell.pathable) {
-                new Unit(3, cell)
-                break
-            }
-        }
+        const pathableCells = _.sampleSize(this.allCells.filter(c => c.pathable), 2)
+        new Unit(3, pathableCells[0])
+        new Unit(4, pathableCells[1])
     }
 }
 
@@ -190,8 +213,8 @@ class BoardRenderer {
 
         const cell = this.touchToCell(e.touches[0])
         const prevCell = _.last(drag.path) || drag.unit.cell
-        if (cell.pathable && cell.isAdjacentTo(prevCell) && !drag.path.includes(cell)) {
-            drag.path.push(cell)
+        if (cell.pathable) {
+            drag.path = drag.unit.cell.pathTo(cell)
         }
     }
 
@@ -203,8 +226,8 @@ class BoardRenderer {
 
     /** Position of the upper left corner of the cell in screen coordinates. */
     cellToScreenPoint(cell: Cell) {
-        let dx = cell.x * this.cellScreenWidth
-        let dy = cell.y * this.cellScreenHeight
+        let dx = cell.pos.x * this.cellScreenWidth
+        let dy = cell.pos.y * this.cellScreenHeight
         return [dx, dy]
     }
 
