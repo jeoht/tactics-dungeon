@@ -6,14 +6,9 @@ import { PointVector } from './PointVector'
 import { Tileset } from './Tileset'
 import { GameView } from './GameView'
 import { Game } from './Game'
+import { Assets } from './Assets'
 
-async function loadImage(url: string): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-        const img = new Image()
-        img.src = url
-        img.onload = () => resolve(img)
-    })
-}
+
 
 declare global {
     interface Window { 
@@ -25,14 +20,10 @@ declare global {
 async function main() {
     const game = new Game()
 
-    const [world, creatures] = await Promise.all([
-        loadImage('oryx_16bit_fantasy_world_trans.png'),
-        loadImage('oryx_16bit_fantasy_creatures_trans.png')
-    ])
-    const worldTileset = new Tileset(world, 24, 24)
-    const creaturesTileset = new Tileset(creatures, 24, 24)
+    const assets = new Assets()
+    await assets.load()
 
-    const view = new GameView(game, worldTileset, creaturesTileset)
+    const view = new GameView(game, assets)
     view.start()
 
     // Debug

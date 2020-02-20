@@ -1,16 +1,21 @@
+
+
 export class Tileset {
-    image: HTMLImageElement
+    image: CanvasImageSource
     tileWidth: number
     tileHeight: number
     rows: number
     columns: number
 
-    constructor(image: HTMLImageElement, tileWidth: number, tileHeight: number) {
+    constructor(image: HTMLImageElement|ImageBitmap, tileWidth: number, tileHeight: number) {
         this.image = image
         this.tileWidth = tileWidth
         this.tileHeight = tileHeight
-        this.rows = Math.floor(image.naturalHeight / tileHeight)
-        this.columns = Math.floor(image.naturalWidth / tileWidth)
+
+        const imgWidth = 'naturalWidth' in image ? image.naturalWidth : image.width
+        const imgHeight = 'naturalHeight' in image ? image.naturalHeight : image.height
+        this.rows = Math.floor(imgWidth / tileHeight)
+        this.columns = Math.floor(imgHeight / tileWidth)
     }
 
     drawTile(ctx: CanvasRenderingContext2D, tileIndex: number, dx: number, dy: number, dWidth: number, dHeight: number) {

@@ -3,16 +3,17 @@ import { Game } from "./Game"
 import { Cell } from "./Cell"
 import { action, computed } from "mobx"
 import { TouchInterface } from "./TouchInterface"
+import { ImageRefiner } from "./ImageRefiner"
+import { Assets } from "./Assets"
 
 export class GameView {
     game: Game
-    worldTileset: Tileset
-    creaturesTileset: Tileset
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
     cellScreenWidth: number = 24
     cellScreenHeight: number = 24
     touchInterface: TouchInterface
+    assets: Assets
 
     @computed get renderWidth() {
         return this.cellScreenWidth * this.game.boardWidth
@@ -22,10 +23,9 @@ export class GameView {
         return this.cellScreenHeight * this.game.boardHeight
     }
 
-    constructor(game: Game, worldTileset: Tileset, creaturesTileset: Tileset) {
+    constructor(game: Game, assets: Assets) {
         this.game = game
-        this.worldTileset = worldTileset
-        this.creaturesTileset = creaturesTileset
+        this.assets = assets
         this.canvas = document.getElementById("board") as HTMLCanvasElement
         this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D
         this.touchInterface = new TouchInterface(this)
@@ -89,11 +89,11 @@ export class GameView {
             for (let y = 0; y < game.boardHeight; y++) {
                 const cell = game.grid[x][y]
                 const [dx, dy] = this.cellToScreenPoint(cell)
-                this.worldTileset.drawTile(ctx, cell.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
+                this.assets.world.drawTile(ctx, cell.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
 
                 const { unit } = cell
                 if (unit) {
-                    this.creaturesTileset.drawTile(ctx, unit.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
+                    this.assets.grayscaleCreatures.drawTile(ctx, unit.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
                 }
             }
         }
