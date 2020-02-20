@@ -93,7 +93,8 @@ export class GameView {
 
                 const { unit } = cell
                 if (unit) {
-                    this.assets.grayscaleCreatures.drawTile(ctx, unit.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
+                    const tileset = unit.moved ? this.assets.grayscaleCreatures : this.assets.creatures
+                    tileset.drawTile(ctx, unit.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
                 }
             }
         }

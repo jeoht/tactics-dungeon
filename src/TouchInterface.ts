@@ -31,7 +31,7 @@ export class TouchInterface {
 
     @action.bound onTouchStart(e: TouchEvent) {
         const cell = this.touchToCell(e.touches[0])
-        if (cell.unit) {
+        if (cell.unit && !cell.unit.moved) {
             this.drag = { unit: cell.unit, path: [] }
         }
     }
@@ -53,6 +53,7 @@ export class TouchInterface {
         const destCell = _.last(drag.path)
         if (destCell) {
             drag.unit.moveTo(destCell)
+            drag.unit.moved = true
         }
 
         this.drag = null
