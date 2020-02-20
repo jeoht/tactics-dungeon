@@ -1,4 +1,6 @@
 import { PointVector } from "./PointVector"
+import { Game } from "./Game"
+import { Unit } from "./Unit"
 
 export class Cell {
     game: Game

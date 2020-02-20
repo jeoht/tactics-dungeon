@@ -21,9 +21,10 @@ export class Game {
     }
 
     cellAt(pos: PointVector): Cell|undefined {
-        const col = this.grid[pos.x]
-        if (!col) return undefined
-        return col[pos.y]
+        if (pos.x < 0 || pos.y < 0 || pos.x >= this.grid.length || pos.y >= this.grid[0].length)
+            return undefined
+        else
+            return this.grid[pos.x][pos.y]
     }
 
     constructor() {
