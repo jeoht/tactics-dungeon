@@ -4,6 +4,8 @@ import { dijkstra } from "./pathfinding"
 export class Unit {
     tileIndex: number
     cell: Cell
+    moved: boolean = false
+
     constructor(tileIndex: number, cell: Cell) {
         this.tileIndex = tileIndex
         this.cell = cell
