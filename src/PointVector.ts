@@ -23,6 +23,10 @@ export class PointVector {
         return new PointVector(this.x+other.x, this.y+other.y)
     }
 
+    subtract(other: PointVector) {
+        return new PointVector(this.x-other.x, this.y-other.y)
+    }
+
     manhattanDistance(other: PointVector) {
         return Math.abs(other.x - this.x) + Math.abs(other.y - this.y)
     }

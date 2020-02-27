@@ -5,6 +5,7 @@ import { action, computed } from "mobx"
 import { TouchInterface } from "./TouchInterface"
 import { ImageRefiner } from "./ImageRefiner"
 import { Assets } from "./Assets"
+import { ScreenVector } from "./ScreenVector"
 
 export class GameView {
     game: Game
@@ -46,23 +47,23 @@ export class GameView {
         this.ctx.scale(scale, scale)
     }
 
-    screenPointToCell(sx: number, sy: number): Cell {
-        const cx = Math.min(this.game.boardWidth-1, Math.max(0, Math.floor(sx / this.cellScreenWidth)))
-        const cy = Math.min(this.game.boardHeight-1, Math.max(0, Math.floor(sy / this.cellScreenHeight)))
+    screenPointToCell(pos: ScreenVector): Cell {
+        const cx = Math.min(this.game.boardWidth-1, Math.max(0, Math.floor(pos.x / this.cellScreenWidth)))
+        const cy = Math.min(this.game.boardHeight-1, Math.max(0, Math.floor(pos.y / this.cellScreenHeight)))
         return this.game.grid[cx][cy]
     }
 
     /** Position of the upper left corner of the cell in screen coordinates. */
-    cellToScreenPoint(cell: Cell) {
+    cellToScreenPoint(cell: Cell): ScreenVector {
         let dx = cell.pos.x * this.cellScreenWidth
         let dy = cell.pos.y * this.cellScreenHeight
-        return [dx, dy]
+        return new ScreenVector(dx, dy)
     }
 
     /** Position of the center of the cell in screen coordinates. */
-    cellToScreenPointCenter(cell: Cell) {
-        const [x, y] = this.cellToScreenPoint(cell)
-        return [x + this.cellScreenWidth/2, y + this.cellScreenHeight/2]
+    cellToScreenPointCenter(cell: Cell): ScreenVector {
+        const { x, y } = this.cellToScreenPoint(cell)
+        return new ScreenVector(x + this.cellScreenWidth/2, y + this.cellScreenHeight/2)
     }
 
     animationHandle: number|null = null
@@ -81,25 +82,25 @@ export class GameView {
     }
 
     render() {
-        const { game, ctx } = this
+        const { game, ctx, touchInterface } = this
         ctx.save()
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
         for (let x = 0; x < game.boardWidth; x++) {
             for (let y = 0; y < game.boardHeight; y++) {
                 const cell = game.grid[x][y]
-                const [dx, dy] = this.cellToScreenPoint(cell)
-                this.assets.world.drawTile(ctx, cell.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
+                const spos = this.cellToScreenPoint(cell)
+                this.assets.world.drawTile(ctx, cell.tileIndex, spos.x, spos.y, this.cellScreenWidth, this.cellScreenHeight)
 
                 const { unit } = cell
-                if (unit) {
+                if (unit && unit != touchInterface.drag?.unit) {
                     const tileset = unit.moved ? this.assets.grayscaleCreatures : this.assets.creatures
-                    tileset.drawTile(ctx, unit.tileIndex, dx, dy, this.cellScreenWidth, this.cellScreenHeight)
+                    tileset.drawTile(ctx, unit.tileIndex, spos.x, spos.y, this.cellScreenWidth, this.cellScreenHeight)
                 }
             }
         }
 
-        this.touchInterface.render()
+        touchInterface.render()
 
         ctx.restore()
     }
