@@ -3,10 +3,23 @@ import { GameView } from "./GameView"
 import { action, observable } from "mobx"
 import { Unit } from "./Unit"
 import _ = require("lodash")
+import { ScreenVector } from "./ScreenVector"
+
+
+type Drag = {
+    /** The unit being dragged */
+    unit: Unit
+    /** The current path the unit will follow on drag release */
+    path: Cell[]
+    /** Current position of the cursor in screen coordinates */
+    cursorPos: ScreenVector
+    /** Unit rendering offset relative to the cursor position */
+    cursorOffset: ScreenVector
+}
 
 export class TouchInterface {
     view: GameView
-    @observable drag: { unit: Unit, path: Cell[] }|null = null
+    @observable drag: Drag|null = null
 
     constructor(view: GameView) {
         this.view = view
@@ -15,24 +28,22 @@ export class TouchInterface {
         view.canvas.addEventListener('touchmove', this.onTouchMove)
     }
 
-    touchToScreenPoint(touch: Touch) {
+    touchToScreenPoint(touch: Touch): ScreenVector {
         const rect = this.view.canvas.getBoundingClientRect()
         const scaleX = rect.width / this.view.renderWidth
         const scaleY = rect.height / this.view.renderHeight
         const x = (touch.pageX - rect.left) / scaleX
         const y = (touch.pageY - rect.top) / scaleY
-        return [x, y]
-    }
-
-    touchToCell(touch: Touch): Cell {
-        const [sx, sy] = this.touchToScreenPoint(touch)
-        return this.view.screenPointToCell(sx, sy)
+        return new ScreenVector(x, y)
     }
 
     @action.bound onTouchStart(e: TouchEvent) {
-        const cell = this.touchToCell(e.touches[0])
+        const touch = e.touches[0]
+        const cursorPos = this.touchToScreenPoint(touch)
+        const cell = this.view.screenPointToCell(cursorPos)
         if (cell.unit && !cell.unit.moved) {
-            this.drag = { unit: cell.unit, path: [] }
+            const cursorOffset = cursorPos.subtract(this.view.cellToScreenPoint(cell))
+            this.drag = { unit: cell.unit, path: [], cursorPos: cursorPos, cursorOffset: cursorOffset }
         }
     }
 
@@ -40,9 +51,12 @@ export class TouchInterface {
         const { drag } = this
         if (!drag) return
 
-        const cell = this.touchToCell(e.touches[0])
+        const touch = e.touches[0]
+        const cursorPos = this.touchToScreenPoint(touch)
+        const cell = this.view.screenPointToCell(cursorPos)
         if (cell.pathable) {
             drag.path = drag.unit.getPathTo(cell)
+            drag.cursorPos = cursorPos
         }
     }
 
@@ -62,19 +76,25 @@ export class TouchInterface {
     render() {
         const { drag, view } = this
         const { ctx } = view
-        if (drag && drag.path.length) {
-            const startCell = drag.unit.cell
-            const [x, y] = view.cellToScreenPointCenter(startCell)
-            ctx.beginPath()
-            ctx.moveTo(x, y)
-
-            for (const cell of drag.path) {
-                const [nx, ny] = view.cellToScreenPointCenter(cell)
-                ctx.lineTo(nx, ny)
+        if (drag) {
+            if (drag.path.length) {
+                const startCell = drag.unit.cell
+                const {x, y} = view.cellToScreenPointCenter(startCell)
+                ctx.beginPath()
+                ctx.moveTo(x, y)
+    
+                for (const cell of drag.path) {
+                    const spos = view.cellToScreenPointCenter(cell)
+                    ctx.lineTo(spos.x, spos.y)
+                }
+    
+                ctx.strokeStyle = "#fff"
+                ctx.stroke()    
             }
 
-            ctx.strokeStyle = "#fff"
-            ctx.stroke()
+            // Draw the unit at the current cursor position
+            const pos = drag.cursorPos.subtract(drag.cursorOffset)
+            view.assets.creatures.drawTile(ctx, drag.unit.tileIndex, pos.x, pos.y, view.cellScreenWidth, view.cellScreenHeight)
         }
     }
 }
