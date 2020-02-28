@@ -1,9 +1,10 @@
 import { Cell } from "./Cell"
-import { dijkstra } from "./pathfinding"
+import { dijkstra, dijkstraRange } from "./pathfinding"
 
 export class Unit {
     tileIndex: number
     cell: Cell
+    moveRange: number = 3
     moved: boolean = false
 
     constructor(tileIndex: number, cell: Cell) {
@@ -26,6 +27,14 @@ export class Unit {
         return dijkstra({
             start: this.cell,
             goal: cell,
+            expand: node => node.neighbors().filter(n => this.canPathThrough(n))
+        })
+    }
+
+    findCellsInMoveRange() {
+        return dijkstraRange({
+            start: this.cell,
+            range: this.moveRange,
             expand: node => node.neighbors().filter(n => this.canPathThrough(n))
         })
     }

@@ -15,6 +15,8 @@ type Drag = {
     cursorPos: ScreenVector
     /** Unit rendering offset relative to the cursor position */
     cursorOffset: ScreenVector
+    /** Cells the unit can move to */
+    possibleMoves: Cell[]
 }
 
 export class TouchInterface {
@@ -43,7 +45,13 @@ export class TouchInterface {
         const cell = this.view.screenPointToCell(cursorPos)
         if (cell.unit && !cell.unit.moved) {
             const cursorOffset = cursorPos.subtract(this.view.cellToScreenPoint(cell))
-            this.drag = { unit: cell.unit, path: [], cursorPos: cursorPos, cursorOffset: cursorOffset }
+            this.drag = { 
+                unit: cell.unit, 
+                path: [], 
+                cursorPos: cursorPos, 
+                cursorOffset: cursorOffset,
+                possibleMoves: cell.unit.findCellsInMoveRange()
+            }
         }
     }
 
@@ -54,9 +62,10 @@ export class TouchInterface {
         const touch = e.touches[0]
         const cursorPos = this.touchToScreenPoint(touch)
         const cell = this.view.screenPointToCell(cursorPos)
-        if (cell.pathable) {
+
+        drag.cursorPos = cursorPos
+        if (drag.possibleMoves.includes(cell)) {
             drag.path = drag.unit.getPathTo(cell)
-            drag.cursorPos = cursorPos
         }
     }
 
@@ -77,6 +86,14 @@ export class TouchInterface {
         const { drag, view } = this
         const { ctx } = view
         if (drag) {
+            // Draw overlay indicator of movement radius
+            ctx.fillStyle = "rgba(51, 153, 255, 0.5)"
+            for (const cell of drag.possibleMoves) {
+                const spos = view.cellToScreenPoint(cell)
+                ctx.fillRect(spos.x, spos.y, view.cellScreenWidth, view.cellScreenHeight)
+            }
+
+            // Draw path the unit will follow
             if (drag.path.length) {
                 const startCell = drag.unit.cell
                 const {x, y} = view.cellToScreenPointCenter(startCell)
@@ -89,6 +106,7 @@ export class TouchInterface {
                 }
     
                 ctx.strokeStyle = "#fff"
+                ctx.lineWidth = 5
                 ctx.stroke()    
             }
 
