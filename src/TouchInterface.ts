@@ -4,6 +4,7 @@ import { action, observable } from "mobx"
 import { Unit } from "./Unit"
 import _ = require("lodash")
 import { ScreenVector } from "./ScreenVector"
+import { UIState } from "./UIState"
 
 
 type Drag = {
@@ -20,20 +21,22 @@ type Drag = {
 }
 
 export class TouchInterface {
-    view: GameView
+    ui: UIState
+    canvas: HTMLCanvasElement
     @observable drag: Drag|null = null
 
-    constructor(view: GameView) {
-        this.view = view
-        view.canvas.addEventListener('touchstart', this.onTouchStart)
-        view.canvas.addEventListener('touchend', this.onTouchEnd)
-        view.canvas.addEventListener('touchmove', this.onTouchMove)
+    constructor(ui: UIState, canvas: HTMLCanvasElement) {
+        this.ui = ui
+        this.canvas = canvas
+        canvas.addEventListener('touchstart', this.onTouchStart)
+        canvas.addEventListener('touchend', this.onTouchEnd)
+        canvas.addEventListener('touchmove', this.onTouchMove)
     }
 
     touchToScreenPoint(touch: Touch): ScreenVector {
-        const rect = this.view.canvas.getBoundingClientRect()
-        const scaleX = rect.width / this.view.renderWidth
-        const scaleY = rect.height / this.view.renderHeight
+        const rect = this.canvas.getBoundingClientRect()
+        const scaleX = rect.width / this.ui.boardScreenWidth
+        const scaleY = rect.height / this.ui.boardScreenHeight
         const x = (touch.pageX - rect.left) / scaleX
         const y = (touch.pageY - rect.top) / scaleY
         return new ScreenVector(x, y)
@@ -42,9 +45,9 @@ export class TouchInterface {
     @action.bound onTouchStart(e: TouchEvent) {
         const touch = e.touches[0]
         const cursorPos = this.touchToScreenPoint(touch)
-        const cell = this.view.screenPointToCell(cursorPos)
+        const cell = this.ui.screenPointToCell(cursorPos)
         if (cell.unit && !cell.unit.moved) {
-            const cursorOffset = cursorPos.subtract(this.view.cellToScreenPoint(cell))
+            const cursorOffset = cursorPos.subtract(this.ui.cellToScreenPoint(cell))
             this.drag = { 
                 unit: cell.unit, 
                 path: [], 
@@ -61,7 +64,7 @@ export class TouchInterface {
 
         const touch = e.touches[0]
         const cursorPos = this.touchToScreenPoint(touch)
-        const cell = this.view.screenPointToCell(cursorPos)
+        const cell = this.ui.screenPointToCell(cursorPos)
 
         drag.cursorPos = cursorPos
         if (drag.possibleMoves.includes(cell)) {
@@ -83,25 +86,25 @@ export class TouchInterface {
     }
 
     render() {
-        const { drag, view } = this
-        const { ctx } = view
+        const { drag, ui } = this
+        const ctx = this.canvas.getContext('2d')!
         if (drag) {
             // Draw overlay indicator of movement radius
             ctx.fillStyle = "rgba(51, 153, 255, 0.5)"
             for (const cell of drag.possibleMoves) {
-                const spos = view.cellToScreenPoint(cell)
-                ctx.fillRect(spos.x, spos.y, view.cellScreenWidth, view.cellScreenHeight)
+                const spos = ui.cellToScreenPoint(cell)
+                ctx.fillRect(spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
             }
 
             // Draw path the unit will follow
             if (drag.path.length) {
                 const startCell = drag.unit.cell
-                const {x, y} = view.cellToScreenPointCenter(startCell)
+                const {x, y} = ui.cellToScreenPointCenter(startCell)
                 ctx.beginPath()
                 ctx.moveTo(x, y)
     
                 for (const cell of drag.path) {
-                    const spos = view.cellToScreenPointCenter(cell)
+                    const spos = ui.cellToScreenPointCenter(cell)
                     ctx.lineTo(spos.x, spos.y)
                 }
     
@@ -112,7 +115,7 @@ export class TouchInterface {
 
             // Draw the unit at the current cursor position
             const pos = drag.cursorPos.subtract(drag.cursorOffset)
-            view.assets.creatures.drawTile(ctx, drag.unit.tileIndex, pos.x, pos.y, view.cellScreenWidth, view.cellScreenHeight)
+            ui.assets.creatures.drawTile(ctx, drag.unit.tileIndex, pos.x, pos.y, ui.cellScreenWidth, ui.cellScreenHeight)
         }
     }
 }

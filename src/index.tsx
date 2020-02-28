@@ -8,27 +8,32 @@ import { GameView } from './GameView'
 import { Game } from './Game'
 import { Assets } from './Assets'
 
+import * as React from 'react'
+import * as ReactDOM from 'react-dom'
+import { World } from './World'
+import { UIState } from './UIState'
+
 
 
 declare global {
     interface Window { 
         game: Game
-        view: GameView
     }
 }
 
 async function main() {
-    const game = new Game()
-
+    const world = new World()
     const assets = new Assets()
     await assets.load()
+    const ui = new UIState(world, assets)
+    const game = new Game(world, ui)
 
-    const view = new GameView(game, assets)
-    view.start()
+
+    const root = document.querySelector("#root")!
+    ReactDOM.render(<GameView game={game}/>, root)
 
     // Debug
     window.game = game
-    window.view = view
 }
 
 main()
