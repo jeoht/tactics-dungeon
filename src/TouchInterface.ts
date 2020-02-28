@@ -46,7 +46,15 @@ export class TouchInterface {
         const touch = e.touches[0]
         const cursorPos = this.touchToScreenPoint(touch)
         const cell = this.ui.screenPointToCell(cursorPos)
-        if (cell.unit && !cell.unit.moved) {
+
+    }
+
+    @action.bound onTouchMove(e: TouchEvent) {
+        const touch = e.touches[0]
+        const cursorPos = this.touchToScreenPoint(touch)
+        const cell = this.ui.screenPointToCell(cursorPos)
+
+        if (!this.drag && cell.unit && !cell.unit.moved) {
             const cursorOffset = cursorPos.subtract(this.ui.cellToScreenPoint(cell))
             this.drag = { 
                 unit: cell.unit, 
@@ -56,25 +64,22 @@ export class TouchInterface {
                 possibleMoves: cell.unit.findCellsInMoveRange()
             }
         }
-    }
 
-    @action.bound onTouchMove(e: TouchEvent) {
-        const { drag } = this
-        if (!drag) return
-
-        const touch = e.touches[0]
-        const cursorPos = this.touchToScreenPoint(touch)
-        const cell = this.ui.screenPointToCell(cursorPos)
-
-        drag.cursorPos = cursorPos
-        if (drag.possibleMoves.includes(cell)) {
-            drag.path = drag.unit.getPathTo(cell)
+        const {drag} = this
+        if (drag) {
+            drag.cursorPos = cursorPos
+            if (drag.possibleMoves.includes(cell)) {
+                drag.path = drag.unit.getPathTo(cell)
+            }    
         }
     }
 
-    @action.bound onTouchEnd() {
+    @action.bound onTouchEnd(e: TouchEvent) {
         const { drag } = this
-        if (!drag) return
+        if (!drag) {
+            this.onTap(e)
+            return
+        }
 
         const destCell = _.last(drag.path)
         if (destCell) {
@@ -83,6 +88,14 @@ export class TouchInterface {
         }
 
         this.drag = null
+    }
+
+    @action.bound onTap(e: TouchEvent) {
+        const touch = e.changedTouches[0]
+        const cell = this.ui.screenPointToCell(this.touchToScreenPoint(touch))
+        if (cell.unit) {
+            this.ui.showing = { screen: 'unit', unit: cell.unit }
+        }
     }
 
     render() {

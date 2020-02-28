@@ -1,15 +1,16 @@
 import { PointVector } from "./PointVector"
 import { Game } from "./Game"
 import { Unit } from "./Unit"
+import { World } from "./World"
 
 export class Cell {
-    game: Game
+    world: World
     pos: PointVector
     tileIndex: number
     unit?: Unit
 
-    constructor(game: Game, x: number, y: number) {
-        this.game = game
+    constructor(world: World, x: number, y: number) {
+        this.world = world
         this.pos = new PointVector(x, y)
         this.tileIndex = Math.random() > 0.9 ? 0 : 3
     }
@@ -21,7 +22,7 @@ export class Cell {
     neighbors(): Cell[] {
         const neighbors = []
         for (const n of this.pos.neighbors()) {
-            const cell = this.game.cellAt(n)
+            const cell = this.world.cellAt(n)
             if (cell) {
                 neighbors.push(cell)
             }

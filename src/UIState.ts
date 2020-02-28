@@ -1,10 +1,14 @@
 import { Assets } from "./Assets"
-import { computed } from "mobx"
+import { computed, observable } from "mobx"
 import { World } from "./World"
 import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
+import { Unit } from "./Unit"
+
+type Showing = { screen: 'board' } | { screen: 'unit', unit: Unit }
 
 export class UIState {
+    @observable showing: Showing = { screen: 'board' }
     world: World
     assets: Assets
     cellScreenWidth: number = 24

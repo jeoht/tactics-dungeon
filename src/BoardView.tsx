@@ -1,10 +1,7 @@
-import { action, computed } from "mobx"
+import { action } from "mobx"
 
 import { Game } from "./Game"
-import { Cell } from "./Cell"
 import { TouchInterface } from "./TouchInterface"
-import { Assets } from "./Assets"
-import { ScreenVector } from "./ScreenVector"
 import { World } from "./World"
 import { UIState } from "./UIState"
 
@@ -46,8 +43,8 @@ export class BoardView {
         let start: number
         const frame = (timestamp: number) => {
             if (!start) start = timestamp
-            const timePassed = 100000 +timestamp-start
-            this.render()
+            const timePassed = 100000 + timestamp-start
+            this.render(timePassed)
             this.animationHandle = requestAnimationFrame(frame)
         }
         this.animationHandle = requestAnimationFrame(frame)
@@ -58,10 +55,12 @@ export class BoardView {
             cancelAnimationFrame(this.animationHandle)
     }
 
-    render() {
+    render(timePassed: number) {
         const { world, ctx, touchInterface, ui } = this
         ctx.save()
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+
+        const altTile = timePassed % 500 >= 250
 
         for (let x = 0; x < world.boardWidth; x++) {
             for (let y = 0; y < world.boardHeight; y++) {
@@ -72,7 +71,8 @@ export class BoardView {
                 const { unit } = cell
                 if (unit && unit != touchInterface.drag?.unit) {
                     const tileset = unit.moved ? ui.assets.grayscaleCreatures : ui.assets.creatures
-                    tileset.drawTile(ctx, unit.tileIndex, spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
+                    const tileIndex = unit.tileIndex + (altTile ? tileset.columns : 0)
+                    tileset.drawTile(ctx, tileIndex, spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
                 }
             }
         }
