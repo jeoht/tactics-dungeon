@@ -27,6 +27,7 @@ export class Assets {
 
         this.world = new Tileset(world, 24, 24)
         this.creatures = new Tileset(creatures, 24, 24)
+
         const grayscale = await this.imgRefiner.editImage(creatures).grayscale().bitmap()
         this.grayscaleCreatures = new Tileset(grayscale, 24, 24)
     }

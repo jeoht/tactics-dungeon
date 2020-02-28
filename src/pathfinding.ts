@@ -60,3 +60,32 @@ export function dijkstra<T>(props: { start: T, goal: T, expand: (node: T) => T[]
         return path
     }
 }
+
+export function dijkstraRange<T>(props: { start: T, range: number, expand: (node: T) => T[] }): T[] {
+    const { start, range, expand } = props
+    const frontier = new PriorityQueue<T>()
+    frontier.push(start, 0)
+    const costSoFar: Map<T, number> = new Map()
+    costSoFar.set(start, 0)
+    const reachable = new Set()
+    reachable.add(start)
+
+    while (frontier.length > 0) {
+        const current = frontier.pop()  
+
+        for (const nextCell of expand(current)) {
+            const newCost = (costSoFar.get(current)||0) + 1
+            const prevCost = costSoFar.get(nextCell)
+            if (prevCost === undefined || newCost < prevCost) {
+                costSoFar.set(nextCell, newCost)
+
+                if (newCost <= range) {
+                    reachable.add(nextCell)
+                    frontier.push(nextCell, newCost)
+                }
+            }
+        }
+    }
+
+    return Array.from(reachable) as T[]
+}
