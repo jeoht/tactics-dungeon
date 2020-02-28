@@ -12,7 +12,7 @@ module.exports = (env, argv) => {
     return {
         context: __dirname,
         mode: argv.mode||'development',
-        entry: path.join(__dirname, 'src/index.ts'),
+        entry: path.join(__dirname, 'src/index.tsx'),
         output: {
             path: path.join(__dirname, "build", BASE_PATH||""),
             filename: "assets/[name].js",
