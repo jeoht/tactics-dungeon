@@ -1,11 +1,20 @@
 import { Cell } from "./Cell"
 import { dijkstra, dijkstraRange } from "./pathfinding"
 
+enum Gender {
+    Boy,
+    Girl,
+    Soft,
+    Powerful,
+    Mystery
+}
+
 export class Unit {
     tileIndex: number
     cell: Cell
     moveRange: number = 3
     moved: boolean = false
+    gender: Gender = Gender.Mystery
 
     constructor(tileIndex: number, cell: Cell) {
         this.tileIndex = tileIndex
