@@ -3,7 +3,7 @@ import { action, autorun, observable, computed } from "mobx"
 import { Game } from "./Game"
 import { TouchInterface } from "./TouchInterface"
 import { World, WorldEvent } from "./World"
-import { UIState } from "./UIState"
+import { UIState, FrameInfo } from "./UIState"
 import { Unit } from "./Unit"
 import { ScreenVector } from "./ScreenVector"
 import { Tileset } from "./Tileset"
@@ -25,8 +25,6 @@ class UnitSprite {
     }
 
     async attackAnimation(event: { target: Unit }) {
-
-
         const startPos = this.pos
         const targetPos = this.ui.cellToScreenPoint(event.target.cell)
 
@@ -43,9 +41,9 @@ class UnitSprite {
         }
     }
 
-    frame(timePassed: number) {
+    frame(frameInfo: FrameInfo) {
         const { unit, ui } = this
-        const altTile = timePassed % 500 >= 250
+        const altTile = frameInfo.timestamp % 500 >= 250
         const tileIndex = unit.tileIndex + (altTile ? this.tileset.columns : 0)
         this.tileIndex = tileIndex
     }
@@ -83,7 +81,10 @@ export class BoardView {
 
     async start() {
         while (true) {
-            await this.ui.nextFrame()
+            const frameInfo = await this.ui.nextFrame()
+            for (const sprite of this.renderUnits) {
+                sprite.frame(frameInfo)
+            }
             this.render()
         }
     }

@@ -43,9 +43,14 @@ export class UIState {
 
             const frameResolvers = this.frameResolvers
             this.frameResolvers = []
+
+            // The reversing here is so that the last bound resolvers play first
+            // but they still bind their next resolvers in a consistent order
+            frameResolvers.reverse()
             for (const resolve of frameResolvers) {
                 resolve(frameInfo)
             }
+            this.frameResolvers.reverse()
             
             this.animationHandle = requestAnimationFrame(frame)
             lastFrame = timestamp
