@@ -78,6 +78,8 @@ export class Unit {
     }
 
     set cell(cell: Cell) {
+        if (this._cell)
+            this._cell.unit = undefined
         this._cell = cell
         cell.unit = this
     }
@@ -96,17 +98,11 @@ export class Unit {
         return 0
     }
 
-    moveTo(cell: Cell) {
-        this.cell.unit = undefined
-        cell.unit = this
-        this.cell = cell
-    }
-
-    canPathThrough(cell: Cell) {
+    canPathThrough(cell: Cell): boolean {
         return cell.pathable && (!cell.unit || cell.unit === this)
     }
 
-    getPathTo(cell: Cell) {
+    getPathTo(cell: Cell): Cell[] {
         return dijkstra({
             start: this.cell,
             goal: cell,
@@ -114,11 +110,15 @@ export class Unit {
         })
     }
 
-    findCellsInMoveRange() {
+    findCellsInMoveRange(): Cell[] {
         return dijkstraRange({
             start: this.cell,
             range: this.moveRange,
             expand: node => node.neighbors().filter(n => this.canPathThrough(n))
         })
+    }
+
+    isEnemy(other: Unit): boolean {
+        return other.team !== this.team
     }
 }

@@ -1,5 +1,6 @@
+import { observable } from "mobx"
+
 import { PointVector } from "./PointVector"
-import { Game } from "./Game"
 import { Unit } from "./Unit"
 import { World } from "./World"
 
@@ -7,7 +8,7 @@ export class Cell {
     world: World
     pos: PointVector
     tileIndex: number
-    unit?: Unit
+    @observable unit?: Unit
 
     constructor(world: World, x: number, y: number) {
         this.world = world
