@@ -31,24 +31,26 @@ export function UnitView(props: { game: Game, unit: Unit }) {
         <header>
             <canvas ref={canvasRef} width={ui.cellScreenWidth} height={ui.cellScreenHeight}/>
             <div>
-                <input className="name" type="text" value={unit.name} onChange={action((e: React.ChangeEvent<HTMLInputElement>) => unit.name = e.currentTarget.value)}/>
-                <br/><span className={`unitClass ${unit.class}`}>{unit.class}</span>
+                <input className="name" type="text" value={unit.stats.name} onChange={action((e: React.ChangeEvent<HTMLInputElement>) => unit.stats.name = e.currentTarget.value)}/>
+                <br/><span className={`unitClass ${unit.stats.class}`}>{unit.stats.class}</span>
 
             </div>
         </header>
         <table>
-            <tr>
-                <td>Speed</td>
-                <td>{unit.moveRange}</td>
-            </tr>
-            <tr>
-                <td>Gender</td>
-                <td>{unit.gender}</td>
-            </tr>
-            {/* <tr>
-                <td>Personality</td>
-                <td></td>
-            </tr> */}
+            <tbody>
+                <tr>
+                    <td>Speed</td>
+                    <td>{unit.moveRange}</td>
+                </tr>
+                <tr>
+                    <td>Gender</td>
+                    <td>{unit.stats.gender}</td>
+                </tr>
+                {/* <tr>
+                    <td>Personality</td>
+                    <td></td>
+                </tr> */}
+            </tbody>
         </table>
         <footer>
             <button className="close" onClick={dismiss}>&lt; Back</button>

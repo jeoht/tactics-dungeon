@@ -1,7 +1,7 @@
 import { Cell } from "./Cell"
 import { GameView } from "./GameView"
 import { action, observable } from "mobx"
-import { Unit } from "./Unit"
+import { Unit, Team } from "./Unit"
 import _ = require("lodash")
 import { ScreenVector } from "./ScreenVector"
 import { UIState } from "./UIState"
@@ -54,7 +54,7 @@ export class TouchInterface {
         const cursorPos = this.touchToScreenPoint(touch)
         const cell = this.ui.screenPointToCell(cursorPos)
 
-        if (!this.drag && cell.unit && !cell.unit.moved) {
+        if (!this.drag && cell.unit && cell.unit.team === Team.Player && !cell.unit.moved) {
             const cursorOffset = cursorPos.subtract(this.ui.cellToScreenPoint(cell))
             this.drag = { 
                 unit: cell.unit, 
