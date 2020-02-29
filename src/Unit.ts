@@ -4,7 +4,7 @@ import { observable } from "mobx"
 import _ = require("lodash")
 import { nameByRace } from "fantasy-name-generator"
 
-enum Gender {
+export enum Gender {
     Boy = "Boy",
     Girl = "Girl",
     Soft = "Soft",
@@ -12,10 +12,15 @@ enum Gender {
     Mystery = "Mystery"
 }
 
-enum Class {
-    Rookie = "Rookie"
+export enum Class {
+    Rookie = "Rookie",
+    Skeleton = "Skeleton"
 }
 
+export enum Team {
+    Player = "Player",
+    Enemy = "Enemy"
+}
 
 function randomGender(): Gender {
     const r = Math.random()
@@ -28,37 +33,67 @@ function randomGender(): Gender {
         return _.sample(_.values(Gender)) as Gender
 }
 
-function randomName(gender: Gender) {
+function randomName(gender: Gender): string {
     if (gender === Gender.Boy)
-        return nameByRace("human", { gender: "male"})
+        return nameByRace("human", { gender: "male"}) as string
     else if (gender === Gender.Girl)
-        return nameByRace("human", { gender: "female"})
+        return nameByRace("human", { gender: "female"}) as string
     else
-        return nameByRace("human")
+        return nameByRace("human") as string
+}
+
+export type UnitSpec = {
+    class?: Class
+    name?: string
+    gender?: Gender
+}
+
+/** 
+ * Represents a unit's base state, before they're actually
+ * attached to any position on an active map
+ */
+export class UnitStats {
+    @observable name: string
+    @observable gender: Gender
+    @observable class: Class
+
+    constructor(props: UnitSpec) {
+        this.class = props.class || Class.Rookie
+        this.gender = props.gender || randomGender()
+        this.name = props.name || randomName(this.gender)
+    }
 }
 
 export class Unit {
-    @observable name: string = "Ellery Snooks"
-    gender: Gender = randomGender()
-    class: Class = Class.Rookie
-
-    cell: Cell
-    moveRange: number = 3
+    private _cell!: Cell
+    stats: UnitStats
+    team: Team
     moved: boolean = false
+    moveRange: number = 3
 
-    constructor(cell: Cell) {
+    constructor(cell: Cell, stats: UnitStats, team: Team) {
         this.cell = cell
-        cell.unit = this
+        this.stats = stats
+        this.team = team
+    }
 
-        this.gender = randomGender()
-        this.name = randomName(this.gender)
+    set cell(cell: Cell) {
+        this._cell = cell
+        cell.unit = this
+    }
+
+    get cell(): Cell {
+        return this._cell
     }
 
     get tileIndex(): number {
-        // if (this.class === Class.Rookie) {
-        //     return 24
-        // }
-        return 24+23
+        if (this.stats.class === Class.Rookie) {
+            return 47
+        } else if (this.stats.class === Class.Skeleton) {
+            return 370
+        }
+
+        return 0
     }
 
     moveTo(cell: Cell) {
