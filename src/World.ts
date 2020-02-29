@@ -36,9 +36,9 @@ export class World {
         }
 
         const pathableCells = _.sampleSize(this.cells.filter(c => c.pathable), 4)
-        new Unit(1, pathableCells[0])
-        new Unit(3, pathableCells[1])
-        new Unit(8, pathableCells[2])
-        new Unit(10, pathableCells[3])
+        new Unit(pathableCells[0])
+        new Unit(pathableCells[1])
+        new Unit(pathableCells[2])
+        new Unit(pathableCells[3])
     }
 }

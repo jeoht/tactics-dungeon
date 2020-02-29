@@ -2,6 +2,7 @@ import React = require("react")
 import { Unit } from "./Unit"
 import { Game } from "./Game"
 import { action } from "mobx"
+import { useObserver } from "mobx-react"
 
 export function UnitView(props: { game: Game, unit: Unit }) {
     const { game, unit } = props
@@ -26,28 +27,31 @@ export function UnitView(props: { game: Game, unit: Unit }) {
         ui.showing = { screen: 'board' }
     })
 
-    return <div className="UnitView">
+    return useObserver(() => <div className="UnitView">
         <header>
             <canvas ref={canvasRef} width={ui.cellScreenWidth} height={ui.cellScreenHeight}/>
-            <button className="close" onClick={dismiss}>x</button>
+            <div>
+                <input className="name" type="text" value={unit.name} onChange={action((e: React.ChangeEvent<HTMLInputElement>) => unit.name = e.currentTarget.value)}/>
+                <br/><span className={`unitClass ${unit.class}`}>{unit.class}</span>
+
+            </div>
         </header>
         <table>
-            <tr>
-                <td>Name</td>
-                <td>Elswin</td>
-            </tr>
             <tr>
                 <td>Speed</td>
                 <td>{unit.moveRange}</td>
             </tr>
             <tr>
                 <td>Gender</td>
-                <td>Mystery</td>
+                <td>{unit.gender}</td>
             </tr>
-            <tr>
+            {/* <tr>
                 <td>Personality</td>
-                <td>Egosyntonic</td>
-            </tr>
+                <td></td>
+            </tr> */}
         </table>
-    </div>
+        <footer>
+            <button className="close" onClick={dismiss}>&lt; Back</button>
+        </footer>
+    </div>)
 }

@@ -1,25 +1,64 @@
 import { Cell } from "./Cell"
 import { dijkstra, dijkstraRange } from "./pathfinding"
+import { observable } from "mobx"
+import _ = require("lodash")
+import { nameByRace } from "fantasy-name-generator"
 
 enum Gender {
-    Boy,
-    Girl,
-    Soft,
-    Powerful,
-    Mystery
+    Boy = "Boy",
+    Girl = "Girl",
+    Soft = "Soft",
+    Powerful = "Powerful",
+    Mystery = "Mystery"
+}
+
+enum Class {
+    Rookie = "Rookie"
+}
+
+
+function randomGender(): Gender {
+    const r = Math.random()
+
+    if (r <= 0.4)
+        return Gender.Boy
+    else if (r <= 0.8)
+        return Gender.Girl
+    else
+        return _.sample(_.values(Gender)) as Gender
+}
+
+function randomName(gender: Gender) {
+    if (gender === Gender.Boy)
+        return nameByRace("human", { gender: "male"})
+    else if (gender === Gender.Girl)
+        return nameByRace("human", { gender: "female"})
+    else
+        return nameByRace("human")
 }
 
 export class Unit {
-    tileIndex: number
+    @observable name: string = "Ellery Snooks"
+    gender: Gender = randomGender()
+    class: Class = Class.Rookie
+
     cell: Cell
     moveRange: number = 3
     moved: boolean = false
-    gender: Gender = Gender.Mystery
 
-    constructor(tileIndex: number, cell: Cell) {
-        this.tileIndex = tileIndex
+    constructor(cell: Cell) {
         this.cell = cell
         cell.unit = this
+
+        this.gender = randomGender()
+        this.name = randomName(this.gender)
+    }
+
+    get tileIndex(): number {
+        // if (this.class === Class.Rookie) {
+        //     return 24
+        // }
+        return 24+23
     }
 
     moveTo(cell: Cell) {
