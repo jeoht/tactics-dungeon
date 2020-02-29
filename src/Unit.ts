@@ -64,6 +64,8 @@ export class UnitStats {
     }
 }
 
+type UnitAction = { type: 'attack', target: Unit }
+
 export class Unit {
     private _cell!: Cell
     stats: UnitStats
@@ -72,16 +74,19 @@ export class Unit {
     moveRange: number = 3
 
     constructor(cell: Cell, stats: UnitStats, team: Team) {
-        this.cell = cell
+        this._cell = cell
+        this._cell.unit = this
         this.stats = stats
         this.team = team
     }
 
-    set cell(cell: Cell) {
-        if (this._cell)
-            this._cell.unit = undefined
+    moveTo(cell: Cell) {
+        const from = this._cell
+        from!.unit = undefined
         this._cell = cell
         cell.unit = this
+
+        cell.world.event({ type: 'move', unit: this, from: from, to: cell })
     }
 
     get cell(): Cell {
@@ -96,6 +101,15 @@ export class Unit {
         }
 
         return 0
+    }
+
+    attack(enemy: Unit) {
+        this.cell.world.eventLog.push({ type: 'attack', unit: this, target: enemy, damage: 10 })
+    }
+
+    endMove() {
+        this.moved = true
+        this.cell.world.eventLog.push({ type: 'endMove', unit: this })
     }
 
     canPathThrough(cell: Cell): boolean {
