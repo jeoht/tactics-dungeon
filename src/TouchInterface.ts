@@ -14,6 +14,10 @@ type Drag = {
     path: Cell[]
     /** Current position of the cursor in screen coordinates */
     cursorPos: ScreenVector
+    /** The cell underneath the current cursor position */
+    cursorCell: Cell
+    /** Enemy underneath the current cursor position, if any */
+    cursorEnemy?: Unit
     /** Unit rendering offset relative to the cursor position */
     cursorOffset: ScreenVector
     /** Cells the unit can move to */
@@ -60,6 +64,7 @@ export class TouchInterface {
                 unit: cell.unit, 
                 path: [], 
                 cursorPos: cursorPos, 
+                cursorCell: cell,
                 cursorOffset: cursorOffset,
                 possibleMoves: cell.unit.findCellsInMoveRange()
             }
@@ -68,6 +73,8 @@ export class TouchInterface {
         const {drag} = this
         if (drag) {
             drag.cursorPos = cursorPos
+            drag.cursorCell = cell
+            drag.cursorEnemy = cell.unit && drag.unit.isEnemy(cell.unit) ? cell.unit : undefined
             if (drag.possibleMoves.includes(cell)) {
                 drag.path = drag.unit.getPathTo(cell)
             }
@@ -82,11 +89,18 @@ export class TouchInterface {
         }
 
         const finalPathCell = _.last(drag.path)
-        const targetCell = this.ui.screenPointToCell(drag.cursorPos)
-        if (finalPathCell && finalPathCell === targetCell) {
-            drag.unit.cell = finalPathCell
-            drag.unit.moved = true
+        // Only move if we're going directly to the cursor cell, or
+        // if we're going adjacent to attack the cursor cell
+        if (finalPathCell && (finalPathCell === drag.cursorCell || drag.cursorEnemy)) {
+            drag.unit.moveTo(finalPathCell)
+
+            if (drag.cursorEnemy) {
+                drag.unit.attack(drag.cursorEnemy)
+            }
+
+            drag.unit.endMove()
         }
+
 
         this.drag = null
     }
@@ -125,6 +139,15 @@ export class TouchInterface {
                 ctx.strokeStyle = "#fff"
                 ctx.lineWidth = 5
                 ctx.stroke()    
+            }
+
+            // If we're about to attack a unit, draw targeting
+            if (drag.cursorEnemy) {
+                const enemy = drag.cursorEnemy
+                ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
+                const spos = ui.cellToScreenPoint(enemy.cell)
+                ctx.fillRect(spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
+    
             }
 
             // Draw the unit at the current cursor position

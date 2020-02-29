@@ -14,10 +14,9 @@ export function GameView(props: { game: Game }) {
 
     React.useEffect(() => {
         // Set the canvas renderer
-        console.log("boardView")
         const boardView = new BoardView(game, canvasRef.current!)
         boardView.start()
-        return () => boardView.stop()
+        ui.startFrames()
     })
 
     return useObserver(() => {
@@ -29,5 +28,7 @@ export function GameView(props: { game: Game }) {
                 <canvas ref={canvasRef} id="board"></canvas>
             </>
         }
+
+        return null
     })
 }

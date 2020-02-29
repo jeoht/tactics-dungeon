@@ -1,17 +1,13 @@
 import * as _ from 'lodash'
 import './index.scss'
-import { observable, computed, action, autorun } from 'mobx'
-import { dijkstra } from './pathfinding'
-import { PointVector } from './PointVector'
-import { Tileset } from './Tileset'
 import { GameView } from './GameView'
 import { Game } from './Game'
 import { Assets } from './Assets'
 
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import { World } from './World'
 import { UIState } from './UIState'
+import ReactDOM = require('react-dom')
+import React = require('react')
 
 
 

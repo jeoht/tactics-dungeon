@@ -6,6 +6,11 @@ export class PointVector {
     static get left() { return new PointVector(-1, 0) }
     static get right() { return new PointVector(1, 0) }
 
+    static lerp(a: PointVector, b: PointVector, t: number) {
+        t = Math.max(Math.min(t, 1), 0)
+        return new PointVector(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)
+    }
+    
     x: number
     y: number
 

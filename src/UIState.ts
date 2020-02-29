@@ -7,12 +7,15 @@ import { Unit } from "./Unit"
 
 type Showing = { screen: 'board' } | { screen: 'unit', unit: Unit }
 
+export type FrameInfo = { timestamp: number, deltaTime: number }
+
 export class UIState {
     @observable showing: Showing = { screen: 'board' }
     world: World
     assets: Assets
     cellScreenWidth: number = 24
     cellScreenHeight: number = 24
+    frameResolvers: ((frameInfo: FrameInfo) => void)[] = []
 
     constructor(world: World, assets: Assets) {
         this.world = world
@@ -25,6 +28,35 @@ export class UIState {
 
     @computed get boardScreenHeight() {
         return this.cellScreenHeight * this.world.boardHeight
+    }
+
+    animationHandle: number|null = null
+    startFrames() {
+        if (this.animationHandle != null)
+            cancelAnimationFrame(this.animationHandle)
+
+        let lastFrame: number|null
+        const frame = (timestamp: number) => {
+            const deltaTime = lastFrame === null ? 0 : timestamp-lastFrame
+
+            const frameInfo = { timestamp: timestamp, deltaTime: deltaTime }
+
+            const frameResolvers = this.frameResolvers
+            this.frameResolvers = []
+            for (const resolve of frameResolvers) {
+                resolve(frameInfo)
+            }
+            
+            this.animationHandle = requestAnimationFrame(frame)
+            lastFrame = timestamp
+        }
+        this.animationHandle = requestAnimationFrame(frame)
+    }
+
+    nextFrame(): Promise<FrameInfo> {
+        return new Promise((resolve, reject) => {
+            this.frameResolvers.push(resolve)
+        })
     }
 
     screenPointToCell(pos: ScreenVector): Cell {
