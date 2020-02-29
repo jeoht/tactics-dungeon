@@ -19,14 +19,7 @@ export function UnitView(props: { game: Game, unit: Unit }) {
         canvas.height = height*scale
         ctx.scale(scale, scale)
 
-        let altTile = false
-        const frame = () => {
-            altTile = !altTile
-            const tileIndex = unit.tileIndex + (altTile ? ui.assets.creatures.columns : 0)
-            ui.assets.creatures.drawTile(ctx, tileIndex, 0, 0, ui.cellScreenWidth, ui.cellScreenHeight)
-            requestAnimationFrame(frame)
-        }
-        requestAnimationFrame(frame)
+        ui.assets.creatures.drawTile(ctx, unit.tileIndex, 0, 0, ui.cellScreenWidth, ui.cellScreenHeight)
     })
 
     const dismiss = action(() => {
@@ -34,8 +27,27 @@ export function UnitView(props: { game: Game, unit: Unit }) {
     })
 
     return <div className="UnitView">
-        <canvas ref={canvasRef} width={ui.cellScreenWidth} height={ui.cellScreenHeight}/>
-        <button onClick={dismiss}>x</button>
-        Move Range: {unit.moveRange}
+        <header>
+            <canvas ref={canvasRef} width={ui.cellScreenWidth} height={ui.cellScreenHeight}/>
+            <button className="close" onClick={dismiss}>x</button>
+        </header>
+        <table>
+            <tr>
+                <td>Name</td>
+                <td>Elswin</td>
+            </tr>
+            <tr>
+                <td>Speed</td>
+                <td>{unit.moveRange}</td>
+            </tr>
+            <tr>
+                <td>Gender</td>
+                <td>Mystery</td>
+            </tr>
+            <tr>
+                <td>Personality</td>
+                <td>Egosyntonic</td>
+            </tr>
+        </table>
     </div>
 }
