@@ -43,9 +43,9 @@ export class TouchInterface {
     }
 
     @action.bound onTouchStart(e: TouchEvent) {
-        const touch = e.touches[0]
-        const cursorPos = this.touchToScreenPoint(touch)
-        const cell = this.ui.screenPointToCell(cursorPos)
+        // const touch = e.touches[0]
+        // const cursorPos = this.touchToScreenPoint(touch)
+        // const cell = this.ui.screenPointToCell(cursorPos)
 
     }
 
@@ -70,7 +70,7 @@ export class TouchInterface {
             drag.cursorPos = cursorPos
             if (drag.possibleMoves.includes(cell)) {
                 drag.path = drag.unit.getPathTo(cell)
-            }    
+            }
         }
     }
 
@@ -81,9 +81,10 @@ export class TouchInterface {
             return
         }
 
-        const destCell = _.last(drag.path)
-        if (destCell) {
-            drag.unit.moveTo(destCell)
+        const finalPathCell = _.last(drag.path)
+        const targetCell = this.ui.screenPointToCell(drag.cursorPos)
+        if (finalPathCell && finalPathCell === targetCell) {
+            drag.unit.cell = finalPathCell
             drag.unit.moved = true
         }
 

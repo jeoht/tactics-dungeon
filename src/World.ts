@@ -20,8 +20,8 @@ export class World {
         return cells
     }
 
-    @computed get pathableCells(): Cell[] {
-        return this.cells.filter(c => c.pathable)
+    @computed get spawnableCells(): Cell[] {
+        return this.cells.filter(c => c.pathable && !c.unit)
     }
 
     cellAt(pos: PointVector): Cell|undefined {
@@ -32,7 +32,7 @@ export class World {
     }
 
     spawnUnit(props: UnitSpec & { cell?: Cell, team: Team }): Unit {
-        const cell = props.cell || _.sample(this.pathableCells) as Cell
+        const cell = props.cell || _.sample(this.spawnableCells) as Cell
         const stats = new UnitStats(props)
         return new Unit(cell, stats, props.team)
     }
