@@ -1,6 +1,6 @@
 import { Cell } from "./Cell"
 import { dijkstra, dijkstraRange } from "./pathfinding"
-import { observable } from "mobx"
+import { observable, computed } from "mobx"
 import _ = require("lodash")
 import { nameByRace } from "fantasy-name-generator"
 
@@ -103,6 +103,10 @@ export class Unit {
         return 0
     }
 
+    @computed get unitsOnMyTeam(): Unit[] {
+        return this.cell.world.units.filter(u => u.team === this.team)
+    }
+
     attack(enemy: Unit) {
         this.cell.world.eventLog.push({ type: 'attack', unit: this, target: enemy, damage: 10 })
     }
@@ -110,6 +114,10 @@ export class Unit {
     endMove() {
         this.moved = true
         this.cell.world.eventLog.push({ type: 'endMove', unit: this })
+
+        if (this.unitsOnMyTeam.every(unit => unit.moved)) {
+            this.cell.world.endPhase(this.team)
+        }
     }
 
     canPathThrough(cell: Cell): boolean {
@@ -119,7 +127,7 @@ export class Unit {
     getPathTo(cell: Cell): Cell[] {
         return dijkstra({
             start: this.cell,
-            goal: cell,
+            goal: (node: Cell) => node === cell,
             expand: node => node.neighbors().filter(n => this.canPathThrough(n))
         })
     }
@@ -129,6 +137,15 @@ export class Unit {
             start: this.cell,
             range: this.moveRange,
             expand: node => node.neighbors().filter(n => this.canPathThrough(n))
+        })
+    }
+
+    getPathToNearestEnemy() {
+        const goal = (node: Cell) => !!(node.unit && this.isEnemy(node.unit))
+        return dijkstra({
+            start: this.cell,
+            goal: goal,
+            expand: node => node.neighbors().filter(n => this.canPathThrough(n) || goal(n))
         })
     }
 

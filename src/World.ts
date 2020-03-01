@@ -4,6 +4,7 @@ import { Cell } from "./Cell"
 import { PointVector } from "./PointVector"
 import _ = require("lodash")
 import { Unit, Class, UnitStats, UnitSpec, Team } from "./Unit"
+import { AI } from "./AI"
 
 type AttackEvent = {
     type: 'attack'
@@ -24,13 +25,40 @@ type EndMoveEvent = {
     unit: Unit
 }
 
-export type WorldEvent = AttackEvent | MoveEvent | EndMoveEvent
+type StartPhaseEvent = {
+    type: 'startPhase'
+    team: Team
+}
+
+export type WorldEvent = AttackEvent | MoveEvent | EndMoveEvent | StartPhaseEvent
 
 export class World {
     @observable grid: Cell[][] = []
     boardWidth: number = 6
     boardHeight: number = 8
     @observable eventLog: WorldEvent[] = []
+    ai: AI
+
+    constructor() {
+        for (let x = 0; x < this.boardWidth; x++) {
+            this.grid[x] = []
+            for (let y = 0; y < this.boardHeight; y++) {
+                this.grid[x][y] = new Cell(this, x, y)
+            }
+        }
+
+        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
+        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
+        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
+        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
+
+        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
+        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
+        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
+        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
+
+        this.ai = new AI(this, Team.Enemy)
+    }
 
     @computed get cells(): Cell[] {
         const cells: Cell[] = []
@@ -72,26 +100,25 @@ export class World {
         this.eventLog.push(event)
     }
 
-    constructor() {
-        for (let x = 0; x < this.boardWidth; x++) {
-            this.grid[x] = []
-            for (let y = 0; y < this.boardHeight; y++) {
-                this.grid[x][y] = new Cell(this, x, y)
+    startPhase(team: Team) {
+        this.event({ type: 'startPhase', team: team })
+        for (const unit of this.units) {
+            if (unit.team === team) {
+                unit.moved = false
             }
         }
 
+        if (team === Team.Enemy) {
+            // Do AI stuff
+            this.ai.doPhase()
+        }
+    }
 
-    
-        const cells = _.sampleSize(this.cells.filter(c => c.pathable), 5)
-        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
-        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
-        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
-        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
-
-
-        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
-        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
-        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
-        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
+    endPhase(team: Team) {
+        if (team === Team.Player) {
+            this.startPhase(Team.Enemy)
+        } else {
+            this.startPhase(Team.Player)
+        }
     }
 }

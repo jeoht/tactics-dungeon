@@ -1,21 +1,21 @@
-import { action, autorun, observable, computed } from "mobx"
+import { action, autorun, observable, computed, runInAction } from "mobx"
 
 import { Game } from "./Game"
 import { TouchInterface } from "./TouchInterface"
 import { World, WorldEvent } from "./World"
 import { UIState, FrameInfo } from "./UIState"
-import { Unit } from "./Unit"
+import { Unit, Team } from "./Unit"
 import { ScreenVector } from "./ScreenVector"
 import { Tileset } from "./Tileset"
 
 
-class UnitSprite {
-    ctx: CanvasRenderingContext2D
+class UnitSprite implements SceneObject {
     ui: UIState
     unit: Unit
     pos: ScreenVector
     tileset: Tileset
     moved: boolean = false
+    timestamp: number = 0
 
     attacking: { 
         startTime: number, 
@@ -25,8 +25,7 @@ class UnitSprite {
         resolve: () => void 
     }|null = null
 
-    constructor(ctx: CanvasRenderingContext2D, ui: UIState, unit: Unit) {
-        this.ctx = ctx
+    constructor(ui: UIState, unit: Unit) {
         this.ui = ui
         this.unit = unit
         this.pos = ui.cellToScreenPoint(unit.cell)
@@ -45,27 +44,47 @@ class UnitSprite {
         })
     }
 
-    render(ctx: CanvasRenderingContext2D, frameInfo: FrameInfo) {
+    async animateMove(targetPos: ScreenVector) {
+        const { ui } = this
+        const startTime = ui.timestamp
+        const startPos = this.pos
+
+        const duration = 100
+        while (true) {
+            const { timestamp } = await ui.nextFrame()
+            const t = (timestamp-startTime) / duration
+            this.pos = ScreenVector.lerp(startPos, targetPos, t)
+
+            if (t >= 1)
+                break
+        }
+    }
+
+    frame(frameInfo: FrameInfo) {
+        this.timestamp = frameInfo.timestamp
+    }
+
+    render(ctx: CanvasRenderingContext2D) {
         if (this.attacking) {
-            this.renderAttacking(ctx, frameInfo)
+            this.renderAttacking(ctx)
         }
 
-        const { unit, ui, moved, pos } = this
-        const altTile = frameInfo.timestamp % 500 >= 250
+        const { unit, ui, moved, pos, timestamp } = this
+        const altTile = timestamp % 500 >= 250
         const tileIndex = unit.tileIndex + (altTile ? this.tileset.columns : 0)
         const tileset = moved ? ui.assets.grayscaleCreatures : ui.assets.creatures
 
         tileset.drawTile(ctx, tileIndex, pos.x, pos.y, ui.cellScreenWidth, ui.cellScreenHeight)
     }
 
-    renderAttacking(ctx: CanvasRenderingContext2D, frameInfo: FrameInfo) {
-        const { attacking } = this
+    renderAttacking(ctx: CanvasRenderingContext2D) {
+        const { attacking, timestamp } = this
         if (!attacking) return
 
         const { startTime, startPos, targetPos, resolve } = attacking
 
-        const timePassed = frameInfo.timestamp - attacking.startTime
-        const bumpDuration = 100
+        const timePassed = timestamp - attacking.startTime
+        const bumpDuration = 150
         const t = timePassed / bumpDuration
 
 
@@ -76,40 +95,72 @@ class UnitSprite {
             this.pos = ScreenVector.lerp(targetPos, startPos, t)
         }
 
-        const damageTextDuration = 500
-
-        const t2 = timePassed / damageTextDuration
-    
-        if (t2 >= 1) {
+        if (t >= 1) {
             // Finished attack animation
             this.attacking = null
             resolve()
             return
         }
-
-        // Show damage text
-        const { ui } = this
-        const textInitialPos = targetPos.add(new ScreenVector(ui.cellScreenWidth/2, ui.cellScreenHeight/2))
-        const textBouncePos = textInitialPos.add(new ScreenVector(0, -5))
-        let textPos = textInitialPos
-        if (t2 < 0.5) {
-            textPos = ScreenVector.lerp(textInitialPos, textBouncePos, t2/0.5)
-        } else {
-            textPos = ScreenVector.lerp(textBouncePos, textInitialPos, (t2-0.5)/0.5)
-        }
-        ctx.fillStyle = "rgba(255, 0, 0, 1)"
-        ctx.fillText(attacking.damage.toString(), textPos.x, textPos.y)
     }
 }
 
-export class BoardView {
+interface SceneObject {
+    frame?: (frameInfo: FrameInfo) => void
+    render?: (ctx: CanvasRenderingContext2D) => void
+}
+
+class DamageText implements SceneObject {
+    scene: CanvasScene
+    startPos: ScreenVector
+    damage: number
+    startTime: number
+    timePassed: number = 0
+    duration: number = 600
+    
+    constructor(scene: CanvasScene, damage: number, startPos: ScreenVector) {
+        this.scene = scene
+        this.damage = damage
+        this.startPos = startPos
+        this.startTime = scene.ui.timestamp
+    }
+
+    frame(frameInfo: FrameInfo) {
+        this.timePassed = frameInfo.timestamp - this.startTime
+
+        if (this.timePassed > this.duration) {
+            this.scene.remove(this)
+        }
+    }
+
+    render(ctx: CanvasRenderingContext2D) {
+        const { scene, damage, startPos, timePassed } = this
+        const bounceDuration: number = 300
+        const textInitialPos = startPos.add(new ScreenVector(scene.ui.cellScreenWidth/2, scene.ui.cellScreenHeight/2))
+        const textBouncePos = textInitialPos.add(new ScreenVector(0, -5))
+        const t = timePassed / bounceDuration
+
+        let textPos = textInitialPos
+        if (t < 0.5) {
+            textPos = ScreenVector.lerp(textInitialPos, textBouncePos, t/0.5)
+        } else {
+            textPos = ScreenVector.lerp(textBouncePos, textInitialPos, (t-0.5)/0.5)
+        }
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.font = 'bold 12px sans-serif'
+        ctx.fillStyle = "rgba(255, 0, 0, 1)"
+        ctx.fillText(damage.toString(), textPos.x, textPos.y)
+    }
+}
+
+export class CanvasScene {
     ui: UIState
     world: World
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
     touchInterface: TouchInterface
-    @observable renderUnits: UnitSprite[] = []
     handledEvents: number = 0
+    @observable objects: SceneObject[] = []
 
     constructor(game: Game, canvas: HTMLCanvasElement) {
         this.world = game.world
@@ -119,30 +170,49 @@ export class BoardView {
         this.touchInterface = new TouchInterface(game.ui, canvas)
 
         for (const unit of this.world.units) {
-            this.renderUnits.push(new UnitSprite(this.ctx, this.ui, unit))
+            const sprite = new UnitSprite(this.ui, unit)
+            this.add(sprite)
         }
 
         window.addEventListener("resize", this.onResize)
         this.onResize()
 
+        this.world.endPhase(Team.Player)
+
         autorun(() => {
             if (this.handledEvents < this.world.eventLog.length) {
-                this.handleEvents()
+                runInAction(() => this.handleEvents())
             }
         })
+    }
+
+    add(obj: SceneObject) {
+        this.objects.push(obj)
+    }
+
+    remove(obj: SceneObject) {
+        this.objects = this.objects.filter(o => o !== obj)
     }
 
     async start() {
         while (true) {
             const frameInfo = await this.ui.nextFrame()
-            this.render(frameInfo)
+            for (const obj of this.objects) {
+                if (obj.frame !== undefined)
+                    obj.frame(frameInfo)
+            }
+            this.render()
         }
+    }
+
+    @computed get unitSprites(): UnitSprite[] {
+        return this.objects.filter(obj => obj instanceof UnitSprite) as UnitSprite[]
     }
 
     @computed get spritesByUnit(): Map<Unit, UnitSprite> {
         const map = new Map()
-        for (const sprite of this.renderUnits) {
-            map.set(sprite.unit, sprite)
+        for (const obj of this.unitSprites) {
+            map.set(obj.unit, obj)
         }
         return map
     }
@@ -163,11 +233,24 @@ export class BoardView {
         const { ui } = this
         if (event.type === 'move') {
             const { unit, to } = event
-            this.getSprite(unit).pos = ui.cellToScreenPoint(to)
+            const sprite = this.getSprite(unit)
+            if (unit.team === Team.Player) {
+                // Instant move for player
+                sprite.pos = ui.cellToScreenPoint(to)
+            } else {
+                await sprite.animateMove(ui.cellToScreenPoint(to))
+            }
         } else if (event.type === 'attack') {
+            const damageText = new DamageText(this, event.damage, this.ui.cellToScreenPoint(event.target.cell))
+            this.add(damageText)
             await this.getSprite(event.unit).attackAnimation(event)
         } else if (event.type === 'endMove') {
             this.getSprite(event.unit).moved = true
+        } else if (event.type === 'startPhase') {
+            for (const sprite of this.unitSprites) {
+                if (sprite.unit.team === event.team)
+                    sprite.moved = false
+            }
         }
     }
 
@@ -183,7 +266,7 @@ export class BoardView {
         this.ctx.scale(scale, scale)
     }
 
-    render(frameInfo: FrameInfo) {
+    render() {
         const { world, ctx, touchInterface, ui } = this
         ctx.save()
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -195,8 +278,10 @@ export class BoardView {
                 ui.assets.world.drawTile(ctx, cell.tileIndex, spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
             }
         }
-        for (const sprite of this.renderUnits) {
-            sprite.render(ctx, frameInfo)
+
+        for (const obj of this.objects) {
+            if (obj.render !== undefined)
+                obj.render(ctx)
         }
 
         touchInterface.render()
