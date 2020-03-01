@@ -7,6 +7,7 @@ import { UIState, FrameInfo } from "./UIState"
 import { Unit, Team } from "./Unit"
 import { ScreenVector } from "./ScreenVector"
 import { Tileset } from "./Tileset"
+import { Cell } from "./Cell"
 
 
 class UnitSprite implements SceneObject {
@@ -44,16 +45,43 @@ class UnitSprite implements SceneObject {
         })
     }
 
-    async animateMove(targetPos: ScreenVector) {
+    // async animateMove(targetPos: ScreenVector) {
+    //     const { ui } = this
+    //     const startTime = ui.timestamp
+    //     const startPos = this.pos
+
+    //     const duration = 100
+    //     while (true) {
+    //         const { timestamp } = await ui.nextFrame()
+    //         const t = (timestamp-startTime) / duration
+    //         this.pos = ScreenVector.lerp(startPos, targetPos, t)
+
+    //         if (t >= 1)
+    //             break
+    //     }
+    // }
+
+    async animatePathMove(fromCell: Cell, path: Cell[]) {
         const { ui } = this
         const startTime = ui.timestamp
-        const startPos = this.pos
+
+        const pathWithStart = [fromCell].concat(path)
 
         const duration = 100
         while (true) {
             const { timestamp } = await ui.nextFrame()
-            const t = (timestamp-startTime) / duration
-            this.pos = ScreenVector.lerp(startPos, targetPos, t)
+            const t = Math.min(1, (timestamp-startTime) / duration)
+            const progress = t * (pathWithStart.length-1)
+            const i = Math.floor(progress)
+            const j = Math.ceil(progress)
+
+            const startCell = pathWithStart[i]
+            const endCell = pathWithStart[j]
+            const frac = progress - Math.floor(progress)
+
+            const startPos = ui.cellToScreenPoint(startCell)
+            const endPos = ui.cellToScreenPoint(endCell)
+            this.pos = ScreenVector.lerp(startPos, endPos, frac)
 
             if (t >= 1)
                 break
@@ -231,14 +259,14 @@ export class CanvasScene {
 
     async handleEvent(event: WorldEvent) {
         const { ui } = this
-        if (event.type === 'move') {
-            const { unit, to } = event
+        if (event.type === 'pathMove') {
+            const { unit, fromCell, path } = event
             const sprite = this.getSprite(unit)
             if (unit.team === Team.Player) {
                 // Instant move for player
-                sprite.pos = ui.cellToScreenPoint(to)
+                sprite.pos = ui.cellToScreenPoint(path[path.length-1])
             } else {
-                await sprite.animateMove(ui.cellToScreenPoint(to))
+                await sprite.animatePathMove(fromCell, path)
             }
         } else if (event.type === 'attack') {
             const damageText = new DamageText(this, event.damage, this.ui.cellToScreenPoint(event.target.cell))

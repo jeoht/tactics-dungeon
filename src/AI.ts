@@ -18,16 +18,16 @@ export class AI {
     doPhase() {
         for (const unit of this.units) {
             const path = unit.getPathToNearestEnemy()
-            console.log(path)
             if (path.length) {
                 if (path.length > unit.moveRange) {
-                    unit.moveTo(path[unit.moveRange-1])
+                    unit.moveAlong(path.slice(0, unit.moveRange-1))
                 } else {
                     if (path.length > 1) {
-                        const adjacentCell = path[path.length-2]
-                        unit.moveTo(adjacentCell)    
+                        // Move to cell adjacent to target
+                        unit.moveAlong(path.slice(0, path.length-1))
                     }
 
+                    // Otherwise we're already adjacent
                     const targetCell = path[path.length-1]
                     unit.attack(targetCell.unit!)
                 }    

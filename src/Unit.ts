@@ -80,13 +80,17 @@ export class Unit {
         this.team = team
     }
 
-    moveTo(cell: Cell) {
+    moveAlong(path: Cell[]) {
+        if (!path.length)
+            throw new Error("Expected a non-empty path")
+
         const from = this._cell
         from!.unit = undefined
-        this._cell = cell
-        cell.unit = this
 
-        cell.world.event({ type: 'move', unit: this, from: from, to: cell })
+        this._cell = path[path.length-1]
+        this._cell.unit = this
+
+        this.cell.world.event({ type: 'pathMove', unit: this, fromCell: from, path: path })
     }
 
     get cell(): Cell {
