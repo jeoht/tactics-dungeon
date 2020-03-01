@@ -13,11 +13,11 @@ type AttackEvent = {
     damage: number
 }
 
-type MoveEvent = {
-    type: 'move'
+type PathMoveEvent = {
+    type: 'pathMove'
     unit: Unit
-    from: Cell
-    to: Cell
+    fromCell: Cell
+    path: Cell[]
 }
 
 type EndMoveEvent = {
@@ -25,12 +25,17 @@ type EndMoveEvent = {
     unit: Unit
 }
 
+type EndPhaseEvent = {
+    type: 'endPhase'
+    team: Team
+}
+
 type StartPhaseEvent = {
     type: 'startPhase'
     team: Team
 }
 
-export type WorldEvent = AttackEvent | MoveEvent | EndMoveEvent | StartPhaseEvent
+export type WorldEvent = AttackEvent | PathMoveEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent
 
 export class World {
     @observable grid: Cell[][] = []
@@ -115,6 +120,7 @@ export class World {
     }
 
     endPhase(team: Team) {
+        this.event({ type: 'endPhase', team: team })
         if (team === Team.Player) {
             this.startPhase(Team.Enemy)
         } else {

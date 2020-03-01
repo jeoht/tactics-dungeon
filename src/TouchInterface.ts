@@ -92,7 +92,7 @@ export class TouchInterface {
         // Only move if we're going directly to the cursor cell, or
         // if we're going adjacent to attack the cursor cell
         if (finalPathCell && (finalPathCell === drag.cursorCell || drag.cursorEnemy)) {
-            drag.unit.moveTo(finalPathCell)
+            drag.unit.moveAlong(drag.path)
 
             if (drag.cursorEnemy) {
                 drag.unit.attack(drag.cursorEnemy)
