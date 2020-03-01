@@ -24,7 +24,7 @@ export function UnitView(props: { game: Game, unit: Unit }) {
     })
 
     const dismiss = action(() => {
-        ui.showing = { screen: 'board' }
+        ui.state = { type: 'board' }
     })
 
     return useObserver(() => <div className="UnitView">

@@ -274,6 +274,10 @@ export class CanvasScene {
             await this.getSprite(event.unit).attackAnimation(event)
         } else if (event.type === 'endMove') {
             this.getSprite(event.unit).moved = true
+
+            if (ui.state.type === 'unitActionChoice') {
+                ui.state = { type: 'board' }
+            }
         } else if (event.type === 'startPhase') {
             for (const sprite of this.unitSprites) {
                 if (sprite.unit.team === event.team)
@@ -283,14 +287,16 @@ export class CanvasScene {
     }
 
     @action.bound onResize() {
-        // const width = this.canvas.offsetWidth
-        // const height = width * (this.game.boardHeight/this.game.boardWidth)
         const width = this.world.boardWidth * this.ui.cellScreenWidth
         const height = this.world.boardHeight * this.ui.cellScreenHeight
+
+        const styleWidth = this.canvas.offsetWidth
+        const styleHeight = styleWidth * (this.world.boardHeight/this.world.boardWidth)
 
         const scale = window.devicePixelRatio
         this.canvas.width = width*scale
         this.canvas.height = height*scale
+        this.canvas.style.minHeight = styleHeight + 'px'
         this.ctx.scale(scale, scale)
     }
 
