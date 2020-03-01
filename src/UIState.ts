@@ -15,6 +15,7 @@ export class UIState {
     assets: Assets
     cellScreenWidth: number = 24
     cellScreenHeight: number = 24
+    timestamp: number = 0
     frameResolvers: ((frameInfo: FrameInfo) => void)[] = []
 
     constructor(world: World, assets: Assets) {
@@ -35,8 +36,9 @@ export class UIState {
         if (this.animationHandle != null)
             cancelAnimationFrame(this.animationHandle)
 
-        let lastFrame: number|null
+        let lastFrame: number|null = null
         const frame = (timestamp: number) => {
+            this.timestamp = timestamp
             const deltaTime = lastFrame === null ? 0 : timestamp-lastFrame
 
             const frameInfo = { timestamp: timestamp, deltaTime: deltaTime }
@@ -53,7 +55,7 @@ export class UIState {
             this.frameResolvers.reverse()
             
             this.animationHandle = requestAnimationFrame(frame)
-            lastFrame = timestamp
+            this.timestamp = timestamp
         }
         this.animationHandle = requestAnimationFrame(frame)
     }

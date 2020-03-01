@@ -10,42 +10,95 @@ import { Tileset } from "./Tileset"
 
 
 class UnitSprite {
+    ctx: CanvasRenderingContext2D
     ui: UIState
     unit: Unit
     pos: ScreenVector
-    tileIndex: number
     tileset: Tileset
+    moved: boolean = false
 
-    constructor(ui: UIState, unit: Unit) {
+    attacking: { 
+        startTime: number, 
+        startPos: ScreenVector, 
+        targetPos: ScreenVector, 
+        damage: number,
+        resolve: () => void 
+    }|null = null
+
+    constructor(ctx: CanvasRenderingContext2D, ui: UIState, unit: Unit) {
+        this.ctx = ctx
         this.ui = ui
         this.unit = unit
         this.pos = ui.cellToScreenPoint(unit.cell)
-        this.tileIndex = unit.tileIndex
         this.tileset = ui.assets.creatures
     }
 
-    async attackAnimation(event: { target: Unit }) {
-        const startPos = this.pos
-        const targetPos = this.ui.cellToScreenPoint(event.target.cell)
-
-        const animTime = 100
-        let timePassed = 0
-        while (timePassed < animTime) {
-            const { deltaTime } = await this.ui.nextFrame()
-            if (timePassed < animTime/2) {
-                this.pos = ScreenVector.lerp(startPos, targetPos, timePassed/animTime)
-            } else {
-                this.pos = ScreenVector.lerp(targetPos, startPos, timePassed/animTime)
-            }
-            timePassed += deltaTime
-        }
+    async attackAnimation(event: { target: Unit, damage: number }) {
+        return new Promise((resolve, reject) => {
+            this.attacking = {
+                startTime: this.ui.timestamp,
+                startPos: this.pos,
+                targetPos: this.ui.cellToScreenPoint(event.target.cell),
+                damage: event.damage,
+                resolve: resolve
+            }    
+        })
     }
 
-    frame(frameInfo: FrameInfo) {
-        const { unit, ui } = this
+    render(ctx: CanvasRenderingContext2D, frameInfo: FrameInfo) {
+        if (this.attacking) {
+            this.renderAttacking(ctx, frameInfo)
+        }
+
+        const { unit, ui, moved, pos } = this
         const altTile = frameInfo.timestamp % 500 >= 250
         const tileIndex = unit.tileIndex + (altTile ? this.tileset.columns : 0)
-        this.tileIndex = tileIndex
+        const tileset = moved ? ui.assets.grayscaleCreatures : ui.assets.creatures
+
+        tileset.drawTile(ctx, tileIndex, pos.x, pos.y, ui.cellScreenWidth, ui.cellScreenHeight)
+    }
+
+    renderAttacking(ctx: CanvasRenderingContext2D, frameInfo: FrameInfo) {
+        const { attacking } = this
+        if (!attacking) return
+
+        const { startTime, startPos, targetPos, resolve } = attacking
+
+        const timePassed = frameInfo.timestamp - attacking.startTime
+        const bumpDuration = 100
+        const t = timePassed / bumpDuration
+
+
+        // Do the little bump (halfway to target and back again)
+        if (t < 0.5) {
+            this.pos = ScreenVector.lerp(startPos, targetPos, t)
+        } else {
+            this.pos = ScreenVector.lerp(targetPos, startPos, t)
+        }
+
+        const damageTextDuration = 500
+
+        const t2 = timePassed / damageTextDuration
+    
+        if (t2 >= 1) {
+            // Finished attack animation
+            this.attacking = null
+            resolve()
+            return
+        }
+
+        // Show damage text
+        const { ui } = this
+        const textInitialPos = targetPos.add(new ScreenVector(ui.cellScreenWidth/2, ui.cellScreenHeight/2))
+        const textBouncePos = textInitialPos.add(new ScreenVector(0, -5))
+        let textPos = textInitialPos
+        if (t2 < 0.5) {
+            textPos = ScreenVector.lerp(textInitialPos, textBouncePos, t2/0.5)
+        } else {
+            textPos = ScreenVector.lerp(textBouncePos, textInitialPos, (t2-0.5)/0.5)
+        }
+        ctx.fillStyle = "rgba(255, 0, 0, 1)"
+        ctx.fillText(attacking.damage.toString(), textPos.x, textPos.y)
     }
 }
 
@@ -66,7 +119,7 @@ export class BoardView {
         this.touchInterface = new TouchInterface(game.ui, canvas)
 
         for (const unit of this.world.units) {
-            this.renderUnits.push(new UnitSprite(this.ui, unit))
+            this.renderUnits.push(new UnitSprite(this.ctx, this.ui, unit))
         }
 
         window.addEventListener("resize", this.onResize)
@@ -82,10 +135,7 @@ export class BoardView {
     async start() {
         while (true) {
             const frameInfo = await this.ui.nextFrame()
-            for (const sprite of this.renderUnits) {
-                sprite.frame(frameInfo)
-            }
-            this.render()
+            this.render(frameInfo)
         }
     }
 
@@ -117,7 +167,7 @@ export class BoardView {
         } else if (event.type === 'attack') {
             await this.getSprite(event.unit).attackAnimation(event)
         } else if (event.type === 'endMove') {
-            this.getSprite(event.unit).tileset = ui.assets.grayscaleCreatures
+            this.getSprite(event.unit).moved = true
         }
     }
 
@@ -133,7 +183,7 @@ export class BoardView {
         this.ctx.scale(scale, scale)
     }
 
-    render() {
+    render(frameInfo: FrameInfo) {
         const { world, ctx, touchInterface, ui } = this
         ctx.save()
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -145,9 +195,8 @@ export class BoardView {
                 ui.assets.world.drawTile(ctx, cell.tileIndex, spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
             }
         }
-
-        for (const unit of this.renderUnits) {
-            unit.tileset.drawTile(ctx, unit.tileIndex, unit.pos.x, unit.pos.y, ui.cellScreenWidth, ui.cellScreenHeight)
+        for (const sprite of this.renderUnits) {
+            sprite.render(ctx, frameInfo)
         }
 
         touchInterface.render()
