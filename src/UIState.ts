@@ -5,12 +5,14 @@ import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
 import { Unit } from "./Unit"
 
-type Showing = { screen: 'board' } | { screen: 'unit', unit: Unit }
+export type UnitActionChoiceState = { type: 'unitActionChoice', unit: Unit }
+
+type Showing = { type: 'board' } | UnitActionChoiceState | { type: 'unit', unit: Unit }
 
 export type FrameInfo = { timestamp: number, deltaTime: number }
 
 export class UIState {
-    @observable showing: Showing = { screen: 'board' }
+    @observable state: Showing = { type: 'board' }
     world: World
     assets: Assets
     cellScreenWidth: number = 24

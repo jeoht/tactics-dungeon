@@ -23,8 +23,12 @@ body {
 	width: 100%;
 	height: 100%;
 	background-color: black;
-	display: grid;
-	align-items: center;
+	display: flex;
+	flex-direction: column;
+}
+
+header {
+	height: 100%;
 }
 
 canvas#board {
@@ -32,6 +36,23 @@ canvas#board {
 	height: auto;
 	cursor: pointer;
 	user-select: none;
+}
+
+footer {
+	height: 100%;	
+}
+
+.ActionChoices {
+	list-style-type: none;
+	display: flex;
+
+	li {
+		border: 3px solid lightblue;
+		border-radius: 20%;
+		color: white;
+		padding: 0.5rem;
+		
+	}	
 }
 
 .UnitView {

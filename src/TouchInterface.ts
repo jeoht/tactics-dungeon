@@ -54,6 +54,9 @@ export class TouchInterface {
     }
 
     @action.bound onTouchMove(e: TouchEvent) {
+        if (this.ui.state.type !== 'board')
+            return
+
         const touch = e.touches[0]
         const cursorPos = this.touchToScreenPoint(touch)
         const cell = this.ui.screenPointToCell(cursorPos)
@@ -88,17 +91,23 @@ export class TouchInterface {
             return
         }
 
-        const finalPathCell = _.last(drag.path)
+        let finalPathCell = _.last(drag.path)
+        if (!finalPathCell && drag.cursorEnemy && drag.unit.cell.isAdjacentTo(drag.cursorCell)) {
+            finalPathCell = drag.unit.cell
+        }
+
         // Only move if we're going directly to the cursor cell, or
         // if we're going adjacent to attack the cursor cell
         if (finalPathCell && (finalPathCell === drag.cursorCell || drag.cursorEnemy)) {
-            drag.unit.moveAlong(drag.path)
+            if (drag.path.length)
+                drag.unit.moveAlong(drag.path)
 
             if (drag.cursorEnemy) {
                 drag.unit.attack(drag.cursorEnemy)
+                drag.unit.endMove()
+            } else {
+                this.ui.state = { type: 'unitActionChoice', unit: drag.unit }
             }
-
-            drag.unit.endMove()
         }
 
 
@@ -106,10 +115,13 @@ export class TouchInterface {
     }
 
     @action.bound onTap(e: TouchEvent) {
+        if (this.ui.state.type !== 'board')
+            return
+
         const touch = e.changedTouches[0]
         const cell = this.ui.screenPointToCell(this.touchToScreenPoint(touch))
         if (cell.unit) {
-            this.ui.showing = { screen: 'unit', unit: cell.unit }
+            this.ui.state = { type: 'unit', unit: cell.unit }
         }
     }
 
