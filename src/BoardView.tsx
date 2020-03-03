@@ -13,18 +13,34 @@ import { Cell } from "./Cell"
 class UnitSprite implements SceneObject {
     ui: UIState
     unit: Unit
-    pos: ScreenVector
+    @observable pos: ScreenVector
     tileset: Tileset
     moved: boolean = false
     timestamp: number = 0
 
-    attacking: { 
-        startTime: number, 
-        startPos: ScreenVector, 
-        targetPos: ScreenVector, 
+    attacking: {
+        startTime: number,
+        startPos: ScreenVector,
+        targetPos: ScreenVector,
         damage: number,
-        resolve: () => void 
-    }|null = null
+        resolve: () => void
+    } | null = null
+
+    @computed get topLeft() {
+        return this.pos
+    }
+
+    @computed get topRight() {
+        return this.pos.addX(this.ui.cellScreenWidth)
+    }
+
+    @computed get bottomLeft() {
+        return this.pos.addY(this.ui.cellScreenHeight)
+    }
+
+    @computed get bottomRight() {
+        return this.pos.addXY(this.ui.cellScreenWidth, this.ui.cellScreenHeight)
+    }
 
     constructor(ui: UIState, unit: Unit) {
         this.ui = ui
@@ -41,7 +57,7 @@ class UnitSprite implements SceneObject {
                 targetPos: this.ui.cellToScreenPoint(event.target.cell),
                 damage: event.damage,
                 resolve: resolve
-            }    
+            }
         })
     }
 
@@ -70,8 +86,8 @@ class UnitSprite implements SceneObject {
         const duration = 100
         while (true) {
             const { timestamp } = await ui.nextFrame()
-            const t = Math.min(1, (timestamp-startTime) / duration)
-            const progress = t * (pathWithStart.length-1)
+            const t = Math.min(1, (timestamp - startTime) / duration)
+            const progress = t * (pathWithStart.length - 1)
             const i = Math.floor(progress)
             const j = Math.ceil(progress)
 
@@ -130,6 +146,44 @@ class UnitSprite implements SceneObject {
             return
         }
     }
+
+    /** Draw move and attack radius, as when selected on the board */
+    drawInfoOverlay(ctx: CanvasRenderingContext2D) {
+        const { ui } = this
+
+        ctx.fillStyle = "rgba(51, 153, 255, 0.5)"
+        for (const cell of this.unit.reachableUnoccupiedCells) {
+            const spos = ui.cellToScreenPoint(cell)
+            ctx.fillRect(spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
+        }
+
+        ctx.strokeStyle = "white"
+        ctx.lineWidth = 2
+
+        let p = this.topLeft.addXY(2, 2)
+        ctx.moveTo(p.x, p.y + 5)
+        ctx.lineTo(p.x, p.y)
+        ctx.lineTo(p.x + 5, p.y)
+        ctx.stroke()
+
+        p = this.topRight.addXY(-2, 2)
+        ctx.moveTo(p.x, p.y + 5)
+        ctx.lineTo(p.x, p.y)
+        ctx.lineTo(p.x - 5, p.y)
+        ctx.stroke()
+
+        p = this.bottomLeft.addXY(2, -2)
+        ctx.moveTo(p.x, p.y - 5)
+        ctx.lineTo(p.x, p.y)
+        ctx.lineTo(p.x + 5, p.y)
+        ctx.stroke()
+        
+        p = this.bottomRight.addXY(-2, -2)
+        ctx.moveTo(p.x, p.y - 5)
+        ctx.lineTo(p.x, p.y)
+        ctx.lineTo(p.x - 5, p.y)
+        ctx.stroke()
+    }
 }
 
 interface SceneObject {
@@ -144,7 +198,7 @@ class DamageText implements SceneObject {
     startTime: number
     timePassed: number = 0
     duration: number = 600
-    
+
     constructor(scene: CanvasScene, damage: number, startPos: ScreenVector) {
         this.scene = scene
         this.damage = damage
@@ -163,15 +217,15 @@ class DamageText implements SceneObject {
     render(ctx: CanvasRenderingContext2D) {
         const { scene, damage, startPos, timePassed } = this
         const bounceDuration: number = 300
-        const textInitialPos = startPos.add(new ScreenVector(scene.ui.cellScreenWidth/2, scene.ui.cellScreenHeight/2))
+        const textInitialPos = startPos.add(new ScreenVector(scene.ui.cellScreenWidth / 2, scene.ui.cellScreenHeight / 2))
         const textBouncePos = textInitialPos.add(new ScreenVector(0, -5))
         const t = timePassed / bounceDuration
 
         let textPos = textInitialPos
         if (t < 0.5) {
-            textPos = ScreenVector.lerp(textInitialPos, textBouncePos, t/0.5)
+            textPos = ScreenVector.lerp(textInitialPos, textBouncePos, t / 0.5)
         } else {
-            textPos = ScreenVector.lerp(textBouncePos, textInitialPos, (t-0.5)/0.5)
+            textPos = ScreenVector.lerp(textBouncePos, textInitialPos, (t - 0.5) / 0.5)
         }
         ctx.textAlign = "center"
         ctx.textBaseline = "middle"
@@ -264,7 +318,7 @@ export class CanvasScene {
             const sprite = this.getSprite(unit)
             if (unit.team === Team.Player) {
                 // Instant move for player
-                sprite.pos = ui.cellToScreenPoint(path[path.length-1])
+                sprite.pos = ui.cellToScreenPoint(path[path.length - 1])
             } else {
                 await sprite.animatePathMove(fromCell, path)
             }
@@ -275,7 +329,7 @@ export class CanvasScene {
         } else if (event.type === 'endMove') {
             this.getSprite(event.unit).moved = true
 
-            if (ui.state.type === 'unitActionChoice') {
+            if (ui.state.type === 'unitActionChoice' || ui.state.type === 'dragUnit') {
                 ui.state = { type: 'board' }
             }
         } else if (event.type === 'startPhase') {
@@ -291,11 +345,11 @@ export class CanvasScene {
         const height = this.world.boardHeight * this.ui.cellScreenHeight
 
         const styleWidth = this.canvas.offsetWidth
-        const styleHeight = styleWidth * (this.world.boardHeight/this.world.boardWidth)
+        const styleHeight = styleWidth * (this.world.boardHeight / this.world.boardWidth)
 
         const scale = window.devicePixelRatio
-        this.canvas.width = width*scale
-        this.canvas.height = height*scale
+        this.canvas.width = width * scale
+        this.canvas.height = height * scale
         this.canvas.style.minHeight = styleHeight + 'px'
         this.ctx.scale(scale, scale)
     }
@@ -311,6 +365,11 @@ export class CanvasScene {
                 const spos = ui.cellToScreenPoint(cell)
                 ui.assets.world.drawTile(ctx, cell.tileIndex, spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
             }
+        }
+
+        if (ui.state.type === 'selectedUnit') {
+            const sprite = this.getSprite(ui.state.unit)
+            sprite.drawInfoOverlay(ctx)
         }
 
         for (const obj of this.objects) {

@@ -36,6 +36,7 @@ canvas#board {
 	height: auto;
 	cursor: pointer;
 	user-select: none;
+	-webkit-tap-highlight-color: transparent;
 }
 
 footer {
