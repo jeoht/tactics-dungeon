@@ -5,15 +5,18 @@ import { Unit, Team } from "./Unit"
 import _ = require("lodash")
 import { ScreenVector } from "./ScreenVector"
 import { UIState, DragState } from "./UIState"
+import { CanvasScene } from "./BoardView"
 
 
 
 export class TouchInterface {
+    scene: CanvasScene
     ui: UIState
     canvas: HTMLCanvasElement
 
-    constructor(ui: UIState, canvas: HTMLCanvasElement) {
-        this.ui = ui
+    constructor(scene: CanvasScene, canvas: HTMLCanvasElement) {
+        this.scene = scene
+        this.ui = scene.ui
         this.canvas = canvas
         canvas.addEventListener('touchstart', this.onTouchStart)
         canvas.addEventListener('touchend', this.onTouchEnd)
@@ -94,10 +97,9 @@ export class TouchInterface {
             if (drag.cursorEnemy) {
                 this.ui.state = { type: 'board' }
                 drag.unit.attack(drag.cursorEnemy)
-                drag.unit.endMove()
-            } else {
-                this.ui.state = { type: 'unitActionChoice', unit: drag.unit }
             }
+
+            drag.unit.endMove()
         } else {
             this.ui.state = { type: 'board' }
         }
@@ -121,7 +123,9 @@ export class TouchInterface {
                 // Tap again anywhere to deselect unit
                 this.ui.state = { type: 'board' }
             }
-
+        } else if (state.type === 'targetAbility') {
+            state.unit.inventory = []
+            state.unit.teleportTo(cell)
         }
     }
 
@@ -129,12 +133,8 @@ export class TouchInterface {
         const { drag, ui } = this
         const ctx = this.canvas.getContext('2d')!
         if (drag) {
-            // Draw overlay indicator of movement radius
-            ctx.fillStyle = "rgba(51, 153, 255, 0.5)"
-            for (const cell of drag.possibleMoves) {
-                const spos = ui.cellToScreenPoint(cell)
-                ctx.fillRect(spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
-            }
+            const sprite = this.scene.getSprite(drag.unit)
+            sprite.drawInfoUnderlay(ctx)
 
             // Draw path the unit will follow
             if (drag.path.length) {

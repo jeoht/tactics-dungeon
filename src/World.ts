@@ -20,6 +20,13 @@ type PathMoveEvent = {
     path: Cell[]
 }
 
+type TeleportEvent = {
+    type: 'teleport'
+    unit: Unit
+    fromCell: Cell
+    toCell: Cell
+}
+
 type EndMoveEvent = {
     type: 'endMove'
     unit: Unit
@@ -35,7 +42,7 @@ type StartPhaseEvent = {
     team: Team
 }
 
-export type WorldEvent = AttackEvent | PathMoveEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent
+export type WorldEvent = AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent
 
 export class World {
     @observable grid: Cell[][] = []

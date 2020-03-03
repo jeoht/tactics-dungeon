@@ -2,37 +2,60 @@ import * as React from 'react'
 import { useObserver } from 'mobx-react'
 
 import { CanvasScene } from './BoardView'
-import { GameUI } from './GameUI'
 import { Game } from './Game'
-import { UnitView } from './UnitView'
-import { UnitActionChoiceState } from './UIState'
+import { SelectedUnitState } from './UIState'
 import { action } from 'mobx'
 
 function ActionChoices(props: { game: Game }) {
     const { ui } = props.game
-    const { unit } = ui.state as UnitActionChoiceState
-   
-    const fight = action(() => {
-
-    })
+    const { unit } = ui.state as SelectedUnitState
     
-    const wait = action(() => {
-        unit.endMove()
+    const teleport = action(() => {
+        ui.state = { type: 'targetAbility', unit: unit, ability: 'teleport' }
     })
 
     return <ul className="ActionChoices">
-        <li onClick={fight}>Fight</li>
-        <li onClick={wait}>Wait</li>
+        {unit.inventory.length && <li onClick={teleport}>Teleport x1</li>}
+        {!unit.inventory.length && <li className="disabled">Teleport x0</li>}
     </ul>
 
+}
+
+function TargetAbilityInfo() {
+    return <div className="TargetAbilityInfo">
+        <h3>scroll of teleport</h3>
+        <p>Teleports unit anywhere on the map. One-time use item. Doesn't cost an action.</p>
+    </div>
 }
 
 function BoardFooter(props: { game: Game }) {
     const { ui } = props.game
 
+    function contents() {
+        if (ui.state.type === 'selectedUnit') {
+            return <ActionChoices game={props.game}/>
+        } else if (ui.state.type === 'targetAbility') {
+            return <TargetAbilityInfo/>
+        } else {
+            return null
+        }
+    }
+
     return useObserver(() => <footer>
-        {ui.state.type === 'unitActionChoice' && <ActionChoices game={props.game}/>}
+        {contents()}
     </footer>)
+}
+
+function BoardHeader(props: { game: Game }) {
+    const { ui } = props.game
+
+    function contents() {
+        return null
+    }
+
+    return useObserver(() => <header>
+        {contents()}
+    </header>)
 }
 
 export function GameView(props: { game: Game }) {
@@ -50,7 +73,7 @@ export function GameView(props: { game: Game }) {
 
     return useObserver(() => {
         return <>
-            <header></header>
+            <BoardHeader game={game}/>
             <canvas ref={canvasRef} id="board"></canvas>
             <BoardFooter game={game}/>
         </>

@@ -3,6 +3,7 @@ import { dijkstra, dijkstraRange } from "./pathfinding"
 import { observable, computed } from "mobx"
 import _ = require("lodash")
 import { nameByRace } from "fantasy-name-generator"
+import { format } from "d3"
 
 export enum Gender {
     Boy = "Boy",
@@ -64,14 +65,13 @@ export class UnitStats {
     }
 }
 
-type UnitAction = { type: 'attack', target: Unit }
-
 export class Unit {
     private _cell!: Cell
     stats: UnitStats
     team: Team
     moved: boolean = false
     moveRange: number = 3
+    inventory: string[] = ['teleport']
 
     constructor(cell: Cell, stats: UnitStats, team: Team) {
         this._cell = cell
@@ -80,17 +80,31 @@ export class Unit {
         this.team = team
     }
 
+
+
     moveAlong(path: Cell[]) {
         if (!path.length)
             throw new Error("Expected a non-empty path")
 
-        const from = this._cell
-        from!.unit = undefined
-
-        this._cell = path[path.length-1]
-        this._cell.unit = this
+        const from = this.cell
+        this.cell = path[path.length-1]
 
         this.cell.world.event({ type: 'pathMove', unit: this, fromCell: from, path: path })
+    }
+
+    teleportTo(cell: Cell) {
+        const from = this.cell
+        this.cell = cell
+        this.cell.world.event({ type: 'teleport', unit: this, fromCell: from, toCell: cell })
+    }
+
+    set cell(cell: Cell) {
+        const from = this._cell
+        if (from)
+            from.unit = undefined
+
+        this._cell = cell
+        this._cell.unit = this
     }
 
     get cell(): Cell {
@@ -132,6 +146,11 @@ export class Unit {
         }
 
         return Array.from(candidates).filter(c => !nonBorderCells.has(c))
+    }
+
+
+    canOccupy(cell: Cell) {
+        return !cell.unit && cell.pathable
     }
 
     attack(enemy: Unit) {

@@ -148,7 +148,7 @@ class UnitSprite implements SceneObject {
     }
 
     /** Draw move and attack radius, as when selected on the board */
-    drawInfoOverlay(ctx: CanvasRenderingContext2D) {
+    drawInfoUnderlay(ctx: CanvasRenderingContext2D) {
         const { ui } = this
 
         ctx.fillStyle = "rgba(51, 153, 255, 0.5)"
@@ -261,7 +261,7 @@ export class CanvasScene {
         this.ui = game.ui
         this.canvas = canvas
         this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D
-        this.touchInterface = new TouchInterface(game.ui, canvas)
+        this.touchInterface = new TouchInterface(this, canvas)
 
         for (const unit of this.world.units) {
             const sprite = new UnitSprite(this.ui, unit)
@@ -321,6 +321,8 @@ export class CanvasScene {
             await this.handleEvent(event)
             this.handledEvents += 1
         }
+
+        this.ui.state = { type: 'board' }
     }
 
     async handleEvent(event: WorldEvent) {
@@ -334,6 +336,10 @@ export class CanvasScene {
             } else {
                 await sprite.animatePathMove(fromCell, path)
             }
+        } else if (event.type === 'teleport') {
+            const { unit, toCell } = event
+            const sprite = this.getSprite(unit)
+            sprite.pos = ui.cellToScreenPoint(toCell)
         } else if (event.type === 'attack') {
             const damageText = new DamageText(this, event.damage, this.ui.cellToScreenPoint(event.target.cell))
             this.add(damageText)
@@ -341,7 +347,7 @@ export class CanvasScene {
         } else if (event.type === 'endMove') {
             this.getSprite(event.unit).moved = true
 
-            if (ui.state.type === 'unitActionChoice' || ui.state.type === 'dragUnit') {
+            if (ui.state.type === 'targetAbility' || ui.state.type === 'dragUnit') {
                 ui.state = { type: 'board' }
             }
         } else if (event.type === 'startPhase') {
@@ -377,11 +383,22 @@ export class CanvasScene {
                 const spos = ui.cellToScreenPoint(cell)
                 ui.assets.world.drawTile(ctx, cell.tileIndex, spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
             }
+        } 
+
+        if (ui.state.type === 'targetAbility') {
+            const { unit } = ui.state
+            ctx.fillStyle = "rgba(51, 153, 255, 0.5)"
+            for (const cell of world.cells) {
+                if (!unit.canOccupy(cell)) continue
+
+                const spos = ui.cellToScreenPoint(cell)
+                ctx.fillRect(spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
+            }
         }
 
         if (ui.state.type === 'selectedUnit') {
             const sprite = this.getSprite(ui.state.unit)
-            sprite.drawInfoOverlay(ctx)
+            sprite.drawInfoUnderlay(ctx)
         }
 
         for (const obj of this.objects) {
@@ -389,7 +406,7 @@ export class CanvasScene {
                 obj.render(ctx)
         }
 
-        if (ui.state.type === 'selectedUnit') {
+        if (ui.state.type === 'selectedUnit' || ui.state.type === 'targetAbility') {
             const sprite = this.getSprite(ui.state.unit)
             sprite.drawSelectionIndicator(ctx)
         }
