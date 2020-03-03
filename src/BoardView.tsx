@@ -156,29 +156,35 @@ class UnitSprite implements SceneObject {
             const spos = ui.cellToScreenPoint(cell)
             ctx.fillRect(spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
         }
+    }
 
+    drawSelectionIndicator(ctx: CanvasRenderingContext2D) {
         ctx.strokeStyle = "white"
         ctx.lineWidth = 2
 
         let p = this.topLeft.addXY(2, 2)
+        ctx.beginPath()
         ctx.moveTo(p.x, p.y + 5)
         ctx.lineTo(p.x, p.y)
         ctx.lineTo(p.x + 5, p.y)
         ctx.stroke()
 
         p = this.topRight.addXY(-2, 2)
+        ctx.beginPath()
         ctx.moveTo(p.x, p.y + 5)
         ctx.lineTo(p.x, p.y)
         ctx.lineTo(p.x - 5, p.y)
         ctx.stroke()
 
         p = this.bottomLeft.addXY(2, -2)
+        ctx.beginPath()
         ctx.moveTo(p.x, p.y - 5)
         ctx.lineTo(p.x, p.y)
         ctx.lineTo(p.x + 5, p.y)
         ctx.stroke()
         
         p = this.bottomRight.addXY(-2, -2)
+        ctx.beginPath()
         ctx.moveTo(p.x, p.y - 5)
         ctx.lineTo(p.x, p.y)
         ctx.lineTo(p.x - 5, p.y)
@@ -375,6 +381,11 @@ export class CanvasScene {
         for (const obj of this.objects) {
             if (obj.render !== undefined)
                 obj.render(ctx)
+        }
+
+        if (ui.state.type === 'selectedUnit') {
+            const sprite = this.getSprite(ui.state.unit)
+            sprite.drawSelectionIndicator(ctx)
         }
 
         touchInterface.render()
