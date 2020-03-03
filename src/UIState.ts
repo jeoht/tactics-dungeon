@@ -5,7 +5,8 @@ import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
 import { Unit } from "./Unit"
 
-export type UnitActionChoiceState = { type: 'unitActionChoice', unit: Unit }
+export type SelectedUnitState = { type: 'selectedUnit', unit: Unit }
+export type TargetAbilityState = { type: 'targetAbility', unit: Unit, ability: 'teleport' }
 
 export type DragState = {
     type: 'dragUnit'
@@ -26,7 +27,7 @@ export type DragState = {
 }
 
 
-type Showing = { type: 'board' } | { type: 'selectedUnit', unit: Unit } | DragState | UnitActionChoiceState | { type: 'unit', unit: Unit }
+type Showing = { type: 'board' } | { type: 'selectedUnit', unit: Unit } | DragState | TargetAbilityState | { type: 'unit', unit: Unit }
 
 export type FrameInfo = { timestamp: number, deltaTime: number }
 
