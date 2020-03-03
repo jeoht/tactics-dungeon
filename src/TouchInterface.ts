@@ -1,33 +1,16 @@
 import { Cell } from "./Cell"
 import { GameView } from "./GameView"
-import { action, observable } from "mobx"
+import { action, observable, computed } from "mobx"
 import { Unit, Team } from "./Unit"
 import _ = require("lodash")
 import { ScreenVector } from "./ScreenVector"
-import { UIState } from "./UIState"
+import { UIState, DragState } from "./UIState"
 
 
-type Drag = {
-    /** The unit being dragged */
-    unit: Unit
-    /** The current path the unit will follow on drag release */
-    path: Cell[]
-    /** Current position of the cursor in screen coordinates */
-    cursorPos: ScreenVector
-    /** The cell underneath the current cursor position */
-    cursorCell: Cell
-    /** Enemy underneath the current cursor position, if any */
-    cursorEnemy?: Unit
-    /** Unit rendering offset relative to the cursor position */
-    cursorOffset: ScreenVector
-    /** Cells the unit can move to */
-    possibleMoves: Cell[]
-}
 
 export class TouchInterface {
     ui: UIState
     canvas: HTMLCanvasElement
-    @observable drag: Drag|null = null
 
     constructor(ui: UIState, canvas: HTMLCanvasElement) {
         this.ui = ui
@@ -35,6 +18,10 @@ export class TouchInterface {
         canvas.addEventListener('touchstart', this.onTouchStart)
         canvas.addEventListener('touchend', this.onTouchEnd)
         canvas.addEventListener('touchmove', this.onTouchMove)
+    }
+
+    get drag(): DragState|null {
+        return this.ui.state.type === 'dragUnit' ? this.ui.state : null
     }
 
     touchToScreenPoint(touch: Touch): ScreenVector {
@@ -54,34 +41,36 @@ export class TouchInterface {
     }
 
     @action.bound onTouchMove(e: TouchEvent) {
-        if (this.ui.state.type !== 'board')
-            return
 
         const touch = e.touches[0]
         const cursorPos = this.touchToScreenPoint(touch)
         const cell = this.ui.screenPointToCell(cursorPos)
-
-        if (!this.drag && cell.unit && cell.unit.team === Team.Player && !cell.unit.moved) {
-            const cursorOffset = cursorPos.subtract(this.ui.cellToScreenPoint(cell))
-            this.drag = { 
-                unit: cell.unit, 
-                path: [], 
-                cursorPos: cursorPos, 
-                cursorCell: cell,
-                cursorOffset: cursorOffset,
-                possibleMoves: cell.unit.findCellsInMoveRange()
+        
+        if (this.ui.state.type === 'board') {
+            if (cell.unit && cell.unit.team === Team.Player && !cell.unit.moved) {
+                const cursorOffset = cursorPos.subtract(this.ui.cellToScreenPoint(cell))
+                this.ui.state = {
+                    type: 'dragUnit', 
+                    unit: cell.unit, 
+                    path: [], 
+                    cursorPos: cursorPos, 
+                    cursorCell: cell,
+                    cursorOffset: cursorOffset,
+                    possibleMoves: cell.unit.findCellsInMoveRange()
+                }
+            }
+        } else if (this.ui.state.type === 'dragUnit') {
+            const {drag} = this
+            if (drag) {
+                drag.cursorPos = cursorPos
+                drag.cursorCell = cell
+                drag.cursorEnemy = cell.unit && drag.unit.isEnemy(cell.unit) ? cell.unit : undefined
+                if (drag.possibleMoves.includes(cell)) {
+                    drag.path = drag.unit.getPathTo(cell)
+                }
             }
         }
 
-        const {drag} = this
-        if (drag) {
-            drag.cursorPos = cursorPos
-            drag.cursorCell = cell
-            drag.cursorEnemy = cell.unit && drag.unit.isEnemy(cell.unit) ? cell.unit : undefined
-            if (drag.possibleMoves.includes(cell)) {
-                drag.path = drag.unit.getPathTo(cell)
-            }
-        }
     }
 
     @action.bound onTouchEnd(e: TouchEvent) {
@@ -103,25 +92,36 @@ export class TouchInterface {
                 drag.unit.moveAlong(drag.path)
 
             if (drag.cursorEnemy) {
+                this.ui.state = { type: 'board' }
                 drag.unit.attack(drag.cursorEnemy)
                 drag.unit.endMove()
             } else {
                 this.ui.state = { type: 'unitActionChoice', unit: drag.unit }
             }
+        } else {
+            this.ui.state = { type: 'board' }
         }
-
-
-        this.drag = null
     }
 
     @action.bound onTap(e: TouchEvent) {
-        if (this.ui.state.type !== 'board')
-            return
-
+        const { state } = this.ui
         const touch = e.changedTouches[0]
         const cell = this.ui.screenPointToCell(this.touchToScreenPoint(touch))
-        if (cell.unit) {
-            this.ui.state = { type: 'unit', unit: cell.unit }
+
+        if (state.type === 'board') {
+            // We can tap on a unit to select it
+            if (cell.unit) {
+                this.ui.selectUnit(cell.unit)
+            }
+        } else if (state.type === 'selectedUnit') {
+            if (cell.unit) {
+                // Tap another unit to change selection
+                this.ui.selectUnit(cell.unit)
+            } else {
+                // Tap again anywhere to deselect unit
+                this.ui.state = { type: 'board' }
+            }
+
         }
     }
 

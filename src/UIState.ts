@@ -1,5 +1,5 @@
 import { Assets } from "./Assets"
-import { computed, observable } from "mobx"
+import { computed, observable, action } from "mobx"
 import { World } from "./World"
 import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
@@ -7,7 +7,26 @@ import { Unit } from "./Unit"
 
 export type UnitActionChoiceState = { type: 'unitActionChoice', unit: Unit }
 
-type Showing = { type: 'board' } | UnitActionChoiceState | { type: 'unit', unit: Unit }
+export type DragState = {
+    type: 'dragUnit'
+    /** The unit being dragged */
+    unit: Unit
+    /** The current path the unit will follow on drag release */
+    path: Cell[]
+    /** Current position of the cursor in screen coordinates */
+    cursorPos: ScreenVector
+    /** The cell underneath the current cursor position */
+    cursorCell: Cell
+    /** Enemy underneath the current cursor position, if any */
+    cursorEnemy?: Unit
+    /** Unit rendering offset relative to the cursor position */
+    cursorOffset: ScreenVector
+    /** Cells the unit can move to */
+    possibleMoves: Cell[]
+}
+
+
+type Showing = { type: 'board' } | { type: 'selectedUnit', unit: Unit } | DragState | UnitActionChoiceState | { type: 'unit', unit: Unit }
 
 export type FrameInfo = { timestamp: number, deltaTime: number }
 
@@ -31,6 +50,10 @@ export class UIState {
 
     @computed get boardScreenHeight() {
         return this.cellScreenHeight * this.world.boardHeight
+    }
+
+    @action.bound selectUnit(unit: Unit) {
+        this.state = { type: 'selectedUnit', unit: unit }
     }
 
     animationHandle: number|null = null

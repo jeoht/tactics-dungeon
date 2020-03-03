@@ -28,6 +28,18 @@ export class PointVector {
         return new PointVector(this.x+other.x, this.y+other.y)
     }
 
+    addX(x: number) {
+        return new PointVector(this.x+x, this.y)
+    }
+
+    addY(y: number) {
+        return new PointVector(this.x, this.y+y)
+    }
+
+    addXY(x: number, y: number) {
+        return new PointVector(this.x+x, this.y+y)
+    }
+
     subtract(other: PointVector) {
         return new PointVector(this.x-other.x, this.y-other.y)
     }

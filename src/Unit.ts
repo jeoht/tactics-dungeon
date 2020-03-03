@@ -111,6 +111,15 @@ export class Unit {
         return this.cell.world.units.filter(u => u.team === this.team)
     }
 
+    /** Find all cells which this unit could occupy in a single move. */
+    @computed get reachableUnoccupiedCells(): Cell[] {
+        return dijkstraRange({
+            start: this.cell,
+            range: this.moveRange,
+            expand: node => node.neighbors().filter(n => this.canPathThrough(n))
+        })
+    }
+
     attack(enemy: Unit) {
         this.cell.world.eventLog.push({ type: 'attack', unit: this, target: enemy, damage: 10 })
     }
