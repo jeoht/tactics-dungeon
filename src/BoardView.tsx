@@ -156,6 +156,12 @@ class UnitSprite implements SceneObject {
             const spos = ui.cellToScreenPoint(cell)
             ctx.fillRect(spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
         }
+
+        ctx.fillStyle = "rgba(255, 48, 48, 0.5)"
+        for (const cell of this.unit.attackBorderCells) {
+            const spos = ui.cellToScreenPoint(cell)
+            ctx.fillRect(spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
+        }
     }
 
     drawSelectionIndicator(ctx: CanvasRenderingContext2D) {
