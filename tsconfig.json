@@ -10,6 +10,7 @@
         "jsx": "react",
         "target": "es5",
         "experimentalDecorators": true,
+        "downlevelIteration": true,
         "forceConsistentCasingInFileNames": true,
         "lib": ["dom", "es7", "esnext.asynciterable"],
         "plugins": [

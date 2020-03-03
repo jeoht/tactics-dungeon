@@ -120,6 +120,20 @@ export class Unit {
         })
     }
 
+    /** Find all cells which the unit can attack in the next turn, but not move into */
+    @computed get attackBorderCells(): Cell[] {
+        const nonBorderCells = new Set<Cell>()
+        const candidates = new Set<Cell>()
+        for (const cell of this.reachableUnoccupiedCells) {
+            nonBorderCells.add(cell)
+            for (const c of cell.neighbors()) {
+                candidates.add(c)
+            }
+        }
+
+        return Array.from(candidates).filter(c => !nonBorderCells.has(c))
+    }
+
     attack(enemy: Unit) {
         this.cell.world.eventLog.push({ type: 'attack', unit: this, target: enemy, damage: 10 })
     }
