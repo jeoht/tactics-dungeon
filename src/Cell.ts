@@ -3,12 +3,14 @@ import { observable } from "mobx"
 import { PointVector } from "./PointVector"
 import { Unit } from "./Unit"
 import { World } from "./World"
+import { Feature } from "./MapDefinition"
 
 export class Cell {
     world: World
     pos: PointVector
     tileIndex: number
     @observable unit?: Unit
+    features: Set<Feature> = new Set()
 
     constructor(world: World, x: number, y: number) {
         this.world = world
