@@ -160,7 +160,15 @@ export class Unit {
     attack(enemy: Unit) {
         const damage = 2
         enemy.health -= damage
+        if (enemy.health <= 0) {
+            enemy.defeated()
+        }
         this.cell.world.eventLog.push({ type: 'attack', unit: this, target: enemy, damage: damage })
+    }
+
+    defeated() {
+        this.cell.unit = undefined
+        this.cell.world.eventLog.push({ type: 'defeated', unit: this })
     }
 
     endMove() {
