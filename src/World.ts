@@ -5,6 +5,7 @@ import { PointVector } from "./PointVector"
 import _ = require("lodash")
 import { Unit, Class, UnitStats, UnitSpec, Team } from "./Unit"
 import { AI } from "./AI"
+import { Tile, Feature, MapDefinition } from "./MapDefinition"
 
 type AttackEvent = {
     type: 'attack'
@@ -64,17 +65,59 @@ export class World {
             }
         }
 
-        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
-        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
-        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
-        this.spawnUnit({ team: Team.Player, class: Class.Rookie })
+        const map: MapDefinition = {
+            key: `
+                ######
+                #e>>e#
+                #.ee.#
+                ##..##
+                ______
+                ______
+                ______
+                _pppp_
+            `,
+            where: {
+                '.': Tile.Mossy.Floor,
+                '#': Tile.Mossy.Wall,
+                '>': Tile.Mossy.Downstair,
+                '_': Tile.Mossy.Floor2,
+                'e': [Feature.EnemySpawn, Tile.Mossy.Floor],
+                'p': [Feature.PlayerSpawn, Tile.Mossy.Floor2]
+            }
+        }
 
-        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
-        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
-        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
-        this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton })
+        this.loadMap(map)
 
         this.ai = new AI(this, Team.Enemy)
+    }
+
+    loadMap(def: MapDefinition) {
+        const lines = def.key.trim().split("\n").map(l => l.trim())
+        for (let x = 0; x < this.boardWidth; x++) {
+            for (let y = 0; y < this.boardHeight; y++) {
+                const cell = this.grid[x][y]
+                let here = def.where[lines[y][x]]
+                if (!_.isArray(here)) {
+                    here = [here]
+                }
+
+                for (const v of here) {
+                    if (typeof v === "number") {
+                        cell.tileIndex = v
+                    } else {
+                        cell.features.add(v)
+                    }
+                }
+            }
+        }
+
+        for (const cell of this.cells) {
+            if (cell.features.has(Feature.EnemySpawn)) {
+                this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton, cell: cell })
+            } else if (cell.features.has(Feature.PlayerSpawn)) {
+                this.spawnUnit({ team: Team.Player, class: Class.Rookie, cell: cell })
+            }
+        }
     }
 
     @computed get cells(): Cell[] {
