@@ -330,8 +330,6 @@ export class CanvasScene {
         window.addEventListener("resize", this.onResize)
         this.onResize()
 
-        this.world.endPhase(Team.Player)
-
         autorun(() => {
             if (this.handledEvents < this.world.eventLog.length) {
                 runInAction(() => this.handleEvents())

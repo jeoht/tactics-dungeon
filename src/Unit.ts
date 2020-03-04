@@ -135,7 +135,7 @@ export class Unit {
             start: this.cell,
             range: this.moveRange,
             expand: node => node.neighbors().filter(n => this.canPathThrough(n))
-        })
+        }).filter(c => this.canOccupy(c))
     }
 
     /** Find all cells which the unit can attack in the next turn, but not move into */
@@ -181,21 +181,13 @@ export class Unit {
     }
 
     canPathThrough(cell: Cell): boolean {
-        return cell.pathable && (!cell.unit || cell.unit === this)
+        return cell.pathable && (!cell.unit || cell.unit.team === this.team)
     }
 
     getPathTo(cell: Cell): Cell[] {
         return dijkstra({
             start: this.cell,
             goal: (node: Cell) => node === cell,
-            expand: node => node.neighbors().filter(n => this.canPathThrough(n))
-        })
-    }
-
-    findCellsInMoveRange(): Cell[] {
-        return dijkstraRange({
-            start: this.cell,
-            range: this.moveRange,
             expand: node => node.neighbors().filter(n => this.canPathThrough(n))
         })
     }
