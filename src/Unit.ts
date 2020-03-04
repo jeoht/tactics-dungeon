@@ -69,9 +69,11 @@ export class Unit {
     private _cell!: Cell
     stats: UnitStats
     team: Team
-    moved: boolean = false
-    moveRange: number = 3
-    inventory: string[] = ['teleport']
+    @observable moved: boolean = false
+    @observable moveRange: number = 3
+    @observable inventory: string[] = ['teleport']
+    @observable health: number = 10
+    @observable maxHealth: number = 10
 
     constructor(cell: Cell, stats: UnitStats, team: Team) {
         this._cell = cell
@@ -79,8 +81,6 @@ export class Unit {
         this.stats = stats
         this.team = team
     }
-
-
 
     moveAlong(path: Cell[]) {
         if (!path.length)
@@ -111,7 +111,7 @@ export class Unit {
         return this._cell
     }
 
-    get tileIndex(): number {
+    @computed get tileIndex(): number {
         if (this.stats.class === Class.Rookie) {
             return 47
         } else if (this.stats.class === Class.Skeleton) {
@@ -119,6 +119,10 @@ export class Unit {
         }
 
         return 0
+    }
+
+    @computed get fracHealth(): number {
+        return this.health / this.maxHealth
     }
 
     @computed get unitsOnMyTeam(): Unit[] {
@@ -154,7 +158,9 @@ export class Unit {
     }
 
     attack(enemy: Unit) {
-        this.cell.world.eventLog.push({ type: 'attack', unit: this, target: enemy, damage: 10 })
+        const damage = 2
+        enemy.health -= damage
+        this.cell.world.eventLog.push({ type: 'attack', unit: this, target: enemy, damage: damage })
     }
 
     endMove() {

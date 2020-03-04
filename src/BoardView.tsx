@@ -42,6 +42,14 @@ class UnitSprite implements SceneObject {
         return this.pos.addXY(this.ui.cellScreenWidth, this.ui.cellScreenHeight)
     }
 
+    @computed get width() {
+        return this.ui.cellScreenWidth
+    }
+
+    @computed get height() {
+        return this.ui.cellScreenHeight
+    }
+
     constructor(ui: UIState, unit: Unit) {
         this.ui = ui
         this.unit = unit
@@ -195,6 +203,27 @@ class UnitSprite implements SceneObject {
         ctx.lineTo(p.x, p.y)
         ctx.lineTo(p.x - 5, p.y)
         ctx.stroke()
+    }
+
+    drawHealthBar(ctx: CanvasRenderingContext2D) {
+        const p = this.pos
+
+        if (this.unit.team === Team.Player) {
+            ctx.fillStyle = "#56c2ec"
+            ctx.strokeStyle = "#247789"
+            ctx.lineWidth = 1
+        } else {
+            ctx.fillStyle = "#eb626a"
+            ctx.strokeStyle = "#8b3635"
+            ctx.lineWidth = 1
+        }
+
+        const barHeight = 2
+        const padWidth = 2
+        const barWidth = this.width - padWidth*2
+        const fillWidth = this.unit.fracHealth * barWidth
+        ctx.fillRect(this.bottomLeft.x + padWidth, this.bottomLeft.y-barHeight-1, fillWidth, barHeight)
+        ctx.strokeRect(this.bottomLeft.x + padWidth, this.bottomLeft.y-barHeight-1, this.width - padWidth*2, barHeight)
     }
 }
 
@@ -374,7 +403,6 @@ export class CanvasScene {
 
     render() {
         const { world, ctx, touchInterface, ui } = this
-        ctx.save()
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
         for (let x = 0; x < world.boardWidth; x++) {
@@ -411,8 +439,10 @@ export class CanvasScene {
             sprite.drawSelectionIndicator(ctx)
         }
 
-        touchInterface.render()
+        for (const sprite of this.unitSprites) {
+            sprite.drawHealthBar(ctx)
+        }
 
-        ctx.restore()
+        touchInterface.render()
     }
 }

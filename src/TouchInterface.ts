@@ -124,8 +124,10 @@ export class TouchInterface {
                 this.ui.state = { type: 'board' }
             }
         } else if (state.type === 'targetAbility') {
-            state.unit.inventory = []
-            state.unit.teleportTo(cell)
+            if (state.ability === 'teleport' && state.unit.canOccupy(cell)) {
+                state.unit.inventory = []
+                state.unit.teleportTo(cell)    
+            }
         }
     }
 
