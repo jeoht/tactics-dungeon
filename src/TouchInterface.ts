@@ -59,7 +59,7 @@ export class TouchInterface {
                     cursorPos: cursorPos, 
                     cursorCell: cell,
                     cursorOffset: cursorOffset,
-                    possibleMoves: cell.unit.findCellsInMoveRange()
+                    possibleMoves: cell.unit.reachableUnoccupiedCells
                 }
             }
         } else if (this.ui.state.type === 'dragUnit') {
