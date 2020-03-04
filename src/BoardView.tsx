@@ -17,6 +17,7 @@ class UnitSprite implements SceneObject {
     tileset: Tileset
     moved: boolean = false
     timestamp: number = 0
+    alpha: number = 1
 
     attacking: {
         startTime: number,
@@ -116,9 +117,9 @@ class UnitSprite implements SceneObject {
         this.timestamp = frameInfo.timestamp
     }
 
-    render(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D) {
         if (this.attacking) {
-            this.renderAttacking(ctx)
+            this.drawAttacking(ctx)
         }
 
         const { unit, ui, moved, pos, timestamp } = this
@@ -126,10 +127,12 @@ class UnitSprite implements SceneObject {
         const tileIndex = unit.tileIndex + (altTile ? this.tileset.columns : 0)
         const tileset = moved ? ui.assets.grayscaleCreatures : ui.assets.creatures
 
+        ctx.globalAlpha = this.alpha
         tileset.drawTile(ctx, tileIndex, pos.x, pos.y, ui.cellScreenWidth, ui.cellScreenHeight)
+        ctx.globalAlpha = 1
     }
 
-    renderAttacking(ctx: CanvasRenderingContext2D) {
+    drawAttacking(ctx: CanvasRenderingContext2D) {
         const { attacking, timestamp } = this
         if (!attacking) return
 
@@ -152,6 +155,21 @@ class UnitSprite implements SceneObject {
             this.attacking = null
             resolve()
             return
+        }
+    }
+
+    async fadeOut() {
+        const { ui } = this
+        const startTime = ui.timestamp
+
+        const duration = 100
+        while (true) {
+            const { timestamp } = await ui.nextFrame()
+            const t = Math.min(1, (timestamp - startTime) / duration)
+            this.alpha = 1 - t
+
+            if (t >= 1)
+                break
         }
     }
 
@@ -241,7 +259,7 @@ class UnitSprite implements SceneObject {
 
 interface SceneObject {
     frame?: (frameInfo: FrameInfo) => void
-    render?: (ctx: CanvasRenderingContext2D) => void
+    draw?: (ctx: CanvasRenderingContext2D) => void
 }
 
 class DamageText implements SceneObject {
@@ -267,7 +285,7 @@ class DamageText implements SceneObject {
         }
     }
 
-    render(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D) {
         const { scene, damage, startPos, timePassed } = this
         const bounceDuration: number = 300
         const textInitialPos = startPos.add(new ScreenVector(scene.ui.cellScreenWidth / 2, scene.ui.cellScreenHeight / 2))
@@ -385,6 +403,10 @@ export class CanvasScene {
             const damageText = new DamageText(this, event.damage, this.ui.cellToScreenPoint(event.target.cell))
             this.add(damageText)
             await this.getSprite(event.unit).attackAnimation(event)
+        } else if (event.type === 'defeated') {
+            const sprite = this.getSprite(event.unit)
+            await sprite.fadeOut()
+            this.objects = this.objects.filter(o => o !== sprite)
         } else if (event.type === 'endMove') {
             this.getSprite(event.unit).moved = true
 
@@ -442,8 +464,8 @@ export class CanvasScene {
         }
 
         for (const obj of this.objects) {
-            if (obj.render !== undefined)
-                obj.render(ctx)
+            if (obj.draw !== undefined)
+                obj.draw(ctx)
         }
 
         if (ui.state.type === 'selectedUnit' || ui.state.type === 'targetAbility') {

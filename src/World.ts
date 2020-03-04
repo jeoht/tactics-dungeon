@@ -42,7 +42,12 @@ type StartPhaseEvent = {
     team: Team
 }
 
-export type WorldEvent = AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent
+type DefeatedEvent = {
+    type: 'defeated'
+    unit: Unit
+}
+
+export type WorldEvent = AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent | DefeatedEvent
 
 export class World {
     @observable grid: Cell[][] = []
