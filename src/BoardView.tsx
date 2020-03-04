@@ -206,24 +206,36 @@ class UnitSprite implements SceneObject {
     }
 
     drawHealthBar(ctx: CanvasRenderingContext2D) {
-        const p = this.pos
+        const { unit, bottomLeft, width, height } = this
 
         if (this.unit.team === Team.Player) {
-            ctx.fillStyle = "#56c2ec"
+            ctx.fillStyle = "rgb(86, 194, 236)"
             ctx.strokeStyle = "#247789"
-            ctx.lineWidth = 1
+            ctx.lineWidth = 0.5
         } else {
-            ctx.fillStyle = "#eb626a"
+            ctx.fillStyle = "rgb(235, 98, 106)"
             ctx.strokeStyle = "#8b3635"
-            ctx.lineWidth = 1
+            ctx.lineWidth = 0.5
         }
 
-        const barHeight = 2
+        const barHeight = 1.5
         const padWidth = 2
-        const barWidth = this.width - padWidth*2
-        const fillWidth = this.unit.fracHealth * barWidth
-        ctx.fillRect(this.bottomLeft.x + padWidth, this.bottomLeft.y-barHeight-1, fillWidth, barHeight)
-        ctx.strokeRect(this.bottomLeft.x + padWidth, this.bottomLeft.y-barHeight-1, this.width - padWidth*2, barHeight)
+        const barWidth = width - padWidth*2 - 5
+        const fillWidth = unit.fracHealth * barWidth
+        ctx.fillRect(bottomLeft.x + padWidth + 6, bottomLeft.y-barHeight-1, fillWidth, barHeight)
+        ctx.strokeRect(bottomLeft.x + padWidth + 6, bottomLeft.y-barHeight-1, barWidth, barHeight)
+
+        if (this.unit.team === Team.Player) {
+            ctx.fillStyle = "rgba(86, 194, 236, 0.9)"
+        } else {
+            ctx.fillStyle = "rgba(235, 98, 106, 0.9)"
+        }
+
+        ctx.textAlign = 'left'
+        ctx.textBaseline = 'middle'
+        ctx.font = "bold 6px sans-serif"
+        ctx.fillText(unit.health.toString().padStart(2, '0'), bottomLeft.x, bottomLeft.y-barHeight)
+
     }
 }
 
