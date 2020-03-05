@@ -91,7 +91,8 @@ export class TouchInterface {
         }
 
         let finalPathCell = _.last(drag.path)
-        if (!finalPathCell && drag.cursorEnemy && drag.unit.cell.isAdjacentTo(drag.cursorCell)) {
+        if (!finalPathCell && drag.cursorEnemy && drag.unit.canAttackFromHere(drag.cursorEnemy)) {
+            // We're not moving at all, just attacking from current position
             finalPathCell = drag.unit.cell
         }
 

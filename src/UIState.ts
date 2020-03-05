@@ -27,12 +27,12 @@ export type DragState = {
 }
 
 
-type Showing = { type: 'board' } | { type: 'selectedUnit', unit: Unit } | DragState | TargetAbilityState | { type: 'unit', unit: Unit }
+type Showing = { type: 'titleScreen' } | { type: 'board' } | { type: 'selectedUnit', unit: Unit } | DragState | TargetAbilityState | { type: 'unit', unit: Unit }
 
 export type FrameInfo = { timestamp: number, deltaTime: number }
 
 export class UIState {
-    @observable state: Showing = { type: 'board' }
+    @observable state: Showing = { type: 'titleScreen' }
     world: World
     assets: Assets
     cellScreenWidth: number = 24

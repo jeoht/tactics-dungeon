@@ -240,8 +240,8 @@ class UnitSprite implements SceneObject {
         const padWidth = 2
         const barWidth = width - padWidth*2 - 5
         const fillWidth = unit.fracHealth * barWidth
-        ctx.fillRect(bottomLeft.x + padWidth + 6, bottomLeft.y-barHeight-1, fillWidth, barHeight)
-        ctx.strokeRect(bottomLeft.x + padWidth + 6, bottomLeft.y-barHeight-1, barWidth, barHeight)
+        ctx.fillRect(bottomLeft.x + padWidth + 5, bottomLeft.y-barHeight-1, fillWidth, barHeight)
+        ctx.strokeRect(bottomLeft.x + padWidth + 5, bottomLeft.y-barHeight-1, barWidth, barHeight)
 
         if (this.unit.team === Team.Player) {
             ctx.fillStyle = "rgba(86, 194, 236, 0.9)"
@@ -251,8 +251,8 @@ class UnitSprite implements SceneObject {
 
         ctx.textAlign = 'left'
         ctx.textBaseline = 'middle'
-        ctx.font = "bold 6px sans-serif"
-        ctx.fillText(unit.health.toString().padStart(2, '0'), bottomLeft.x, bottomLeft.y-barHeight)
+        ctx.font = "bold 5px pixelmix"
+        ctx.fillText(unit.health.toString().padStart(2, '0'), bottomLeft.x, bottomLeft.y-barHeight-1)
 
     }
 }
