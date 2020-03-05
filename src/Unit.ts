@@ -122,6 +122,10 @@ export class Unit {
         return cell.neighbors.includes(enemy.cell)
     }
 
+    canAttackFromHere(enemy: Unit): boolean {
+        return this.canAttackFrom(this.cell, enemy)
+    }
+
     set cell(cell: Cell) {
         const from = this._cell
         if (from)

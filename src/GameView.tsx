@@ -6,6 +6,9 @@ import { Game } from './Game'
 import { SelectedUnitState } from './UIState'
 import { action } from 'mobx'
 import { Team } from './Unit'
+import { TitleScreen } from './TitleScreen'
+
+export const GameContext = React.createContext<{ game: Game }>({} as any)
 
 function ActionChoices(props: { game: Game }) {
     const { ui } = props.game
@@ -66,18 +69,31 @@ export function GameView(props: { game: Game }) {
     const canvasRef = React.createRef<HTMLCanvasElement>()
 
     React.useEffect(() => {
-        // Set the canvas renderer
-        const boardView = new CanvasScene(game, canvasRef.current!)
-        boardView.start()
-        ui.startFrames()
-        // game.world.endPhase(Team.Player)
+        // Set the canvas 
+        if (canvasRef.current) {
+            const boardView = new CanvasScene(game, canvasRef.current)
+            boardView.start()
+            ui.startFrames()    
+        }
     })
 
+    function contents() {
+        if (ui.state.type === 'titleScreen') {
+            return <TitleScreen/>
+        } else {
+            return <>
+                <BoardHeader game={game}/>
+                <canvas ref={canvasRef} id="board"></canvas>
+                <BoardFooter game={game}/>
+            </>
+        }    
+    }
+
+    const context = { game: game }
+
     return useObserver(() => {
-        return <>
-            <BoardHeader game={game}/>
-            <canvas ref={canvasRef} id="board"></canvas>
-            <BoardFooter game={game}/>
-        </>
+        return <GameContext.Provider value={context}>
+            {contents()}
+        </GameContext.Provider>
     })
 }
