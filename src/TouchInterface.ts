@@ -70,6 +70,13 @@ export class TouchInterface {
                 drag.cursorEnemy = cell.unit && drag.unit.isEnemy(cell.unit) ? cell.unit : undefined
                 if (drag.possibleMoves.includes(cell)) {
                     drag.path = drag.unit.getPathTo(cell)!
+                } else if (drag.cursorEnemy) {
+                    const finalPathCell = drag.path[drag.path.length-1]
+                    if (!finalPathCell || !drag.unit.canAttackFrom(finalPathCell, drag.cursorEnemy)) {
+                        const path = drag.unit.getPathToAttack(drag.cursorEnemy)
+                        if (path && path.length <= drag.unit.moveRange)
+                            drag.path = path
+                    }
                 }
             }
         }
