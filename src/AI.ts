@@ -17,22 +17,27 @@ export class AI {
 
     doPhase() {
         for (const unit of this.units) {
-            const path = unit.getPathToNearestEnemy()
-            if (path.length) {
-                if (path.length > unit.moveRange) {
-                    unit.moveAlong(path.slice(0, unit.moveRange-1))
-                } else {
-                    if (path.length > 1) {
-                        // Move to cell adjacent to target
-                        unit.moveAlong(path.slice(0, path.length-1))
-                    }
+            // Prioritize the enemies closest to defeat
+            const enemies = _.sortBy(unit.enemies, e => e.health)
 
-                    // Otherwise we're already adjacent
-                    const targetCell = path[path.length-1]
-                    unit.attack(targetCell.unit!)
-                }    
+            for (const enemy of enemies) {
+                const path = unit.getPathToAttack(enemy)
+
+                if (path && path.length <= unit.moveRange) {
+                    unit.moveAlong(path)
+                    unit.attack(enemy)
+                    unit.endMove()
+                    break
+                }
             }
-            unit.endMove()
+
+            if (!unit.moved) {
+                // Couldn't find a path to attack any enemy this turn
+                const path = unit.pathTowardsAttackPosition
+                if (path) unit.moveAlong(path)
+                unit.endMove()
+            }
+
         }
     }
 }

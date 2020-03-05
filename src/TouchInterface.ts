@@ -69,7 +69,7 @@ export class TouchInterface {
                 drag.cursorCell = cell
                 drag.cursorEnemy = cell.unit && drag.unit.isEnemy(cell.unit) ? cell.unit : undefined
                 if (drag.possibleMoves.includes(cell)) {
-                    drag.path = drag.unit.getPathTo(cell)
+                    drag.path = drag.unit.getPathTo(cell)!
                 }
             }
         }

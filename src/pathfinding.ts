@@ -21,7 +21,7 @@ class PriorityQueue<T> {
 }
 
 
-export function dijkstra<T>(props: { start: T, goal: ((node: T) => boolean), expand: (node: T) => T[] }): T[] {
+export function dijkstra<T>(props: { start: T, goal: ((node: T) => boolean), expand: (node: T) => T[] }): T[]|null {
     const { start, goal, expand } = props
     const frontier = new PriorityQueue<T>()
     frontier.push(start, 0)
@@ -52,7 +52,7 @@ export function dijkstra<T>(props: { start: T, goal: ((node: T) => boolean), exp
     }
 
     if (goalCell === null || !cameFrom.has(goalCell))
-        return []
+        return null
     else {
         const path = []
         let current = goalCell
