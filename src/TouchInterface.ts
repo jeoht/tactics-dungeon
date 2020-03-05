@@ -88,15 +88,17 @@ export class TouchInterface {
             finalPathCell = drag.unit.cell
         }
 
+        const attackingEnemy = finalPathCell && drag.cursorEnemy && drag.unit.canAttackFrom(finalPathCell, drag.cursorEnemy)
+
         // Only move if we're going directly to the cursor cell, or
         // if we're going adjacent to attack the cursor cell
-        if (finalPathCell && (finalPathCell === drag.cursorCell || drag.cursorEnemy)) {
+        if (finalPathCell && (finalPathCell === drag.cursorCell || attackingEnemy)) {
             if (drag.path.length)
                 drag.unit.moveAlong(drag.path)
 
-            if (drag.cursorEnemy) {
+            if (attackingEnemy) {
+                drag.unit.attack(drag.cursorEnemy!)
                 this.ui.state = { type: 'board' }
-                drag.unit.attack(drag.cursorEnemy)
             }
 
             drag.unit.endMove()
@@ -156,7 +158,8 @@ export class TouchInterface {
             }
 
             // If we're about to attack a unit, draw targeting
-            if (drag.cursorEnemy) {
+            const finalPathCell = _.last(drag.path)
+            if (drag.cursorEnemy && finalPathCell && drag.unit.canAttackFrom(finalPathCell, drag.cursorEnemy)) {
                 const enemy = drag.cursorEnemy
                 ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
                 const spos = ui.cellToScreenPoint(enemy.cell)

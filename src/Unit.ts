@@ -98,6 +98,10 @@ export class Unit {
         this.cell.world.event({ type: 'teleport', unit: this, fromCell: from, toCell: cell })
     }
 
+    canAttackFrom(cell: Cell, enemy: Unit): boolean {
+        return enemy.cell.pos.manhattanDistance(cell.pos) === 1
+    }
+
     set cell(cell: Cell) {
         const from = this._cell
         if (from)

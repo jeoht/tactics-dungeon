@@ -65,26 +65,26 @@ export class World {
             }
         }
 
-        const map: MapDefinition = {
-            key: `
-                ######
-                #e>>e#
-                #.ee.#
-                ##..##
-                ______
-                ______
-                ______
-                _pppp_
-            `,
-            where: {
-                '.': Tile.Mossy.Floor,
-                '#': Tile.Mossy.Wall,
-                '>': Tile.Mossy.Downstair,
-                '_': Tile.Mossy.Floor2,
-                'e': [Feature.EnemySpawn, Tile.Mossy.Floor],
-                'p': [Feature.PlayerSpawn, Tile.Mossy.Floor2]
-            }
-        }
+const map: MapDefinition = {
+    key: `
+        ######
+        #e>>e#
+        #.ee.#
+        ##..##
+        ______
+        ______
+        ______
+        _pppp_
+    `,
+    where: {
+        '.': Tile.Mossy.Floor,
+        '#': Tile.Mossy.Wall,
+        '>': Tile.Mossy.Downstair,
+        '_': Tile.Mossy.Floor2,
+        'e': [Feature.EnemySpawn, Tile.Mossy.Floor],
+        'p': [Feature.PlayerSpawn, Tile.Mossy.Floor2]
+    }
+}
 
         this.loadMap(map)
 
