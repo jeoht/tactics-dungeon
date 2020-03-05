@@ -82,13 +82,33 @@ export class Unit {
         this.team = team
     }
 
+    /** Move along a given path, constrained by this unit's ability to do so */
     moveAlong(path: Cell[]) {
+        // Truncate the path if it runs into something
+        const blockIndex = path.findIndex(c => !this.canPathThrough(c))
+        if (blockIndex !== -1) {
+            path = path.slice(0, blockIndex)
+        }
+
+        // Truncate the path if it's outside our max move range
+        if (path.length > this.moveRange) {
+            path = path.slice(0, this.moveRange)
+        }
+
+        // Go as far along the path as we can and still end up somewhere
+        for (let i = path.length-1; i >= 0; i--) {
+            const cell = path[i]
+            if (this.canOccupy(cell)) {
+                path = path.slice(0, i+1)
+                break
+            }
+        }
+
         if (!path.length)
-            throw new Error("Expected a non-empty path")
+            return // Not going anywhere
 
         const from = this.cell
         this.cell = path[path.length-1]
-
         this.cell.world.event({ type: 'pathMove', unit: this, fromCell: from, path: path })
     }
 
@@ -99,7 +119,7 @@ export class Unit {
     }
 
     canAttackFrom(cell: Cell, enemy: Unit): boolean {
-        return enemy.cell.pos.manhattanDistance(cell.pos) === 1
+        return cell.neighbors.includes(enemy.cell)
     }
 
     set cell(cell: Cell) {
@@ -138,7 +158,7 @@ export class Unit {
         return dijkstraRange({
             start: this.cell,
             range: this.moveRange,
-            expand: node => node.neighbors().filter(n => this.canPathThrough(n))
+            expand: node => node.neighbors.filter(n => this.canPathThrough(n))
         }).filter(c => this.canOccupy(c))
     }
 
@@ -148,7 +168,7 @@ export class Unit {
         const candidates = new Set<Cell>()
         for (const cell of this.reachableUnoccupiedCells) {
             nonBorderCells.add(cell)
-            for (const c of cell.neighbors()) {
+            for (const c of cell.neighbors) {
                 candidates.add(c)
             }
         }
@@ -156,9 +176,22 @@ export class Unit {
         return Array.from(candidates).filter(c => !nonBorderCells.has(c))
     }
 
+    @computed get enemies() {
+        return this.cell.world.units.filter(u => this.isEnemy(u))
+    }
+
+    /** Get the shortest path to a point where we can attack some enemy from */
+    @computed get pathTowardsAttackPosition() {
+        const goal = (node: Cell) => this.canOccupy(node) && this.enemies.some(enemy => this.canAttackFrom(node, enemy))
+        return dijkstra({
+            start: this.cell,
+            goal: goal,
+            expand: node => node.neighbors.filter(n => this.canPathThrough(n))
+        })
+    }
 
     canOccupy(cell: Cell) {
-        return !cell.unit && cell.pathable
+        return (!cell.unit || cell.unit === this) && cell.pathable
     }
 
     attack(enemy: Unit) {
@@ -188,20 +221,20 @@ export class Unit {
         return cell.pathable && (!cell.unit || cell.unit.team === this.team)
     }
 
-    getPathTo(cell: Cell): Cell[] {
+    getPathTo(cell: Cell): Cell[]|null {
         return dijkstra({
             start: this.cell,
             goal: (node: Cell) => node === cell,
-            expand: node => node.neighbors().filter(n => this.canPathThrough(n))
+            expand: node => node.neighbors.filter(n => this.canPathThrough(n))
         })
     }
 
-    getPathToNearestEnemy() {
-        const goal = (node: Cell) => !!(node.unit && this.isEnemy(node.unit))
+    getPathToAttack(enemy: Unit) {
+        const goal = (node: Cell) => this.canOccupy(node) && this.canAttackFrom(node, enemy)
         return dijkstra({
             start: this.cell,
             goal: goal,
-            expand: node => node.neighbors().filter(n => this.canPathThrough(n) || goal(n))
+            expand: node => node.neighbors.filter(n => this.canPathThrough(n))
         })
     }
 

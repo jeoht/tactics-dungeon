@@ -4,10 +4,6 @@ export enum Feature {
     EnemySpawn = 'enemySpawn'
 }
 
-function makeBiome() {
-    
-}
-
 const cols = 38
 
 export namespace Tile {
@@ -26,7 +22,7 @@ export namespace Tile {
     }
 
 
-    export enum Jadestone {
+    export enum Jade {
         Wall = cols*5+0,
         Floor = cols*5+3,
         Floor2 = cols*5+4,
@@ -42,8 +38,13 @@ export namespace Tile {
         Downstair = cols*12+8
     }
 
-    export type Tile = Stone|Sandstone|Jadestone|Mossy
+    export type Tile = Stone|Sandstone|Jade|Mossy
+
+    export function pathable(tile: Tile): boolean {
+        return tile % cols !== 0
+    }    
 }
+
 
 export type MapDefinition = {
     key: string

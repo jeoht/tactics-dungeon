@@ -5,6 +5,7 @@ import { CanvasScene } from './BoardView'
 import { Game } from './Game'
 import { SelectedUnitState } from './UIState'
 import { action } from 'mobx'
+import { Team } from './Unit'
 
 function ActionChoices(props: { game: Game }) {
     const { ui } = props.game
@@ -69,6 +70,7 @@ export function GameView(props: { game: Game }) {
         const boardView = new CanvasScene(game, canvasRef.current!)
         boardView.start()
         ui.startFrames()
+        // game.world.endPhase(Team.Player)
     })
 
     return useObserver(() => {

@@ -1,16 +1,16 @@
-import { observable } from "mobx"
+import { observable, computed } from "mobx"
 
 import { PointVector } from "./PointVector"
 import { Unit } from "./Unit"
 import { World } from "./World"
-import { Feature } from "./MapDefinition"
+import { Feature, Tile } from "./MapDefinition"
 
 export class Cell {
     world: World
     pos: PointVector
-    tileIndex: number
+    @observable tileIndex: number
     @observable unit?: Unit
-    features: Set<Feature> = new Set()
+    @observable features: Set<Feature> = new Set()
 
     constructor(world: World, x: number, y: number) {
         this.world = world
@@ -18,11 +18,11 @@ export class Cell {
         this.tileIndex = Math.random() > 0.9 ? 0 : 3
     }
 
-    get pathable() {
-        return this.tileIndex !== 0
+    @computed get pathable() {
+        return Tile.pathable(this.tileIndex)
     }
 
-    neighbors(): Cell[] {
+    @computed get neighbors(): Cell[] {
         const neighbors = []
         for (const n of this.pos.neighbors()) {
             const cell = this.world.cellAt(n)
