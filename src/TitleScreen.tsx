@@ -16,19 +16,19 @@ function TitleScreenBG() {
 
 
         const onResize = () => {
-            const styleWidth = canvas.offsetWidth
-            const styleHeight = canvas.offsetHeight
+            const styleWidth = canvas.parentElement!.offsetWidth
+            const styleHeight = canvas.parentElement!.offsetHeight
             const scale = window.devicePixelRatio
     
-            const width = BOARD_COLS * CELL_WIDTH
-            canvas.width = width * scale
-            canvas.height = styleHeight
+            const boardWidth = 6
+            canvas.width = boardWidth * CELL_WIDTH * scale
+
+
+            const boardHeight = Math.ceil(styleHeight / (CELL_HEIGHT*scale)) * (canvas.width/styleWidth)
+            canvas.height = boardHeight * CELL_HEIGHT * scale
 
             ctx.scale(scale, scale)
             ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-            const boardWidth = canvas.width / CELL_WIDTH
-            const boardHeight = canvas.height / CELL_HEIGHT
 
             function randomTile() {
                 return TILESET_BIOME_COLS*0 + 3 + Math.floor(Math.random()*3)
@@ -43,10 +43,15 @@ function TitleScreenBG() {
             } 
         }
 
+        window.addEventListener("resize", onResize)
         onResize()
+
+        return () => window.removeEventListener("resize", onResize)
     })
 
-    return <canvas ref={ref} className="background"/>
+    return <div className="background">
+        <canvas ref={ref} />
+    </div>
 }
 
 export function TitleScreen() {
