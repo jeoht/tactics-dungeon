@@ -57,6 +57,10 @@ export class UIState {
         this.state = { type: 'selectedUnit', unit: unit }
     }
 
+    @action.bound goto(stateType: 'board'|'titleScreen') {
+        this.state = { type: stateType }
+    }
+
     animationHandle: number|null = null
     startFrames() {
         if (this.animationHandle != null)

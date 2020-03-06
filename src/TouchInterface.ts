@@ -1,12 +1,11 @@
-import { Cell } from "./Cell"
-import { GameView } from "./GameView"
-import { action, observable, computed } from "mobx"
-import { Unit, Team } from "./Unit"
 import _ = require("lodash")
+import { action, observable, computed, runInAction } from "mobx"
+import { bind } from 'decko'
+
+import { Team } from "./Unit"
 import { ScreenVector } from "./ScreenVector"
 import { UIState, DragState } from "./UIState"
 import { CanvasScene } from "./BoardView"
-
 
 
 export class TouchInterface {
@@ -36,15 +35,14 @@ export class TouchInterface {
         return new ScreenVector(x, y)
     }
 
-    @action.bound onTouchStart(e: TouchEvent) {
+    @bind onTouchStart(e: TouchEvent) {
         // const touch = e.touches[0]
         // const cursorPos = this.touchToScreenPoint(touch)
         // const cell = this.ui.screenPointToCell(cursorPos)
 
     }
 
-    @action.bound onTouchMove(e: TouchEvent) {
-
+    @bind onTouchMove(e: TouchEvent) {
         const touch = e.touches[0]
         const cursorPos = this.touchToScreenPoint(touch)
         const cell = this.ui.screenPointToCell(cursorPos)
@@ -52,38 +50,43 @@ export class TouchInterface {
         if (this.ui.state.type === 'board') {
             if (cell.unit && cell.unit.team === Team.Player && !cell.unit.moved) {
                 const cursorOffset = cursorPos.subtract(this.ui.cellToScreenPoint(cell))
-                this.ui.state = {
-                    type: 'dragUnit', 
-                    unit: cell.unit, 
-                    path: [], 
-                    cursorPos: cursorPos, 
-                    cursorCell: cell,
-                    cursorOffset: cursorOffset,
-                    possibleMoves: cell.unit.reachableUnoccupiedCells
-                }
+                runInAction(() => {
+                    if (cell.unit)
+                        this.ui.state = {
+                            type: 'dragUnit', 
+                            unit: cell.unit, 
+                            path: [], 
+                            cursorPos: cursorPos, 
+                            cursorCell: cell,
+                            cursorOffset: cursorOffset,
+                            possibleMoves: cell.unit.reachableUnoccupiedCells
+                        }    
+                })
             }
         } else if (this.ui.state.type === 'dragUnit') {
-            const {drag} = this
-            if (drag) {
-                drag.cursorPos = cursorPos
-                drag.cursorCell = cell
-                drag.cursorEnemy = cell.unit && drag.unit.isEnemy(cell.unit) ? cell.unit : undefined
-                if (drag.possibleMoves.includes(cell)) {
-                    drag.path = drag.unit.getPathTo(cell)!
-                } else if (drag.cursorEnemy) {
-                    const finalPathCell = drag.path[drag.path.length-1]
-                    if (!finalPathCell || !drag.unit.canAttackFrom(finalPathCell, drag.cursorEnemy)) {
-                        const path = drag.unit.getPathToAttack(drag.cursorEnemy)
-                        if (path && path.length <= drag.unit.moveRange)
-                            drag.path = path
+            runInAction(() => {
+                const {drag} = this
+                if (drag) {
+                    drag.cursorPos = cursorPos
+                    drag.cursorCell = cell
+                    drag.cursorEnemy = cell.unit && drag.unit.isEnemy(cell.unit) ? cell.unit : undefined
+                    if (drag.possibleMoves.includes(cell)) {
+                        drag.path = drag.unit.getPathTo(cell)!
+                    } else if (drag.cursorEnemy) {
+                        const finalPathCell = drag.path[drag.path.length-1]
+                        if (!finalPathCell || !drag.unit.canAttackFrom(finalPathCell, drag.cursorEnemy)) {
+                            const path = drag.unit.getPathToAttack(drag.cursorEnemy)
+                            if (path && path.length <= drag.unit.moveRange)
+                                drag.path = path
+                        }
                     }
-                }
-            }
+                }    
+            })
         }
 
     }
 
-    @action.bound onTouchEnd(e: TouchEvent) {
+    @bind onTouchEnd(e: TouchEvent) {
         const { drag } = this
         if (!drag) {
             this.onTap(e)
@@ -106,16 +109,16 @@ export class TouchInterface {
 
             if (attackingEnemy) {
                 drag.unit.attack(drag.cursorEnemy!)
-                this.ui.state = { type: 'board' }
+                this.ui.goto('board')
             }
 
             drag.unit.endMove()
         } else {
-            this.ui.state = { type: 'board' }
+            this.ui.goto('board')
         }
     }
 
-    @action.bound onTap(e: TouchEvent) {
+    @bind onTap(e: TouchEvent) {
         const { state } = this.ui
         const touch = e.changedTouches[0]
         const cell = this.ui.screenPointToCell(this.touchToScreenPoint(touch))
@@ -131,12 +134,14 @@ export class TouchInterface {
                 this.ui.selectUnit(cell.unit)
             } else {
                 // Tap again anywhere to deselect unit
-                this.ui.state = { type: 'board' }
+                this.ui.goto('board')
             }
         } else if (state.type === 'targetAbility') {
             if (state.ability === 'teleport' && state.unit.canOccupy(cell)) {
-                state.unit.inventory = []
-                state.unit.teleportTo(cell)    
+                runInAction(() => {
+                    state.unit.inventory = []
+                    state.unit.teleportTo(cell)    
+                })
             }
         }
     }

@@ -3,15 +3,16 @@ import { useObserver } from 'mobx-react'
 
 import { CanvasScene } from './BoardView'
 import { Game } from './Game'
-import { SelectedUnitState } from './UIState'
+import { SelectedUnitState, UIState } from './UIState'
 import { action } from 'mobx'
 import { Team } from './Unit'
 import { TitleScreen } from './TitleScreen'
+import { useContext } from 'react'
 
-export const GameContext = React.createContext<{ game: Game }>({} as any)
+export const GameContext = React.createContext<{ game: Game, ui: UIState }>({} as any)
 
-function ActionChoices(props: { game: Game }) {
-    const { ui } = props.game
+function ActionChoices() {
+    const { ui } = useContext(GameContext)
     const { unit } = ui.state as SelectedUnitState
     
     const teleport = action(() => {
@@ -32,12 +33,12 @@ function TargetAbilityInfo() {
     </div>
 }
 
-function BoardFooter(props: { game: Game }) {
-    const { ui } = props.game
+function BoardFooter() {
+    const { ui } = useContext(GameContext)
 
     function contents() {
         if (ui.state.type === 'selectedUnit') {
-            return <ActionChoices game={props.game}/>
+            return <ActionChoices/>
         } else if (ui.state.type === 'targetAbility') {
             return <TargetAbilityInfo/>
         } else {
@@ -50,9 +51,7 @@ function BoardFooter(props: { game: Game }) {
     </footer>)
 }
 
-function BoardHeader(props: { game: Game }) {
-    const { ui } = props.game
-
+function BoardHeader() {
     function contents() {
         return null
     }
@@ -62,34 +61,42 @@ function BoardHeader(props: { game: Game }) {
     </header>)
 }
 
+function BoardCanvas() {
+    const { game, ui } = useContext(GameContext)
+    const canvasRef = React.createRef<HTMLCanvasElement>()
+
+    let boardView: CanvasScene|null = null
+    React.useEffect(() => {
+        // Set the canvas 
+        if (!boardView && canvasRef.current) {
+            boardView = new CanvasScene(game, canvasRef.current)
+            boardView.start()
+            ui.startFrames()
+        }
+    })
+
+    return <canvas ref={canvasRef} id="board"></canvas>
+}
+
 export function GameView(props: { game: Game }) {
     const { game } = props
     const { ui } = game
 
-    const canvasRef = React.createRef<HTMLCanvasElement>()
 
-    React.useEffect(() => {
-        // Set the canvas 
-        if (canvasRef.current) {
-            const boardView = new CanvasScene(game, canvasRef.current)
-            boardView.start()
-            ui.startFrames()    
-        }
-    })
 
     function contents() {
         if (ui.state.type === 'titleScreen') {
             return <TitleScreen/>
         } else {
             return <>
-                <BoardHeader game={game}/>
-                <canvas ref={canvasRef} id="board"></canvas>
-                <BoardFooter game={game}/>
+                <BoardHeader/>
+                <BoardCanvas/>
+                <BoardFooter/>
             </>
         }    
     }
 
-    const context = { game: game }
+    const context = { game: game, ui: game.ui }
 
     return useObserver(() => {
         return <GameContext.Provider value={context}>

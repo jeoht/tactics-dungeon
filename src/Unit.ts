@@ -1,6 +1,6 @@
 import { Cell } from "./Cell"
 import { dijkstra, dijkstraRange } from "./pathfinding"
-import { observable, computed } from "mobx"
+import { observable, computed, action } from "mobx"
 import _ = require("lodash")
 import { nameByRace } from "fantasy-name-generator"
 import { format } from "d3"
@@ -68,7 +68,7 @@ export class UnitStats {
 export class Unit {
     private _cell!: Cell
     stats: UnitStats
-    team: Team
+    @observable team: Team
     @observable moved: boolean = false
     @observable moveRange: number = 3
     @observable inventory: string[] = ['teleport']
@@ -194,11 +194,7 @@ export class Unit {
         })
     }
 
-    canOccupy(cell: Cell) {
-        return (!cell.unit || cell.unit === this) && cell.pathable
-    }
-
-    attack(enemy: Unit) {
+    @action attack(enemy: Unit) {
         const damage = 2
         enemy.health -= damage
         if (enemy.health <= 0) {
@@ -207,18 +203,22 @@ export class Unit {
         this.cell.world.eventLog.push({ type: 'attack', unit: this, target: enemy, damage: damage })
     }
 
-    defeated() {
+    @action defeated() {
         this.cell.unit = undefined
         this.cell.world.eventLog.push({ type: 'defeated', unit: this })
     }
 
-    endMove() {
+    @action endMove() {
         this.moved = true
         this.cell.world.eventLog.push({ type: 'endMove', unit: this })
 
         if (this.unitsOnMyTeam.every(unit => unit.moved)) {
             this.cell.world.endPhase(this.team)
         }
+    }
+
+    canOccupy(cell: Cell) {
+        return (!cell.unit || cell.unit === this) && cell.pathable
     }
 
     canPathThrough(cell: Cell): boolean {
