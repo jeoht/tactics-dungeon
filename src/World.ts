@@ -1,5 +1,5 @@
 import { GameView } from "./GameView"
-import { observable, computed } from "mobx"
+import { observable, computed, action } from "mobx"
 import { Cell } from "./Cell"
 import { PointVector } from "./PointVector"
 import _ = require("lodash")
@@ -58,6 +58,33 @@ export class World {
     ai: AI
 
     constructor() {
+        const map: MapDefinition = {
+            key: `
+                ######
+                #e>>e#
+                #.ee.#
+                ##..##
+                ______
+                ______
+                ______
+                _pppp_
+            `,
+            where: {
+                '.': Tile.Mossy.Floor,
+                '#': Tile.Mossy.Wall,
+                '>': Tile.Mossy.Downstair,
+                '_': Tile.Mossy.Floor2,
+                'e': [Feature.EnemySpawn, Tile.Mossy.Floor],
+                'p': [Feature.PlayerSpawn, Tile.Mossy.Floor2]
+            }
+        }
+
+        this.loadMap(map)
+
+        this.ai = new AI(this, Team.Enemy)
+    }
+
+    @action loadMap(def: MapDefinition) {
         for (let x = 0; x < this.boardWidth; x++) {
             this.grid[x] = []
             for (let y = 0; y < this.boardHeight; y++) {
@@ -65,33 +92,6 @@ export class World {
             }
         }
 
-const map: MapDefinition = {
-    key: `
-        ######
-        #e>>e#
-        #.ee.#
-        ##..##
-        ______
-        ______
-        ______
-        _pppp_
-    `,
-    where: {
-        '.': Tile.Mossy.Floor,
-        '#': Tile.Mossy.Wall,
-        '>': Tile.Mossy.Downstair,
-        '_': Tile.Mossy.Floor2,
-        'e': [Feature.EnemySpawn, Tile.Mossy.Floor],
-        'p': [Feature.PlayerSpawn, Tile.Mossy.Floor2]
-    }
-}
-
-        this.loadMap(map)
-
-        this.ai = new AI(this, Team.Enemy)
-    }
-
-    loadMap(def: MapDefinition) {
         const lines = def.key.trim().split("\n").map(l => l.trim())
         for (let x = 0; x < this.boardWidth; x++) {
             for (let y = 0; y < this.boardHeight; y++) {
@@ -156,7 +156,7 @@ const map: MapDefinition = {
         return new Unit(cell, stats, props.team)
     }
 
-    event(event: WorldEvent) {
+    @action event(event: WorldEvent) {
         this.eventLog.push(event)
     }
 

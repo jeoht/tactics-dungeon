@@ -313,6 +313,7 @@ export class CanvasScene {
     ctx: CanvasRenderingContext2D
     touchInterface: TouchInterface
     handledEvents: number = 0
+    handlingEvents: boolean = false
     @observable objects: SceneObject[] = []
 
     constructor(game: Game, canvas: HTMLCanvasElement) {
@@ -331,7 +332,7 @@ export class CanvasScene {
         this.onResize()
 
         autorun(() => {
-            if (this.handledEvents < this.world.eventLog.length) {
+            if (!this.handlingEvents && this.handledEvents < this.world.eventLog.length) {
                 runInAction(() => this.handleEvents())
             }
         })
@@ -373,13 +374,18 @@ export class CanvasScene {
     }
 
     async handleEvents() {
-        while (this.handledEvents < this.world.eventLog.length) {
-            const event = this.world.eventLog[this.handledEvents]
-            await this.handleEvent(event)
-            this.handledEvents += 1
+        this.handlingEvents = true
+        try {
+            while (this.handledEvents < this.world.eventLog.length) {
+                const event = this.world.eventLog[this.handledEvents]
+                await this.handleEvent(event)
+                this.handledEvents += 1
+            }    
+        } finally {
+            this.handlingEvents = false
         }
 
-        this.ui.state = { type: 'board' }
+        this.ui.goto('board')
     }
 
     async handleEvent(event: WorldEvent) {
@@ -409,7 +415,7 @@ export class CanvasScene {
             this.getSprite(event.unit).moved = true
 
             if (ui.state.type === 'targetAbility' || ui.state.type === 'dragUnit') {
-                ui.state = { type: 'board' }
+                ui.goto('board')
             }
         } else if (event.type === 'startPhase') {
             for (const sprite of this.unitSprites) {

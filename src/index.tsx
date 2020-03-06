@@ -8,7 +8,13 @@ import { World } from './World'
 import { UIState } from './UIState'
 import ReactDOM = require('react-dom')
 import React = require('react')
+import * as mobx from 'mobx'
 
+/** 
+ * Strict mode for mobx-- all state mutations
+ * must happen inside an action
+ */
+mobx.configure({ enforceActions: 'observed' })
 
 
 declare global {
