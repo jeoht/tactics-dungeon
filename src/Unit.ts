@@ -75,6 +75,10 @@ export class Unit {
     @observable health: number = 10
     @observable maxHealth: number = 10
 
+    @computed get defeated() {
+        return this.health <= 0
+    }
+
     constructor(cell: Cell, stats: UnitStats, team: Team) {
         this._cell = cell
         this._cell.unit = this
@@ -195,15 +199,16 @@ export class Unit {
     }
 
     @action attack(enemy: Unit) {
-        const damage = 2
+        const damage = 4
+        this.cell.world.eventLog.push({ type: 'attack', unit: this, target: enemy, damage: damage })
+
         enemy.health -= damage
         if (enemy.health <= 0) {
-            enemy.defeated()
+            enemy.defeat()
         }
-        this.cell.world.eventLog.push({ type: 'attack', unit: this, target: enemy, damage: damage })
     }
 
-    @action defeated() {
+    @action defeat() {
         this.cell.unit = undefined
         this.cell.world.eventLog.push({ type: 'defeated', unit: this })
     }

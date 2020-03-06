@@ -2,7 +2,7 @@ import React = require("react")
 import { Unit } from "./Unit"
 import { Game } from "./Game"
 import { action } from "mobx"
-import { useObserver } from "mobx-react"
+import { useObserver } from "mobx-react-lite"
 
 export function UnitView(props: { game: Game, unit: Unit }) {
     const { game, unit } = props

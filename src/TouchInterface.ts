@@ -4,22 +4,21 @@ import { bind } from 'decko'
 
 import { Team } from "./Unit"
 import { ScreenVector } from "./ScreenVector"
-import { UIState, DragState } from "./UIState"
-import { CanvasScene } from "./BoardView"
+import { UI, DragState } from "./UI"
+import { CanvasBoard } from "./CanvasBoard"
+import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
 
 
 export class TouchInterface {
-    scene: CanvasScene
-    ui: UIState
-    canvas: HTMLCanvasElement
+    board: CanvasBoard
+    ui: UI
 
-    constructor(scene: CanvasScene, canvas: HTMLCanvasElement) {
-        this.scene = scene
-        this.ui = scene.ui
-        this.canvas = canvas
-        canvas.addEventListener('touchstart', this.onTouchStart)
-        canvas.addEventListener('touchend', this.onTouchEnd)
-        canvas.addEventListener('touchmove', this.onTouchMove)
+    constructor(board: CanvasBoard) {
+        this.board = board
+        this.ui = board.ui
+        board.canvas.addEventListener('touchstart', this.onTouchStart)
+        board.canvas.addEventListener('touchend', this.onTouchEnd)
+        board.canvas.addEventListener('touchmove', this.onTouchMove)
     }
 
     get drag(): DragState|null {
@@ -27,7 +26,7 @@ export class TouchInterface {
     }
 
     touchToScreenPoint(touch: Touch): ScreenVector {
-        const rect = this.canvas.getBoundingClientRect()
+        const rect = this.board.canvas.getBoundingClientRect()
         const scaleX = rect.width / this.ui.boardScreenWidth
         const scaleY = rect.height / this.ui.boardScreenHeight
         const x = (touch.pageX - rect.left) / scaleX
@@ -43,13 +42,14 @@ export class TouchInterface {
     }
 
     @bind onTouchMove(e: TouchEvent) {
+        const { board } = this
         const touch = e.touches[0]
         const cursorPos = this.touchToScreenPoint(touch)
-        const cell = this.ui.screenPointToCell(cursorPos)
+        const cell = board.cellAt(cursorPos)
         
         if (this.ui.state.type === 'board') {
             if (cell.unit && cell.unit.team === Team.Player && !cell.unit.moved) {
-                const cursorOffset = cursorPos.subtract(this.ui.cellToScreenPoint(cell))
+                const cursorOffset = cursorPos.subtract(board.get(cell).pos)
                 runInAction(() => {
                     if (cell.unit)
                         this.ui.state = {
@@ -119,9 +119,10 @@ export class TouchInterface {
     }
 
     @bind onTap(e: TouchEvent) {
-        const { state } = this.ui
+        const { board } = this
+        const { state } = board.ui
         const touch = e.changedTouches[0]
-        const cell = this.ui.screenPointToCell(this.touchToScreenPoint(touch))
+        const cell = board.cellAt(this.touchToScreenPoint(touch))
 
         if (state.type === 'board') {
             // We can tap on a unit to select it
@@ -146,22 +147,22 @@ export class TouchInterface {
         }
     }
 
-    render() {
-        const { drag, ui } = this
-        const ctx = this.canvas.getContext('2d')!
+    draw(ctx: CanvasRenderingContext2D) {
+        const { drag, board } = this
+
         if (drag) {
-            const sprite = this.scene.getSprite(drag.unit)
+            const sprite = board.get(drag.unit)
             sprite.drawInfoUnderlay(ctx)
 
             // Draw path the unit will follow
             if (drag.path.length) {
                 const startCell = drag.unit.cell
-                const {x, y} = ui.cellToScreenPointCenter(startCell)
+                const {x, y} = board.get(startCell).centerPos
                 ctx.beginPath()
                 ctx.moveTo(x, y)
     
                 for (const cell of drag.path) {
-                    const spos = ui.cellToScreenPointCenter(cell)
+                    const spos = board.get(cell).centerPos
                     ctx.lineTo(spos.x, spos.y)
                 }
     
@@ -175,14 +176,12 @@ export class TouchInterface {
             if (drag.cursorEnemy && finalPathCell && drag.unit.canAttackFrom(finalPathCell, drag.cursorEnemy)) {
                 const enemy = drag.cursorEnemy
                 ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
-                const spos = ui.cellToScreenPoint(enemy.cell)
-                ctx.fillRect(spos.x, spos.y, ui.cellScreenWidth, ui.cellScreenHeight)
-    
+                board.get(enemy.cell).fill(ctx)    
             }
 
             // Draw the unit at the current cursor position
             const pos = drag.cursorPos.subtract(drag.cursorOffset)
-            ui.assets.creatures.drawTile(ctx, drag.unit.tileIndex, pos.x, pos.y, ui.cellScreenWidth, ui.cellScreenHeight)
+            board.ui.assets.creatures.drawTile(ctx, drag.unit.tileIndex, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
         }
     }
 }
