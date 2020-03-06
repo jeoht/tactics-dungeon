@@ -5,7 +5,7 @@ import { Game } from './Game'
 import { Assets } from './Assets'
 
 import { World } from './World'
-import { UIState } from './UIState'
+import { UI } from './UI'
 import ReactDOM = require('react-dom')
 import React = require('react')
 import * as mobx from 'mobx'
@@ -27,7 +27,7 @@ async function main() {
     const world = new World()
     const assets = new Assets()
     await assets.load()
-    const ui = new UIState(world, assets)
+    const ui = new UI(world, assets)
     const game = new Game(world, ui)
 
 
