@@ -125,8 +125,6 @@ export class TouchInterface {
         const touch = e.changedTouches[0]
         const cell = board.cellAt(this.touchToScreenPoint(touch))
         
-        console.log(Structure[cell.wallType])
-
         if (state.type === 'board') {
             // We can tap on a unit to select it
             if (cell.unit) {
