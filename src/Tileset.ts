@@ -24,6 +24,6 @@ export class Tileset {
         const sx = column * this.tileWidth
         const sy = row * this.tileHeight
         
-        ctx.drawImage(this.image, sx, sy, this.tileWidth, this.tileHeight, dx, dy, dWidth, dHeight)        
+        ctx.drawImage(this.image, sx, sy, this.tileWidth, this.tileHeight, dx-1, dy-1, dWidth+2, dHeight+2)        
     }
 }
