@@ -12,7 +12,10 @@ module.exports = (env, argv) => {
     return {
         context: __dirname,
         mode: argv.mode||'development',
-        entry: path.join(__dirname, 'src/index.tsx'),
+        entry: {
+            index: path.join(__dirname, 'src/index.tsx'),
+            tilesets: path.join(__dirname, 'src/tileslicer.tsx')
+        },
         output: {
             path: path.join(__dirname, "build", BASE_PATH||""),
             filename: "assets/[name].js",
