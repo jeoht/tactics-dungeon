@@ -7,6 +7,7 @@ import { ScreenVector } from "./ScreenVector"
 import { UI, DragState } from "./UI"
 import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
+import { Structure } from "./Tile"
 
 
 export class TouchInterface {
@@ -123,6 +124,8 @@ export class TouchInterface {
         const { state } = board.ui
         const touch = e.changedTouches[0]
         const cell = board.cellAt(this.touchToScreenPoint(touch))
+        
+        console.log(Structure[cell.wallType])
 
         if (state.type === 'board') {
             // We can tap on a unit to select it

@@ -30,7 +30,7 @@ export type DragState = {
 type Showing = { type: 'titleScreen' } | { type: 'board' } | { type: 'selectedUnit', unit: Unit } | DragState | TargetAbilityState | { type: 'unit', unit: Unit }
 
 export class UI {
-    @observable state: Showing = { type: 'titleScreen' }
+    @observable state: Showing = { type: 'board' }
     world: World
     assets: Assets
     time: TimeReactor
