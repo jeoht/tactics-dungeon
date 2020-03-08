@@ -5,8 +5,9 @@ import { PointVector } from "./PointVector"
 import _ = require("lodash")
 import { Unit, Class, UnitStats, UnitSpec, Team } from "./Unit"
 import { AI } from "./AI"
-import { Tile, Feature, MapDefinition } from "./MapDefinition"
+import { Feature, MapDefinition } from "./MapDefinition"
 import { BOARD_COLS, BOARD_ROWS } from "./settings"
+import { Structure, Biome, Pattern } from "./Tile"
 
 type AttackEvent = {
     type: 'attack'
@@ -59,11 +60,12 @@ export class World {
     ai: AI
 
     constructor() {
-        const map: MapDefinition = {
+        const map1: MapDefinition = {
             key: `
                 ########
                 #e>>>>e#
                 #..ee..#
+                #......#
                 ###..###
                 ________
                 ________
@@ -71,14 +73,40 @@ export class World {
                 ________
                 __pppp__
                 ________
+                ________
             `,
             where: {
-                '.': Tile.Mossy.Floor,
-                '#': Tile.Mossy.Wall,
-                '>': Tile.Mossy.Downstair,
-                '_': Tile.Mossy.Floor2,
-                'e': [Feature.EnemySpawn, Tile.Mossy.Floor],
-                'p': [Feature.PlayerSpawn, Tile.Mossy.Floor2]
+                '.': [Biome.Stone, Pattern.Floor],
+                '#': [Biome.Stone, Pattern.Wall],
+                '>': [Biome.Stone, Structure.DownStair],
+                '_': [Biome.Stone, Pattern.Floor],
+                'e': [Biome.Stone, Pattern.Floor, Feature.EnemySpawn],
+                'p': [Biome.Stone, Pattern.Floor, Feature.PlayerSpawn]
+            }
+        }
+
+        const map: MapDefinition = {
+            key: `
+                ########
+                #......#
+                #.####.#
+                #......#
+                ###..###
+                __#__#__
+                _##__##_
+                __#__#__
+                _##__##_
+                ________
+                _#_##_#_
+                ########
+            `,
+            where: {
+                '.': [Biome.Mossy, Pattern.Floor],
+                '#': [Biome.Mossy, Pattern.Wall],
+                '>': [Biome.Mossy, Structure.DownStair],
+                '_': [Biome.Mossy, Pattern.Floor],
+                'e': [Biome.Mossy, Pattern.Floor, Feature.EnemySpawn],
+                'p': [Biome.Mossy, Pattern.Floor, Feature.PlayerSpawn]
             }
         }
 
@@ -87,33 +115,31 @@ export class World {
         this.ai = new AI(this, Team.Enemy)
     }
 
-    @action loadMap(def: MapDefinition) {
+    @action loadMap(defs: MapDefinition) {
+        const lines = defs.key.trim().split("\n").map(l => l.trim())
+
         for (let x = 0; x < this.boardWidth; x++) {
             this.grid[x] = []
             for (let y = 0; y < this.boardHeight; y++) {
-                this.grid[x][y] = new Cell(this, x, y)
+                const def = defs.where[lines[y][x]]
+                this.grid[x][y] = new Cell(this, x, y, def)
             }
         }
 
-        const lines = def.key.trim().split("\n").map(l => l.trim())
-        for (let x = 0; x < this.boardWidth; x++) {
-            for (let y = 0; y < this.boardHeight; y++) {
-                const cell = this.grid[x][y]
-                let here = def.where[lines[y][x]]
-                if (!_.isArray(here)) {
-                    here = [here]
-                }
+        // Resolve patterns
+        for (const cell of this.cells) {
+            const { biome, pattern } = cell
+            if (!pattern) continue
 
-                for (const v of here) {
-                    if (typeof v === "number") {
-                        cell.tileIndex = v
-                    } else {
-                        cell.features.add(v)
-                    }
-                }
+            const cols = 38
+            if (pattern === Pattern.Floor)
+                cell.tileIndex = biome*cols + (Math.random() > 0.5 ? Structure.Floor : Structure.FloorIndent)
+            if (pattern === Pattern.Wall) {
+                cell.tileIndex = biome*cols + cell.wallType
             }
         }
 
+        // Resolve features
         for (const cell of this.cells) {
             if (cell.features.has(Feature.EnemySpawn)) {
                 this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton, cell: cell })

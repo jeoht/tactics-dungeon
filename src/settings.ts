@@ -1,5 +1,5 @@
 export const BOARD_COLS = 8
-export const BOARD_ROWS = 10
+export const BOARD_ROWS = 12
 
 export const CELL_WIDTH = 24
 export const CELL_HEIGHT = 24
