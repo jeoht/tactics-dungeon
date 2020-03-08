@@ -7,7 +7,7 @@ import { UI } from "./UI"
 import { Unit, Team } from "./Unit"
 import { UnitSprite } from "./UnitSprite"
 import { DamageText } from "./DamageText"
-import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
+import { CELL_WIDTH, CELL_HEIGHT, BOARD_COLS, BOARD_ROWS } from "./settings"
 import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
 import { CellSprite } from "./CellSprite"
@@ -42,6 +42,14 @@ export class CanvasBoard implements Tickable {
 
         window.addEventListener("resize", this.onResize)
         this.onResize()
+    }
+
+    @computed get drawWidth(): number {
+        return BOARD_COLS * CELL_WIDTH
+    }
+
+    @computed get drawHeight(): number {
+        return BOARD_ROWS * CELL_HEIGHT
     }
 
     @computed get spritesByUnit(): Map<Unit, UnitSprite> {

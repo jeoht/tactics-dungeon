@@ -34,22 +34,11 @@ export class UI {
     world: World
     assets: Assets
     time: TimeReactor
-    cellScreenWidth: number = 24
-    cellScreenHeight: number = 24
-    timestamp: number = 0
 
     constructor(world: World, assets: Assets) {
         this.world = world
         this.assets = assets
         this.time = new TimeReactor()
-    }
-
-    @computed get boardScreenWidth() {
-        return this.cellScreenWidth * this.world.boardWidth
-    }
-
-    @computed get boardScreenHeight() {
-        return this.cellScreenHeight * this.world.boardHeight
     }
 
     @action selectUnit(unit: Unit) {
