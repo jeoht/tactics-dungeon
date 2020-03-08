@@ -91,6 +91,7 @@ export class CanvasBoard implements Tickable {
             const { unit, toCell } = event
             const sprite = this.get(unit)
             sprite.pos = this.get(toCell).pos
+            ui.goto('board')
         } else if (event.type === 'attack') {
             const damageText = new DamageText(this, event.damage, this.get(event.target.cell).pos)
             this.damageTexts.push(damageText)

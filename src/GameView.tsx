@@ -35,13 +35,17 @@ const TargetAbilityInfo = observer(function TargetAbilityInfo() {
 const BoardFooter = observer(function BoardFooter() {
     const { ui } = useContext(GameContext)
 
-    if (ui.state.type === 'selectedUnit') {
-        return <ActionChoices/>
-    } else if (ui.state.type === 'targetAbility') {
-        return <TargetAbilityInfo/>
-    } else {
-        return <footer/>
+    const contents = () => {
+        if (ui.state.type === 'selectedUnit') {
+            return <ActionChoices/>
+        } else if (ui.state.type === 'targetAbility') {
+            return <TargetAbilityInfo/>
+        } else {
+            return null
+        }    
     }
+
+    return <footer>{contents()}</footer>
 })
 
 const BoardHeader = observer(function BoardHeader() {

@@ -24,6 +24,12 @@ body {
 	color: #212529;
 	text-align: left;
 	background-color: #fff;
+
+	// Lock screen so no scrolling https://stackoverflow.com/a/40598268
+    height: 100%;
+    overflow: hidden;
+    width: 100%;
+    position: fixed;
 }
 
 *, :after, :before {
