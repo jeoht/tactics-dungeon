@@ -60,7 +60,7 @@ export class World {
     ai: AI
 
     constructor() {
-        const map: MapDefinition = {
+        const map2: MapDefinition = {
             key: `
                 ########
                 #e>>>>e#
@@ -85,19 +85,19 @@ export class World {
             }
         }
 
-        const map2: MapDefinition = {
+        const map: MapDefinition = {
             key: `
                 ########
-                #......#
+                #e.ee.e#
                 #.####.#
-                #......#
+                #e....e#
                 ###..###
                 __#__#__
                 _##__##_
-                __#__#__
-                _##__##_
-                ________
-                _#_##_#_
+                p_#__#__
+                p##__##_
+                p_______
+                p#_##_#_
                 ########
             `,
             where: {

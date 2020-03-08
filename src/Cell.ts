@@ -31,7 +31,7 @@ export class Cell {
     }
 
     @computed get pathable() {
-        return pathable(this.tileIndex)
+        return !this.isWall
     }
 
     @computed get features() {
@@ -58,7 +58,7 @@ export class Cell {
     }
 
     @computed get isWall(): boolean {
-        return this.pattern === Pattern.Wall || (!this.pattern && !this.pathable)
+        return this.pattern === Pattern.Wall
     }
 
     @computed get north(): Cell|undefined {
