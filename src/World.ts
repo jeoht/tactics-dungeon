@@ -6,6 +6,7 @@ import _ = require("lodash")
 import { Unit, Class, UnitStats, UnitSpec, Team } from "./Unit"
 import { AI } from "./AI"
 import { Tile, Feature, MapDefinition } from "./MapDefinition"
+import { BOARD_COLS, BOARD_ROWS } from "./settings"
 
 type AttackEvent = {
     type: 'attack'
@@ -52,22 +53,24 @@ export type WorldEvent = AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEv
 
 export class World {
     @observable grid: Cell[][] = []
-    boardWidth: number = 6
-    boardHeight: number = 8
+    boardWidth: number = BOARD_COLS
+    boardHeight: number = BOARD_ROWS
     @observable eventLog: WorldEvent[] = []
     ai: AI
 
     constructor() {
         const map: MapDefinition = {
             key: `
-                ######
-                #e>>e#
-                #.ee.#
-                ##..##
-                ______
-                ______
-                ______
-                _pppp_
+                ########
+                #e>>>>e#
+                #..ee..#
+                ###..###
+                ________
+                ________
+                ________
+                ________
+                __pppp__
+                ________
             `,
             where: {
                 '.': Tile.Mossy.Floor,

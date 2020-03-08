@@ -27,8 +27,8 @@ export class TouchInterface {
 
     touchToScreenPoint(touch: Touch): ScreenVector {
         const rect = this.board.canvas.getBoundingClientRect()
-        const scaleX = rect.width / this.ui.boardScreenWidth
-        const scaleY = rect.height / this.ui.boardScreenHeight
+        const scaleX = rect.width / this.board.drawWidth
+        const scaleY = rect.height / this.board.drawHeight
         const x = (touch.pageX - rect.left) / scaleX
         const y = (touch.pageY - rect.top) / scaleY
         return new ScreenVector(x, y)
