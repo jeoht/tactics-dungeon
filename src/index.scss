@@ -55,6 +55,7 @@ canvas#board {
 	cursor: pointer;
 	user-select: none;
 	-webkit-tap-highlight-color: transparent;
+	image-rendering: crisp-edges;
 }
 
 footer {
@@ -63,15 +64,17 @@ footer {
 	align-items: center;
 }
 
-.ActionChoices {
+.ActionChoices, .MainFooter {
 	list-style-type: none;
 	display: flex;
+	margin: 0;
 
 	li {
-		border: 3px solid lightblue;
+		border: 2px solid lightblue;
 		border-radius: 10px;
 		color: white;
-		padding: 0.5rem;
+		padding: 0.4rem;
+		font-size: 0.8rem;
 		
 	}	
 }

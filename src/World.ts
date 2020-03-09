@@ -203,6 +203,10 @@ export class World {
         }
     }
 
+    endPlayerPhase() {
+        this.endPhase(Team.Player)
+    }
+
     endPhase(team: Team) {
         this.event({ type: 'endPhase', team: team })
         if (team === Team.Player) {

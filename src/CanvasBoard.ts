@@ -133,19 +133,29 @@ export class CanvasBoard implements Tickable {
         this.canvas.width = width * scale
         this.canvas.height = height * scale
         this.canvas.style.minHeight = styleHeight + 'px'
+        this.ctx.imageSmoothingEnabled = false
         this.ctx.scale(scale, scale)
     }
 
-    frame() {
-        if (this.world.eventLog.length > this.handledEvents && !this.handlingEvent) {
+    async handleEvents() {
+        if (this.handlingEvent) return
+
+        while (this.world.eventLog.length > this.handledEvents) {
             this.handlingEvent = true
+            this.ui.goto('event')
+
             const event = this.world.eventLog[this.handledEvents]
-            this.handleEvent(event).then(() => {
-                this.handlingEvent = false
-                this.handledEvents += 1
-            })
+            await this.handleEvent(event)
+            
+            this.handlingEvent = false
+            this.handledEvents += 1
         }
 
+        this.ui.goto('board')
+    }
+
+    frame() {
+        this.handleEvents()
         this.draw()
     }
 

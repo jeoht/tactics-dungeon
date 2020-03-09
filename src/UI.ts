@@ -27,7 +27,7 @@ export type DragState = {
     possibleMoves: Cell[]
 }
 
-type Showing = { type: 'titleScreen' } | { type: 'board' } | { type: 'selectedUnit', unit: Unit } | DragState | TargetAbilityState | { type: 'unit', unit: Unit }
+type Showing = { type: 'titleScreen' } | { type: 'board' } | { type: 'event' } | { type: 'selectedUnit', unit: Unit } | DragState | TargetAbilityState | { type: 'unit', unit: Unit }
 
 export class UI {
     @observable state: Showing = { type: 'board' }
@@ -41,11 +41,19 @@ export class UI {
         this.time = new TimeReactor()
     }
 
+    @computed get main(): boolean {
+        return this.state.type === 'board' || this.state.type === 'dragUnit'
+    }
+
+    @computed get selectedUnit(): Unit|null {
+        return this.state.type === 'selectedUnit' ? this.state.unit : null
+    }
+
     @action selectUnit(unit: Unit) {
         this.state = { type: 'selectedUnit', unit: unit }
     }
 
-    @action goto(stateType: 'board'|'titleScreen') {
+    @action goto(stateType: 'board'|'titleScreen'|'event') {
         this.state = { type: stateType }
     }
 }

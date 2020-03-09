@@ -32,17 +32,31 @@ const TargetAbilityInfo = observer(function TargetAbilityInfo() {
     </div>
 })
 
+const MainFooter = observer(function MainFooter() {
+    const { game } = useContext(GameContext)
+
+    const endTurn = action(() => {
+        game.world.endPlayerPhase()
+    })
+
+    return <ul className="MainFooter">
+        <li onClick={endTurn}>End Turn</li>
+    </ul>
+})
+
 const BoardFooter = observer(function BoardFooter() {
     const { ui } = useContext(GameContext)
 
     const contents = () => {
-        if (ui.state.type === 'selectedUnit') {
+        if (ui.selectedUnit) {
             return <ActionChoices/>
         } else if (ui.state.type === 'targetAbility') {
             return <TargetAbilityInfo/>
+        } else if (ui.main) {
+            return <MainFooter/>
         } else {
             return null
-        }    
+        }
     }
 
     return <footer>{contents()}</footer>
