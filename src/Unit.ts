@@ -209,8 +209,18 @@ export class Unit {
     }
 
     @action defeat() {
+        const { world } = this.cell
         this.cell.unit = undefined
-        this.cell.world.eventLog.push({ type: 'defeated', unit: this })
+        
+        world.eventLog.push({ type: 'defeated', unit: this })
+
+        if (this.unitsOnMyTeam.length === 0) {
+            if (this.team === Team.Enemy) {
+                world.eventLog.push({ type: 'floorCleared' })
+            } else {
+                // player defeat stuff todo
+            }
+        }
     }
 
     @action endMove() {

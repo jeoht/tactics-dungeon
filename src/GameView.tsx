@@ -8,59 +8,9 @@ import { TitleScreen } from './TitleScreen'
 import { useContext, useEffect } from 'react'
 import { UI, SelectedUnitState } from './UI'
 import { CanvasBoard } from './CanvasBoard'
+import { BoardFooter } from './BoardFooter'
 
 export const GameContext = React.createContext<{ game: Game, ui: UI }>({} as any)
-
-const ActionChoices = observer(function ActionChoices() {
-    const { ui } = useContext(GameContext)
-    const { unit } = ui.state as SelectedUnitState
-    
-    const teleport = action(() => {
-        ui.state = { type: 'targetAbility', unit: unit, ability: 'teleport' }
-    })
-
-    return <ul className="ActionChoices">
-        {unit.inventory.length && <li onClick={teleport}>Teleport x1</li>}
-        {!unit.inventory.length && <li className="disabled">Teleport x0</li>}
-    </ul>
-})
-
-const TargetAbilityInfo = observer(function TargetAbilityInfo() {
-    return <div className="TargetAbilityInfo">
-        <h3>scroll of teleport</h3>
-        <p>Teleports unit anywhere on the map. One-time use item. Doesn't cost an action.</p>
-    </div>
-})
-
-const MainFooter = observer(function MainFooter() {
-    const { game } = useContext(GameContext)
-
-    const endTurn = action(() => {
-        game.world.endPlayerPhase()
-    })
-
-    return <ul className="MainFooter">
-        <li onClick={endTurn}>End Turn</li>
-    </ul>
-})
-
-const BoardFooter = observer(function BoardFooter() {
-    const { ui } = useContext(GameContext)
-
-    const contents = () => {
-        if (ui.selectedUnit) {
-            return <ActionChoices/>
-        } else if (ui.state.type === 'targetAbility') {
-            return <TargetAbilityInfo/>
-        } else if (ui.main) {
-            return <MainFooter/>
-        } else {
-            return null
-        }
-    }
-
-    return <footer>{contents()}</footer>
-})
 
 const BoardHeader = observer(function BoardHeader() {
     return <header/>
@@ -89,6 +39,15 @@ const BoardCanvas = observer(() => {
     return <canvas ref={canvasRef} id="board"></canvas>
 })
 
+function FloorCleared() {
+    return <div className="FloorCleared pop">
+        <div>
+            <div className="floor">Floor 1</div>
+            <div className="cleared">Cleared!</div>
+        </div>
+    </div>
+}
+
 const CurrentScreen = observer(function CurrentScreen() {
     const { ui } = useContext(GameContext)
 
@@ -99,6 +58,7 @@ const CurrentScreen = observer(function CurrentScreen() {
             <BoardHeader/>
             <BoardCanvas/>
             <BoardFooter/>
+            {ui.state.type === 'floorCleared' && <FloorCleared/>}
         </>
     }    
 })

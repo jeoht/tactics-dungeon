@@ -50,7 +50,11 @@ type DefeatedEvent = {
     unit: Unit
 }
 
-export type WorldEvent = AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent | DefeatedEvent
+type FloorClearedEvent = {
+    type: 'floorCleared'
+}
+
+export type WorldEvent = AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent | DefeatedEvent | FloorClearedEvent
 
 export class World {
     @observable grid: Cell[][] = []
@@ -88,16 +92,16 @@ export class World {
         const map: MapDefinition = {
             key: `
                 ########
-                #e.ee.e#
+                #......#
                 #.####.#
-                #e....e#
+                #......#
                 ###..###
                 __#__#__
                 _##__##_
-                p_#__#__
-                p##__##_
-                p_______
-                p#_##_#_
+                __#__#__
+                _#pe_p#_
+                __p__p__
+                _#_##_#_
                 ########
             `,
             where: {

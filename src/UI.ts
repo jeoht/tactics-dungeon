@@ -27,7 +27,7 @@ export type DragState = {
     possibleMoves: Cell[]
 }
 
-type Showing = { type: 'titleScreen' } | { type: 'board' } | { type: 'event' } | { type: 'selectedUnit', unit: Unit } | DragState | TargetAbilityState | { type: 'unit', unit: Unit }
+type Showing = { type: 'titleScreen' } | { type: 'board' } | { type: 'enemyPhase' } | { type: 'event' } | { type: 'selectedUnit', unit: Unit } | DragState | TargetAbilityState | { type: 'unit', unit: Unit } | { type: 'floorCleared' }
 
 export class UI {
     @observable state: Showing = { type: 'board' }
@@ -53,7 +53,7 @@ export class UI {
         this.state = { type: 'selectedUnit', unit: unit }
     }
 
-    @action goto(stateType: 'board'|'titleScreen'|'event') {
+    @action goto(stateType: 'board'|'enemyPhase'|'titleScreen'|'event'|'floorCleared') {
         this.state = { type: stateType }
     }
 }
