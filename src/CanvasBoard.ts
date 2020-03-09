@@ -119,6 +119,13 @@ export class CanvasBoard implements Tickable {
                 if (sprite.unit.team === event.team)
                     sprite.moved = false
             }
+
+            if (event.team === Team.Player)
+                ui.goto('board')
+            else
+                ui.goto('enemyPhase')
+        } else if (event.type === 'floorCleared') {
+            ui.goto('floorCleared')
         }
     }
 
@@ -138,11 +145,10 @@ export class CanvasBoard implements Tickable {
     }
 
     async handleEvents() {
-        if (this.handlingEvent) return
+        if (this.handlingEvent || this.handledEvents >= this.world.eventLog.length) return
 
         while (this.world.eventLog.length > this.handledEvents) {
             this.handlingEvent = true
-            this.ui.goto('event')
 
             const event = this.world.eventLog[this.handledEvents]
             await this.handleEvent(event)
@@ -150,8 +156,6 @@ export class CanvasBoard implements Tickable {
             this.handlingEvent = false
             this.handledEvents += 1
         }
-
-        this.ui.goto('board')
     }
 
     frame() {
