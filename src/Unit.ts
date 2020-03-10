@@ -143,8 +143,8 @@ export class Unit {
         return this._cell
     }
 
-    @computed get player(): boolean {
-        return this.team === Team.Player
+    @computed get playerMove(): boolean {
+        return this.team === Team.Player && !this.moved
     }
 
     @computed get tileIndex(): number {
