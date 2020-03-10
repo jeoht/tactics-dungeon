@@ -4,10 +4,11 @@ import { bind } from 'decko'
 
 import { Team, Unit } from "./Unit"
 import { ScreenVector } from "./ScreenVector"
-import { UI, DragState } from "./UI"
+import { UI, DragState, UnitMovePlan } from "./UI"
 import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
 import { Structure } from "./Tile"
+import { Cell } from "./Cell"
 
 
 export class TouchInterface {
@@ -17,8 +18,8 @@ export class TouchInterface {
     constructor(board: CanvasBoard) {
         this.board = board
         this.ui = board.ui
-        board.canvas.addEventListener('mousemove', this.onTouchMove)
-        board.canvas.addEventListener('mouseup', this.onTouchEnd)
+        // board.canvas.addEventListener('mousemove', this.onTouchMove)
+        // board.canvas.addEventListener('mouseup', this.onTouchEnd)
 
         board.canvas.addEventListener('touchstart', this.onTouchStart)
         board.canvas.addEventListener('touchend', this.onTouchEnd)
@@ -67,16 +68,16 @@ export class TouchInterface {
     }
 
     @bind onTouchMove(e: TouchEvent|MouseEvent) {
-        const { board } = this
+        const { board, ui } = this
         const cursorPos = this.touchToScreenPoint(e)
         const cell = board.cellAt(cursorPos)
         
-        if (this.ui.state.type === 'board') {
+        if (ui.state.type === 'board') {
             if (cell.unit && cell.unit.team === Team.Player && !cell.unit.moved) {
                 const cursorOffset = cursorPos.subtract(board.get(cell).pos)
                 runInAction(() => {
                     if (cell.unit)
-                        this.ui.state = {
+                        ui.state = {
                             type: 'dragUnit', 
                             plan: {
                                 unit: cell.unit,
@@ -88,7 +89,7 @@ export class TouchInterface {
                         }    
                 })
             }
-        } else if (this.ui.state.type === 'dragUnit') {
+        } else if (ui.state.type === 'dragUnit') {
             runInAction(() => {
                 const {drag} = this
                 if (drag) {
@@ -129,21 +130,14 @@ export class TouchInterface {
         // Only move if we're going directly to the cursor cell, or
         // if we're going adjacent to attack the cursor cell
         if (finalPathCell && (finalPathCell === drag.cursorCell || attackingEnemy)) {
-            if (drag.plan.path.length)
-                drag.plan.unit.moveAlong(drag.plan.path)
-
-            if (attackingEnemy) {
-                drag.plan.unit.attack(drag.cursorEnemy!)
-                this.ui.goto('board')
-            }
-
-            drag.plan.unit.endMove()
+            this.executeMovePlan(drag.plan)
         } else {
             this.ui.goto('board')
         }
     }
 
     @bind onTap(e: TouchEvent|MouseEvent) {
+        console.log("tap!")
         const { board } = this
         const { ui } = this.board
         const { selectedUnit, state } = board.ui
@@ -154,42 +148,17 @@ export class TouchInterface {
             if (cell.unit) {
                 ui.selectUnit(cell.unit)
             }
-        } else if (selectedUnit) {
-            if (cell.unit) {
-                if (selectedUnit.player && selectedUnit.isEnemy(cell.unit)) {
-                    const path = selectedUnit.getPathToAttackThisTurn(cell.unit)
-                    if (path) {
-                        ui.state = {
-                            type: 'tapMove',
-                            plan: {
-                                unit: selectedUnit,
-                                path: path,
-                                attacking: cell.unit
-                            }
-                        }
-                    } else {
-                        ui.selectUnit(cell.unit)
-                    }
-                } else {
-                    ui.selectUnit(cell.unit)
-                }
-                // Tap another unit to change selection
-                ui.selectUnit(cell.unit)
+        } else if (ui.state.type === 'tapMove') {
+            const { plan } = ui.state
+            const finalPathCell = _.last(plan.path)
+            if (cell === finalPathCell || cell.unit === plan.attacking) {
+                this.executeMovePlan(plan)
             } else {
-                const path = selectedUnit.getPathToOccupyThisTurn(cell)
-                if (path) {
-                    ui.state = {
-                        type: 'tapMove',
-                        plan: {
-                            unit: selectedUnit,
-                            path: selectedUnit.getPathTo(cell)!
-                        }
-                    }
-                } else {
-                    // Tap in a random place to deselect unit
-                    ui.goto('board')
-                }
+                this.tryTapMove(plan.unit, cell)
             }
+        } else if (selectedUnit) {
+            this.tryTapMove(selectedUnit, cell)
+
         } else if (state.type === 'targetAbility') {
             if (state.ability === 'teleport' && state.unit.canOccupy(cell)) {
                 runInAction(() => {
@@ -198,6 +167,49 @@ export class TouchInterface {
                 })
             }
         }
+    }
+
+    @action tryTapMove(unit: Unit, cell: Cell) {
+        const { ui } = this
+
+        if (cell.unit) {
+            if (unit.player && unit.isEnemy(cell.unit)) {
+                const path = unit.getPathToAttackThisTurn(cell.unit)
+                if (path) {
+                    ui.prepareTapMove({
+                        unit: unit,
+                        path: path,
+                        attacking: cell.unit
+                    })
+                } else {
+                    ui.selectUnit(cell.unit)
+                }
+            } else {
+                ui.selectUnit(cell.unit)
+            }
+        } else {
+            const path = unit.getPathToOccupyThisTurn(cell)
+            if (path) {
+                ui.prepareTapMove({
+                    unit: unit,
+                    path: path
+                })
+            } else {
+                // Tap in a random place, deselect unit
+                ui.goto('board')
+            }
+        }     
+    }
+
+    @action executeMovePlan(plan: UnitMovePlan) {
+        if (plan.path.length)
+            plan.unit.moveAlong(plan.path)
+
+        if (plan.attacking)
+            plan.unit.attack(plan.attacking)
+
+        plan.unit.endMove()
+        this.ui.goto('board')
     }
 
     draw(ctx: CanvasRenderingContext2D) {

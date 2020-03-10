@@ -65,4 +65,11 @@ export class UI {
     @action goto(stateType: 'board'|'enemyPhase'|'titleScreen'|'event'|'floorCleared') {
         this.state = { type: stateType }
     }
+
+    @action prepareTapMove(plan: UnitMovePlan) {
+        this.state = {
+            type: 'tapMove',
+            plan: plan
+        }        
+    }
 }
