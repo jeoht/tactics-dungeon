@@ -125,7 +125,7 @@ export class CanvasBoard implements Tickable {
             else
                 ui.goto('enemyPhase')
         } else if (event.type === 'floorCleared') {
-            ui.goto('floorCleared')
+            setTimeout(() => ui.goto('floorCleared'), 500)
         }
     }
 
