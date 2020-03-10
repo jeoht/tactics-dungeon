@@ -5,22 +5,10 @@ import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
 import { Unit } from "./Unit"
 import { TimeReactor } from "./TimeReactor"
+import { UnitDragState } from "./TouchInterface"
 
 export type SelectedUnitState = { type: 'selectedUnit', unit: Unit }
 export type TargetAbilityState = { type: 'targetAbility', unit: Unit, ability: 'teleport' }
-
-export type DragState = {
-    type: 'dragUnit'
-    plan: UnitMovePlan
-    /** Current position of the cursor in screen coordinates */
-    cursorPos: ScreenVector
-    /** The cell underneath the current cursor position */
-    cursorCell: Cell
-    /** Enemy underneath the current cursor position, if any */
-    cursorEnemy?: Unit
-    /** Unit rendering offset relative to the cursor position */
-    cursorOffset: ScreenVector
-}
 
 export type TapMoveState = {
     type: 'tapMove'
@@ -36,7 +24,7 @@ export type UnitMovePlan = {
     attacking?: Unit
 }
 
-type Showing = { type: 'titleScreen' } | { type: 'board' } | { type: 'enemyPhase' } | { type: 'event' } | { type: 'selectedUnit', unit: Unit } | DragState | TargetAbilityState | { type: 'unit', unit: Unit } | { type: 'floorCleared' } | TapMoveState
+type Showing = { type: 'titleScreen' } | { type: 'board' } | { type: 'enemyPhase' } | { type: 'event' } | { type: 'selectedUnit', unit: Unit } | UnitDragState | TargetAbilityState | { type: 'unit', unit: Unit } | { type: 'floorCleared' } | TapMoveState
 
 export class UI {
     @observable state: Showing = { type: 'board' }
@@ -51,7 +39,7 @@ export class UI {
     }
 
     @computed get main(): boolean {
-        return this.state.type === 'board' || this.state.type === 'dragUnit'
+        return this.state.type === 'board' || this.state.type === 'unitDrag'
     }
 
     @computed get selectedUnit(): Unit|null {

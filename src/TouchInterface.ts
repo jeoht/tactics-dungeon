@@ -4,16 +4,84 @@ import { bind } from 'decko'
 
 import { Team, Unit } from "./Unit"
 import { ScreenVector } from "./ScreenVector"
-import { UI, DragState, UnitMovePlan } from "./UI"
+import { UI, UnitMovePlan } from "./UI"
 import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
 import { Structure } from "./Tile"
 import { Cell } from "./Cell"
+import { drag } from "d3"
 
+
+export class UnitDragState {
+    type: 'unitDrag' = 'unitDrag'
+    board: CanvasBoard
+    unit: Unit
+    cursorOffset: ScreenVector
+    @observable cursorPos: ScreenVector
+    @observable path: Cell[]
+    @observable targetCell?: Cell
+    
+    constructor(board: CanvasBoard, cursorPos: ScreenVector, unit: Unit) {
+        this.board = board
+        this.cursorPos = cursorPos
+        this.unit = unit
+        this.path = []
+        this.cursorOffset = cursorPos.subtract(board.get(this.cursorCell).pos)
+    }
+
+    @computed get cursorCell(): Cell {
+        return this.board.cellAt(this.cursorPos)
+    }
+
+    @computed get plan(): UnitMovePlan {
+        return {
+            unit: this.unit,
+            path: this.path,
+            attacking: this.targetCell?.unit
+        }
+    }
+
+    @computed get finalPathCell(): Cell {
+        return this.path[this.path.length-1] || this.unit.cell
+    }
+
+    @action update(cursorPos: ScreenVector) {
+        this.cursorPos = cursorPos
+        const cell = this.cursorCell
+        const { unit, finalPathCell } = this
+        const enemy = cell.unit && unit.isEnemy(cell.unit) ? cell.unit : undefined
+
+        const path = unit.getPathToOccupyThisTurn(cell)
+        if (path) {
+            // Standard path to occupy cursor position
+            this.path = path
+            this.targetCell = cell
+            return
+        }
+
+        if (!enemy)
+            return
+
+        if (unit.canAttackFrom(finalPathCell, enemy)) {
+            // Current path works fine
+            this.targetCell = cell
+            return
+        }
+
+        const attackPath = unit.getPathToAttackThisTurn(enemy)
+        if (attackPath) {
+            // Repath to attack enemy at cursor position
+            this.path = attackPath
+            this.targetCell = cell
+            return
+        }
+    }
+}
 
 export class TouchInterface {
     board: CanvasBoard
     ui: UI
+    maybeDragUnit: Unit|null = null
 
     constructor(board: CanvasBoard) {
         this.board = board
@@ -26,8 +94,8 @@ export class TouchInterface {
         board.canvas.addEventListener('touchmove', this.onTouchMove)
     }
 
-    get drag(): DragState|null {
-        return this.ui.state.type === 'dragUnit' ? this.ui.state : null
+    get drag(): UnitDragState|null {
+        return this.ui.state.type === 'unitDrag' ? this.ui.state : null
     }
 
     get plan() {
@@ -61,83 +129,42 @@ export class TouchInterface {
     }
 
     @bind onTouchStart(e: TouchEvent) {
-        // const touch = e.touches[0]
-        // const cursorPos = this.touchToScreenPoint(touch)
-        // const cell = this.ui.screenPointToCell(cursorPos)
+        const { board } = this
+        const cursorPos = this.touchToScreenPoint(e)
+        const cell = board.cellAt(cursorPos)
 
+        if (cell.unit && cell.unit.team === Team.Player && !cell.unit.moved)
+            this.maybeDragUnit = cell.unit
+        else
+            this.maybeDragUnit = null
     }
 
     @bind onTouchMove(e: TouchEvent|MouseEvent) {
-        const { board, ui } = this
+        const { board, ui, drag, maybeDragUnit } = this
         const cursorPos = this.touchToScreenPoint(e)
         const cell = board.cellAt(cursorPos)
         
-        if (ui.state.type === 'board') {
-            if (cell.unit && cell.unit.team === Team.Player && !cell.unit.moved) {
-                const cursorOffset = cursorPos.subtract(board.get(cell).pos)
-                runInAction(() => {
-                    if (cell.unit)
-                        ui.state = {
-                            type: 'dragUnit', 
-                            plan: {
-                                unit: cell.unit,
-                                path: []
-                            },
-                            cursorPos: cursorPos, 
-                            cursorCell: cell,
-                            cursorOffset: cursorOffset
-                        }    
-                })
-            }
-        } else if (ui.state.type === 'dragUnit') {
-            runInAction(() => {
-                const {drag} = this
-                if (drag) {
-                    drag.cursorPos = cursorPos
-                    drag.cursorCell = cell
-                    drag.cursorEnemy = cell.unit && drag.plan.unit.isEnemy(cell.unit) ? cell.unit : undefined
-                    if (drag.plan.unit.reachableUnoccupiedCells.includes(cell)) {
-                        drag.plan.path = drag.plan.unit.getPathToOccupyThisTurn(cell)!
-                    } else if (drag.cursorEnemy) {
-                        const finalPathCell = drag.plan.path[drag.plan.path.length-1]
-                        if (!finalPathCell || !drag.plan.unit.canAttackFrom(finalPathCell, drag.cursorEnemy)) {
-                            const path = drag.plan.unit.getPathToAttackThisTurn(drag.cursorEnemy)
-                            if (path)
-                                drag.plan.path = path
-                        }
-                    }
-                }    
-            })
+        if (drag) {
+            drag.update(cursorPos)
+        } else if (maybeDragUnit && (ui.state.type === 'board' || ui.state.type === 'selectedUnit')) {
+            this.startDragFrom(cursorPos, maybeDragUnit)
         }
-
     }
 
     @bind onTouchEnd(e: TouchEvent|MouseEvent) {
-        const { drag } = this
+        const { drag, ui } = this
         if (!drag) {
             this.onTap(e)
             return
         }
 
-        let finalPathCell = _.last(drag.plan.path)
-        if (!finalPathCell && drag.cursorEnemy && drag.plan.unit.canAttackFromHere(drag.cursorEnemy)) {
-            // We're not moving at all, just attacking from current position
-            finalPathCell = drag.plan.unit.cell
-        }
-
-        const attackingEnemy = finalPathCell && drag.cursorEnemy && drag.plan.unit.canAttackFrom(finalPathCell, drag.cursorEnemy)
-
-        // Only move if we're going directly to the cursor cell, or
-        // if we're going adjacent to attack the cursor cell
-        if (finalPathCell && (finalPathCell === drag.cursorCell || attackingEnemy)) {
+        
+        if (drag.cursorCell === drag.targetCell)
             this.executeMovePlan(drag.plan)
-        } else {
-            this.ui.goto('board')
-        }
+        ui.goto('board')
     }
 
     @bind onTap(e: TouchEvent|MouseEvent) {
-        console.log("tap!")
         const { board } = this
         const { ui } = this.board
         const { selectedUnit, state } = board.ui
@@ -151,7 +178,7 @@ export class TouchInterface {
         } else if (ui.state.type === 'tapMove') {
             const { plan } = ui.state
             const finalPathCell = _.last(plan.path)
-            if (cell === finalPathCell || cell.unit === plan.attacking) {
+            if ((!plan.attacking && cell === finalPathCell) || (cell.unit && cell.unit === plan.attacking)) {
                 this.executeMovePlan(plan)
             } else {
                 this.tryTapMove(plan.unit, cell)
@@ -167,6 +194,10 @@ export class TouchInterface {
                 })
             }
         }
+    }
+
+    @action startDragFrom(cursorPos: ScreenVector, unit: Unit) {
+        this.ui.state = new UnitDragState(this.board, cursorPos, unit)
     }
 
     @action tryTapMove(unit: Unit, cell: Cell) {
@@ -237,13 +268,12 @@ export class TouchInterface {
             }
 
             // If we're about to attack a unit, draw targeting
-            const finalPathCell = _.last(plan.path)
-            if (drag && drag.cursorEnemy && finalPathCell && plan.unit.canAttackFrom(finalPathCell, drag.cursorEnemy)) {
-                const enemy = drag.cursorEnemy
+            if (plan.attacking) {
                 ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
-                board.get(enemy.cell).fill(ctx)    
+                board.get(plan.attacking.cell).fill(ctx)    
             }
 
+            const finalPathCell = _.last(plan.path)
             // Draw the unit at the current cursor position
             if (drag) {
                 const pos = drag.cursorPos.subtract(drag.cursorOffset)
