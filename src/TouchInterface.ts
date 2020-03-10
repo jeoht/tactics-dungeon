@@ -89,10 +89,9 @@ export class TouchInterface {
         board.canvas.addEventListener('mousedown', this.onTouchStart)
         board.canvas.addEventListener('mousemove', this.onTouchMove)
         board.canvas.addEventListener('mouseup', this.onTouchEnd)
-
-        // board.canvas.addEventListener('touchstart', this.onTouchStart)
-        // board.canvas.addEventListener('touchend', this.onTouchEnd)
-        // board.canvas.addEventListener('touchmove', this.onTouchMove)
+        board.canvas.addEventListener('touchstart', this.onTouchStart)
+        board.canvas.addEventListener('touchend', this.onTouchEnd)
+        board.canvas.addEventListener('touchmove', this.onTouchMove)
     }
 
     get drag(): UnitDragState|null {
@@ -135,6 +134,8 @@ export class TouchInterface {
     }
 
     @bind onTouchStart(e: TouchEvent|MouseEvent) {
+        e.preventDefault()
+
         const { board, canDragNow } = this
         const cursorPos = this.touchToScreenPoint(e)
         const cell = board.cellAt(cursorPos)
@@ -146,9 +147,10 @@ export class TouchInterface {
     }
 
     @bind onTouchMove(e: TouchEvent|MouseEvent) {
-        const { board, ui, drag, maybeDragUnit, canDragNow } = this
+        e.preventDefault()
+
+        const {drag, maybeDragUnit, canDragNow } = this
         const cursorPos = this.touchToScreenPoint(e)
-        const cell = board.cellAt(cursorPos)
         
         if (drag) {
             drag.update(cursorPos)
@@ -159,6 +161,8 @@ export class TouchInterface {
     }
 
     @bind onTouchEnd(e: TouchEvent|MouseEvent) {
+        e.preventDefault()
+
         const { drag, ui } = this
         if (!drag) {
             this.maybeDragUnit = null
@@ -182,8 +186,8 @@ export class TouchInterface {
             if (cell.unit) {
                 ui.selectUnit(cell.unit)
             }
-        } else if (ui.state.type === 'tapMove') {
-            const { plan } = ui.state
+        } else if (state.type === 'tapMove') {
+            const { plan } = state
             const finalPathCell = _.last(plan.path)
             if ((!plan.attacking && cell === finalPathCell) || (cell.unit && cell.unit === plan.attacking)) {
                 this.executeMovePlan(plan)
@@ -227,7 +231,7 @@ export class TouchInterface {
             }
         } else {
             const path = unit.getPathToOccupyThisTurn(cell)
-            if (path) {
+            if (unit.player && path) {
                 ui.prepareTapMove({
                     unit: unit,
                     path: path
