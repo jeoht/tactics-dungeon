@@ -136,7 +136,7 @@ export class CanvasBoard implements Tickable {
         const styleWidth = this.canvas.parentElement!.offsetWidth
         const styleHeight = styleWidth * (this.world.boardHeight / this.world.boardWidth)
 
-        const scale = window.devicePixelRatio
+        const scale = 3
         this.canvas.width = width * scale
         this.canvas.height = height * scale
         this.canvas.style.minHeight = styleHeight + 'px'

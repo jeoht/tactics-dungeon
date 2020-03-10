@@ -21,9 +21,9 @@ export class AI {
             const enemies = _.sortBy(unit.enemies, e => e.health)
 
             for (const enemy of enemies) {
-                const path = unit.getPathToAttack(enemy)
+                const path = unit.getPathToAttackThisTurn(enemy)
 
-                if (path && path.length <= unit.moveRange) {
+                if (path) {
                     unit.moveAlong(path)
                     unit.attack(enemy)
                     unit.endMove()
