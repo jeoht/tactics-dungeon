@@ -143,6 +143,10 @@ export class Unit {
         return this._cell
     }
 
+    @computed get player(): boolean {
+        return this.team === Team.Player
+    }
+
     @computed get tileIndex(): number {
         if (this.stats.class === Class.Rookie) {
             return 47
@@ -236,6 +240,10 @@ export class Unit {
         return (!cell.unit || cell.unit === this) && cell.pathable
     }
 
+    canMoveTo(cell: Cell) {
+        return this.reachableUnoccupiedCells.includes(cell)
+    }
+
     canPathThrough(cell: Cell): boolean {
         return cell.pathable && (!cell.unit || cell.unit.team === this.team)
     }
@@ -248,13 +256,39 @@ export class Unit {
         })
     }
 
-    getPathToAttack(enemy: Unit) {
+    getPathToOccupyEventually(cell: Cell): Cell[]|null {
+        if (!this.canOccupy(cell)) return null
+
+        return dijkstra({
+            start: this.cell,
+            goal: (node: Cell) => node === cell,
+            expand: node => node.neighbors.filter(n => this.canPathThrough(n))
+        })
+    }
+
+    getPathToOccupyThisTurn(cell: Cell): Cell[]|null {
+        const path = this.getPathToOccupyEventually(cell)
+        if (path && path.length <= this.moveRange)
+            return path
+        else
+            return null
+    }
+
+    getPathToAttackEventually(enemy: Unit): Cell[]|null {
         const goal = (node: Cell) => this.canOccupy(node) && this.canAttackFrom(node, enemy)
         return dijkstra({
             start: this.cell,
             goal: goal,
             expand: node => node.neighbors.filter(n => this.canPathThrough(n))
         })
+    }
+
+    getPathToAttackThisTurn(enemy: Unit): Cell[]|null {
+        const path = this.getPathToAttackEventually(enemy)
+        if (path && path.length <= this.moveRange)
+            return path
+        else
+            return null
     }
 
     isEnemy(other: Unit): boolean {

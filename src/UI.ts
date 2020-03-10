@@ -11,10 +11,7 @@ export type TargetAbilityState = { type: 'targetAbility', unit: Unit, ability: '
 
 export type DragState = {
     type: 'dragUnit'
-    /** The unit being dragged */
-    unit: Unit
-    /** The current path the unit will follow on drag release */
-    path: Cell[]
+    plan: UnitMovePlan
     /** Current position of the cursor in screen coordinates */
     cursorPos: ScreenVector
     /** The cell underneath the current cursor position */
@@ -23,11 +20,23 @@ export type DragState = {
     cursorEnemy?: Unit
     /** Unit rendering offset relative to the cursor position */
     cursorOffset: ScreenVector
-    /** Cells the unit can move to */
-    possibleMoves: Cell[]
 }
 
-type Showing = { type: 'titleScreen' } | { type: 'board' } | { type: 'enemyPhase' } | { type: 'event' } | { type: 'selectedUnit', unit: Unit } | DragState | TargetAbilityState | { type: 'unit', unit: Unit } | { type: 'floorCleared' }
+export type TapMoveState = {
+    type: 'tapMove'
+    plan: UnitMovePlan
+}
+
+export type UnitMovePlan = {
+    /** The unit being moved */
+    unit: Unit
+    /** The current path the unit will follow on plan execution */
+    path: Cell[]
+    /** Enemy the unit will attack */
+    attacking?: Unit
+}
+
+type Showing = { type: 'titleScreen' } | { type: 'board' } | { type: 'enemyPhase' } | { type: 'event' } | { type: 'selectedUnit', unit: Unit } | DragState | TargetAbilityState | { type: 'unit', unit: Unit } | { type: 'floorCleared' } | TapMoveState
 
 export class UI {
     @observable state: Showing = { type: 'board' }
