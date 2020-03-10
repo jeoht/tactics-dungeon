@@ -215,7 +215,7 @@ export class TouchInterface {
         const { ui } = this
 
         if (cell.unit) {
-            if (unit.player && unit.isEnemy(cell.unit)) {
+            if (unit.playerMove && unit.isEnemy(cell.unit)) {
                 const path = unit.getPathToAttackThisTurn(cell.unit)
                 if (path) {
                     ui.prepareTapMove({
@@ -231,7 +231,7 @@ export class TouchInterface {
             }
         } else {
             const path = unit.getPathToOccupyThisTurn(cell)
-            if (unit.player && path) {
+            if (unit.playerMove && path) {
                 ui.prepareTapMove({
                     unit: unit,
                     path: path

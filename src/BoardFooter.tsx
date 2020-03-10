@@ -43,7 +43,7 @@ export const BoardFooter = observer(function BoardFooter() {
     const { ui } = useContext(GameContext)
 
     const contents = () => {
-        if (ui.selectedUnit && ui.selectedUnit.player) {
+        if (ui.selectedUnit && ui.selectedUnit.playerMove) {
             return <ActionChoices/>
         } else if (ui.state.type === 'targetAbility') {
             return <TargetAbilityInfo/>
