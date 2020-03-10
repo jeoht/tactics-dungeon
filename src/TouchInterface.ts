@@ -17,6 +17,9 @@ export class TouchInterface {
     constructor(board: CanvasBoard) {
         this.board = board
         this.ui = board.ui
+        board.canvas.addEventListener('mousemove', this.onTouchMove)
+        board.canvas.addEventListener('mouseup', this.onTouchEnd)
+
         board.canvas.addEventListener('touchstart', this.onTouchStart)
         board.canvas.addEventListener('touchend', this.onTouchEnd)
         board.canvas.addEventListener('touchmove', this.onTouchMove)
@@ -35,12 +38,24 @@ export class TouchInterface {
             return null
     }
 
-    touchToScreenPoint(touch: Touch): ScreenVector {
+    touchToScreenPoint(e: TouchEvent|MouseEvent): ScreenVector {
+        let touchX = 0, touchY = 0
+        if ('touches' in e && e.touches[0]) {
+            touchX = e.touches[0].pageX
+            touchY = e.touches[0].pageY
+        } else if ('changedTouches' in e && e.changedTouches[0]) {
+            touchX = e.changedTouches[0].pageX
+            touchY = e.changedTouches[0].pageY
+        } else if ('clientX' in e && 'clientY' in e) {
+            touchX = e.clientX
+            touchY = e.clientY
+        }
+
         const rect = this.board.canvas.getBoundingClientRect()
         const scaleX = rect.width / this.board.drawWidth
         const scaleY = rect.height / this.board.drawHeight
-        const x = (touch.pageX - rect.left) / scaleX
-        const y = (touch.pageY - rect.top) / scaleY
+        const x = (touchX - rect.left) / scaleX
+        const y = (touchY - rect.top) / scaleY
         return new ScreenVector(x, y)
     }
 
@@ -51,10 +66,9 @@ export class TouchInterface {
 
     }
 
-    @bind onTouchMove(e: TouchEvent) {
+    @bind onTouchMove(e: TouchEvent|MouseEvent) {
         const { board } = this
-        const touch = e.touches[0]
-        const cursorPos = this.touchToScreenPoint(touch)
+        const cursorPos = this.touchToScreenPoint(e)
         const cell = board.cellAt(cursorPos)
         
         if (this.ui.state.type === 'board') {
@@ -97,7 +111,7 @@ export class TouchInterface {
 
     }
 
-    @bind onTouchEnd(e: TouchEvent) {
+    @bind onTouchEnd(e: TouchEvent|MouseEvent) {
         const { drag } = this
         if (!drag) {
             this.onTap(e)
@@ -129,12 +143,11 @@ export class TouchInterface {
         }
     }
 
-    @bind onTap(e: TouchEvent) {
+    @bind onTap(e: TouchEvent|MouseEvent) {
         const { board } = this
         const { ui } = this.board
         const { selectedUnit, state } = board.ui
-        const touch = e.changedTouches[0]
-        const cell = board.cellAt(this.touchToScreenPoint(touch))
+        const cell = board.cellAt(this.touchToScreenPoint(e))
         
         if (state.type === 'board') {
             // We can tap on a unit to select it
