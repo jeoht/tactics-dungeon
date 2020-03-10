@@ -154,7 +154,7 @@ export class UnitSprite implements SceneObject {
         const { board } = this
 
         let elapsed = 0
-        const duration = 100
+        const duration = 200
         while (true) {
             elapsed += await board.ui.time.nextFrame()
             const t = Math.min(1, elapsed / duration)

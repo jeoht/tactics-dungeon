@@ -89,7 +89,7 @@ export class World {
             }
         }
 
-        const map: MapDefinition = {
+        const map3: MapDefinition = {
             key: `
                 ########
                 #......#
@@ -99,10 +99,28 @@ export class World {
                 __#__#__
                 _##__##_
                 __#__#__
-                _#pe_p#_
-                __p__p__
+                _#____#_
+                ________
                 _#_##_#_
                 ########
+            `,
+            where: {
+                '.': [Biome.Mossy, Pattern.Floor],
+                '#': [Biome.Mossy, Pattern.Wall],
+                '>': [Biome.Mossy, Structure.DownStair],
+                '_': [Biome.Mossy, Pattern.Floor],
+                'e': [Biome.Mossy, Pattern.Floor, Feature.EnemySpawn],
+                'p': [Biome.Mossy, Pattern.Floor, Feature.PlayerSpawn]
+            }
+        }
+        const map: MapDefinition = {
+            key: `
+                ______##########
+                _p____#......e.#
+                _p____..##..e>.#
+                _p____..##..e>.#
+                _p____#......e.#
+                ______##########
             `,
             where: {
                 '.': [Biome.Mossy, Pattern.Floor],
