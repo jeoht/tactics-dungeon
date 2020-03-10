@@ -89,7 +89,7 @@ export class World {
             }
         }
 
-        const map3: MapDefinition = {
+        const map: MapDefinition = {
             key: `
                 ########
                 #......#
@@ -99,8 +99,8 @@ export class World {
                 __#__#__
                 _##__##_
                 __#__#__
-                _#____#_
-                ________
+                _#_e__#_
+                __ppp____
                 _#_##_#_
                 ########
             `,
@@ -113,7 +113,7 @@ export class World {
                 'p': [Biome.Mossy, Pattern.Floor, Feature.PlayerSpawn]
             }
         }
-        const map: MapDefinition = {
+        const map3: MapDefinition = {
             key: `
                 ______##########
                 _p____#......e.#

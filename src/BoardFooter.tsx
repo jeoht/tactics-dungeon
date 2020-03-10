@@ -35,7 +35,7 @@ const MainFooter = () => {
     })
 
     return <ul className="MainFooter">
-        <li onClick={endTurn}>End Turn</li>
+        <li onClick={endTurn}>End<br/>Turn</li>
     </ul>
 }
 
