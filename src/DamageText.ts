@@ -13,7 +13,7 @@ export class DamageText implements SceneObject {
     startPos: ScreenVector
     damage: number
     timePassed: number = 0
-    duration: number = 400
+    duration: number = 600
 
     constructor(board: CanvasBoard, damage: number, startPos: ScreenVector) {
         this.board = board
@@ -35,9 +35,9 @@ export class DamageText implements SceneObject {
 
     draw(ctx: CanvasRenderingContext2D) {
         const { damage, startPos, timePassed } = this
-        const bounceDuration: number = 300
+        const bounceDuration: number = 400
         const textInitialPos = startPos.add(new ScreenVector(CELL_WIDTH / 2, CELL_HEIGHT / 2))
-        const textBouncePos = textInitialPos.add(new ScreenVector(0, -5))
+        const textBouncePos = textInitialPos.add(new ScreenVector(0, -10))
         const t = timePassed / bounceDuration
 
         let textPos = textInitialPos

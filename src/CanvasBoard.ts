@@ -111,9 +111,9 @@ export class CanvasBoard implements Tickable {
         } else if (event.type === 'endMove') {
             this.get(event.unit).moved = true
 
-            if (ui.state.type === 'targetAbility' || ui.state.type === 'dragUnit') {
-                ui.goto('board')
-            }
+            // if (ui.state.type === 'targetAbility' || ui.state.type === 'unitDrag') {
+            //     ui.goto('board')
+            // }
         } else if (event.type === 'startPhase') {
             for (const sprite of this.unitSprites) {
                 if (sprite.unit.team === event.team)
