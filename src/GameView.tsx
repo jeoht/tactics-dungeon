@@ -43,10 +43,17 @@ const BoardCanvas = observer(() => {
 })
 
 function DungeonScreen() {
+    const { ui } = useContext(GameContext)
+
+    const nextFloor = action(() => {
+        ui.goto('board')
+    })
     return <div className="DungeonScreen">
-        <button className="btn">
-            Next Floor
-        </button>
+        <div className="d-flex mt-4 justify-content-center">
+            <button className="td-btn" onClick={nextFloor}>
+                Next Floor
+            </button>
+        </div>
     </div>
 }
 

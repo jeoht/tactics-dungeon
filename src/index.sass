@@ -1,3 +1,5 @@
+@import "node_modules/bootstrap/scss/bootstrap.scss"
+	
 @font-face 
 	font-family: "Pixeled"
 	src: url("/Pixeled.ttf")
@@ -24,9 +26,6 @@ body
 	position: fixed	
 	display: flex
 	justify-content: center
-
-*, :after, :before 
-	box-sizing: border-box
 
 #root 
 	position: relative
@@ -118,8 +117,6 @@ footer
 		50%  
 			opacity: 0.5
 			transform: scale(1.25)
-	
-
 
 	.cleared 
 		transform: translateX(-500px)
@@ -146,7 +143,7 @@ footer
 		font-size: 0.9rem
 
 
-.btn 
+.td-btn 
 	border: 0
 	border-radius: 4px
 	padding: .5rem .9rem
@@ -165,10 +162,8 @@ footer
 		align-items: center
 		padding-right: 1rem
 
-
 	img 
 		padding-right: 0.3rem
-
 	
 	.levelUp 
 		color: #feffa8
