@@ -1,5 +1,5 @@
 import * as _ from 'lodash'
-import './index.scss'
+import './index.sass'
 import { GameView } from './GameView'
 import { Game } from './Game'
 import { Assets } from './Assets'

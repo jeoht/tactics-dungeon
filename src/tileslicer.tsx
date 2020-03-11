@@ -1,6 +1,5 @@
 import * as _ from 'lodash'
-import './index.scss'
-import { Assets } from './Assets'
+import './index.sass'
 
 import ReactDOM = require('react-dom')
 import React = require('react')

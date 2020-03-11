@@ -42,7 +42,7 @@ module.exports = (env, argv) => {
                     loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]'] })
                 },
                 {
-                    test: /\.scss$/,
+                    test: /\.sass$/,
                     loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'sass-loader'] })
                 },
                 {

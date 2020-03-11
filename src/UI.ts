@@ -1,7 +1,6 @@
 import { Assets } from "./Assets"
 import { computed, observable, action } from "mobx"
 import { World } from "./World"
-import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
 import { Unit } from "./Unit"
 import { TimeReactor } from "./TimeReactor"
