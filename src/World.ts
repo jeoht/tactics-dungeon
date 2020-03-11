@@ -3,11 +3,12 @@ import { observable, computed, action, autorun, reaction, runInAction, IReaction
 import { Cell } from "./Cell"
 import { PointVector } from "./PointVector"
 import _ = require("lodash")
-import { Unit, Class, UnitStats, UnitSpec, Team } from "./Unit"
+import { Unit, Team } from "./Unit"
 import { AI } from "./AI"
 import { Feature, MapDefinition } from "./MapDefinition"
 import { BOARD_COLS, BOARD_ROWS } from "./settings"
 import { Structure, Biome, Pattern } from "./Tile"
+import { Class, UnitSpec, Peep } from "./Peep"
 
 type AttackEvent = {
     type: 'attack'
@@ -223,7 +224,7 @@ export class World {
 
     spawnUnit(props: UnitSpec & { cell?: Cell, team: Team }): Unit {
         const cell = props.cell || _.sample(this.spawnableCells) as Cell
-        const stats = new UnitStats(props)
+        const stats = new Peep(props)
         return new Unit(cell, stats, props.team)
     }
 
