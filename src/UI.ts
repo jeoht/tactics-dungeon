@@ -5,6 +5,7 @@ import { Cell } from "./Cell"
 import { Unit } from "./Unit"
 import { TimeReactor } from "./TimeReactor"
 import { UnitDragState } from "./TouchInterface"
+import { Peep } from "./Peep"
 
 export type SelectedUnitState = { type: 'selectedUnit', unit: Unit }
 export type TargetAbilityState = { type: 'targetAbility', unit: Unit, ability: 'teleport' }
@@ -12,6 +13,11 @@ export type TargetAbilityState = { type: 'targetAbility', unit: Unit, ability: '
 export type TapMoveState = {
     type: 'tapMove'
     plan: UnitMovePlan
+}
+
+export type PeepState = {
+    type: 'peep'
+    peep: Peep
 }
 
 export type UnitMovePlan = {
@@ -23,11 +29,11 @@ export type UnitMovePlan = {
     attacking?: Unit
 }
 
-type SimpleStateType = 'titleScreen'|'dungeon'|'board'|'enemyPhase'|'event'|'floorCleared'
-type Showing = { type: SimpleStateType } | { type: 'selectedUnit', unit: Unit } | UnitDragState | TargetAbilityState | { type: 'unit', unit: Unit } | TapMoveState
+type SimpleStateType = 'titleScreen'|'dungeon'|'board'|'enemyPhase'|'event'|'floorCleared'|'team'
+type Showing = { type: SimpleStateType } | { type: 'selectedUnit', unit: Unit } | UnitDragState | TargetAbilityState | PeepState | TapMoveState
 
 export class UI {
-    @observable state: Showing = { type: 'dungeon' }
+    @observable state: Showing = { type: 'team' }
     world: World
     assets: Assets
     time: TimeReactor
@@ -50,8 +56,11 @@ export class UI {
         this.state = { type: 'selectedUnit', unit: unit }
     }
 
-    @action goto(stateType: SimpleStateType) {
-        this.state = { type: stateType }
+    @action goto(state: SimpleStateType | Showing) {
+        if (typeof state === "string")
+            this.state = { type: state }
+        else
+            this.state = state
     }
 
     @action prepareTapMove(plan: UnitMovePlan) {

@@ -3,14 +3,14 @@ import React = require("react")
 import { action } from "mobx"
 
 import { Unit } from "./Unit"
-import { UnitBadge } from "./UnitBadge"
+import { PeepBadge } from "./PeepBadge"
 import { GameContext } from "./GameView"
 
 function UnitReport(props: { unit: Unit }) {
     const { unit } = props
 
     return <tr className="UnitReport">
-        <td><UnitBadge unit={unit}/> {unit.stats.name}</td>
+        <td><PeepBadge peep={unit.peep}/> {unit.peep.name}</td>
         <td><span className="levelUp">Level Up!</span></td>
     </tr>
 }
