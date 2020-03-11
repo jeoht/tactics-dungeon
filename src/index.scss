@@ -1,3 +1,5 @@
+@import "bootstrap.scss";
+
 @font-face {
 	font-family: "Pixeled";
 	src: url("/Pixeled.ttf");
@@ -152,6 +154,13 @@ footer {
 		100% {
 			opacity: 1;
 			transform: translateX(0px)
+		}
+	}
+
+	.items {
+		p {
+			color: white;
+			font-size: 0.9rem;
 		}
 	}
 

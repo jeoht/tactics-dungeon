@@ -10,6 +10,8 @@ import { BoardFooter } from './BoardFooter'
 import { World } from './World'
 import { Unit } from './Unit'
 import { UnitBadge } from './UnitBadge'
+import { action } from 'mobx'
+import { FloorCleared } from './FloorCleared'
 
 export const GameContext = React.createContext<{ game: Game, ui: UI, world: World }>({} as any)
 
@@ -40,37 +42,22 @@ const BoardCanvas = observer(() => {
     return <canvas ref={canvasRef} id="board"></canvas>
 })
 
-function UnitReport(props: { unit: Unit }) {
-    const { unit } = props
-
-    return <tr className="UnitReport">
-        <td><UnitBadge unit={unit}/> {unit.stats.name}</td>
-        <td><span className="levelUp">Level Up!</span></td>
-    </tr>
-}
-
-function FloorCleared() {
-    const { world } = useContext(GameContext)
-
-    return <div className="FloorCleared">
-        <h1>
-            <div className="floor">Floor 1</div>
-            <div className="cleared">Cleared!</div>
-        </h1>
-        <table className="unitReports">
-            {world.playerUnits.map((u, i) => <UnitReport key={i} unit={u}/>)}
-        </table>
-        <button className="btn continue">
-            Continue
+function DungeonScreen() {
+    return <div className="DungeonScreen">
+        <button className="btn">
+            Next Floor
         </button>
     </div>
 }
+
 
 const CurrentScreen = observer(function CurrentScreen() {
     const { ui } = useContext(GameContext)
 
     if (ui.state.type === 'titleScreen') {
         return <TitleScreen/>
+    } else if (ui.state.type === 'dungeon') {
+        return <DungeonScreen/>
     } else {
         return <>
             <BoardHeader/>
