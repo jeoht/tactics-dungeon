@@ -1,7 +1,8 @@
+import { ImageRefiner } from "./ImageRefiner"
 
 
 export class Tileset {
-    image: CanvasImageSource
+    image: HTMLImageElement|ImageBitmap
     tileWidth: number
     tileHeight: number
     rows: number
