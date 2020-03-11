@@ -70,17 +70,21 @@ export class ImageRefiner {
         this.ctx = this.canvas.getContext("2d")!
     }
 
-    editImage(img: HTMLImageElement) {
+    editImage(img: HTMLImageElement|ImageBitmap) {
         const { canvas, ctx } = this
-        canvas.width = img.naturalWidth
-        canvas.height = img.naturalHeight 
+        canvas.width = 'naturalWidth' in img ? img.naturalWidth : img.width
+        canvas.height = 'naturalHeight' in img ? img.naturalHeight : img.height
         ctx.drawImage(img, 0, 0)
-        const imgData = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight)
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
         return this.edit(imgData)
     }
 
-    edit(imgData: ImageData) {
-        return new RefiningImage(this, imgData)
+    edit(img: HTMLImageElement|ImageBitmap|ImageData): RefiningImage {
+        if (img instanceof ImageData) {
+            return new RefiningImage(this, img)
+        } else {
+            return this.editImage(img)
+        }
     }
 }
 

@@ -3,7 +3,6 @@ import { dijkstra, dijkstraRange } from "./pathfinding"
 import { observable, computed, action } from "mobx"
 import _ = require("lodash")
 import { nameByRace } from "fantasy-name-generator"
-import { format } from "d3"
 
 export enum Gender {
     Boy = "Boy",
@@ -11,7 +10,7 @@ export enum Gender {
     Soft = "Soft",
     Powerful = "Powerful",
     Mystery = "Mystery"
-}
+}   
 
 export enum Class {
     Rookie = "Rookie",
