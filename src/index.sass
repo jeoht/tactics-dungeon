@@ -1,0 +1,291 @@
+@font-face 
+	font-family: "Pixeled"
+	src: url("/Pixeled.ttf")
+
+@font-face 
+	font-family: "pixelmix"
+	src: url("/pixelmix.ttf")
+
+html, body  
+	margin: 0
+	height: 100%
+
+body 
+	width: 100%
+	height: 100%
+	margin: 0
+	font-family: "pixelmix"
+	font-size: 1rem
+	font-weight: 400
+	line-height: 1.5
+	background: black
+	// Lock screen so no scrolling https://stackoverflow.com/a/40598268
+	overflow: hidden
+	position: fixed	
+	display: flex
+	justify-content: center
+
+*, :after, :before 
+	box-sizing: border-box
+
+#root 
+	position: relative
+	width: 100%
+	max-width: 390px
+	height: 100%
+	display: flex
+	flex-direction: column
+	overflow: hidden
+
+header 
+	height: 100%
+
+canvas#board 
+	width: 100%
+	height: auto
+	cursor: pointer
+	user-select: none
+	-webkit-tap-highlight-color: transparent
+	// image-rendering: pixelated
+
+footer 
+	height: 100%
+	display: flex
+	align-items: center
+
+.ActionChoices, .MainFooter 
+	list-style-type: none
+	display: flex
+	margin: 0
+
+	li 
+		background: #3F5C67
+		background: -moz-linear-gradient(45deg, #3F5C67 0%, #000000 53%, #3F5C67 100%)
+		background: -webkit-linear-gradient(45deg, #3F5C67 0%, #000000 53%, #3F5C67 100%)
+		background: linear-gradient(45deg, #3F5C67 0%, #000000 53%, #3F5C67 100%)
+		border-radius: 10px
+		color: white
+		padding: 0.3rem
+		font-size: 0.7rem
+		text-align: center
+	
+
+.TargetAbilityInfo 
+	font-size: 0.8rem
+	text-align: center
+	position: relative
+	top: -2px
+
+	h3 
+		margin: 0
+		font-size: 0.9rem
+		color: #feffaf
+
+	p 
+		margin: 0
+		color: white
+		font-size: 0.6rem
+		line-height: 1.4em
+
+
+.FloorCleared 
+	position: absolute
+	left: 0
+	top: 0
+	width: 100%
+	height: 100%
+	background: rgba(0, 0, 0, 0.8)
+	color: #feffa8
+
+	display: flex
+	flex-direction: column
+	align-items: center
+
+	text-align: center
+	h1 
+		font-size: 2rem
+		padding-top: 3rem	
+
+
+	.floor 
+		animation: pop 0.25s ease-in-out
+
+	
+	@keyframes pop
+		0% 
+			opacity: 0
+	
+		50%  
+			opacity: 0.5
+			transform: scale(1.25)
+	
+
+
+	.cleared 
+		transform: translateX(-500px)
+		animation: zoomin 0.1s ease-in-out forwards
+		animation-delay: 0.5s
+	
+	@keyframes zoomin 
+		0% 
+			opacity: 0
+			transform: translateX(-500px)
+		50% 
+			transform: translateX(-250px)
+		100% 
+			opacity: 1
+			transform: translateX(0px)
+	
+	.items 
+		p 
+			color: white
+			font-size: 0.9rem
+	
+	.continue 
+		margin-top: 5rem
+		font-size: 0.9rem
+
+
+.btn 
+	border: 0
+	border-radius: 4px
+	padding: .5rem .9rem
+	border: 1px solid #feffa8
+	background: none
+	color: #feffa8
+	font: inherit
+
+.unitReports 
+	color: white
+	font-size: 0.8rem
+	text-align: left
+
+	td:first-child 
+		display: flex
+		align-items: center
+		padding-right: 1rem
+
+
+	img 
+		padding-right: 0.3rem
+
+	
+	.levelUp 
+		color: #feffa8
+
+
+.UnitView 
+	position: absolute
+	left: 0
+	top: 0
+	width: 100%
+	height: 100%
+
+	padding: 1rem
+	font-size: 1.1rem
+	background: rgba(0, 0, 0, 0.8)
+	color: white
+
+	header 
+		display: flex
+		align-items: center
+		margin-bottom: 1rem
+		padding: 4px 16px
+
+
+	canvas 
+		margin-right: 1rem
+
+
+	input.name 
+		background: none
+		border: none
+		color: white
+		font-size: inherit
+
+
+	.unitClass 
+		// color: #23e059
+		font-weight: bold
+
+
+	.unitClass.Rookie 
+		color: #b89600
+
+
+	table 
+		width: 100%
+
+
+	table td 
+		padding: 0.5rem 1rem
+		text-align: right
+
+
+	table td:first-child 
+		color: #fff18a
+		font-style: italic
+		text-align: left
+
+	footer 
+		position: absolute
+		left: 0
+		bottom: 0
+		width: 100%
+		padding: 1rem
+
+
+	button.close 
+		-webkit-appearance: none
+		border: none
+		background: none
+		color: rgba(255, 255, 255, 0.8)
+		font-size: 1.2rem
+		padding: 1rem
+		float: right
+
+
+.TitleScreen 
+	position: relative
+	padding: 1rem
+	color: white
+	height: 100%
+
+	.background 
+		position: absolute
+		left: 0
+		top: 0
+		width: 100%
+		height: 100%
+		opacity: 0.5
+		overflow: hidden
+
+		canvas 
+			width: 100%
+
+	> *:not(.background) 
+		position: relative
+
+	h1 
+		margin-top: 3.2rem
+		text-align: center
+		font-family: "Pixeled"
+		margin-bottom: 3rem
+		font-size: 2.2em
+
+		// text-shadow: 4px 3px 0 #666
+
+	ul 
+		list-style-type: none
+		padding: 0
+
+	li 
+		display: block
+		width: 80%
+		margin: auto
+		border: 3px solid lightsteelblue
+		padding: 16px 16px
+		text-align: center
+
+	li:not(:first-child) 
+		margin-top: 1.5rem
