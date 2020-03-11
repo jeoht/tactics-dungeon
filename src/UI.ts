@@ -24,7 +24,8 @@ export type UnitMovePlan = {
     attacking?: Unit
 }
 
-type Showing = { type: 'titleScreen' } | { type: 'board' } | { type: 'enemyPhase' } | { type: 'event' } | { type: 'selectedUnit', unit: Unit } | UnitDragState | TargetAbilityState | { type: 'unit', unit: Unit } | { type: 'floorCleared' } | TapMoveState
+type SimpleStateType = 'titleScreen'|'dungeon'|'board'|'enemyPhase'|'event'|'floorCleared'
+type Showing = { type: SimpleStateType } | { type: 'selectedUnit', unit: Unit } | UnitDragState | TargetAbilityState | { type: 'unit', unit: Unit } | TapMoveState
 
 export class UI {
     @observable state: Showing = { type: 'board' }
@@ -50,7 +51,7 @@ export class UI {
         this.state = { type: 'selectedUnit', unit: unit }
     }
 
-    @action goto(stateType: 'board'|'enemyPhase'|'titleScreen'|'event'|'floorCleared') {
+    @action goto(stateType: SimpleStateType) {
         this.state = { type: stateType }
     }
 
