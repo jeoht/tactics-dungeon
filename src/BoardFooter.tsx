@@ -31,7 +31,8 @@ const MainFooter = () => {
     const { game } = useContext(GameContext)
 
     const endTurn = action(() => {
-        game.world.endPlayerPhase()
+        for (const unit of game.world.playerUnits)
+            unit.moved = true
     })
 
     return <ul className="MainFooter">

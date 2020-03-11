@@ -214,26 +214,13 @@ export class Unit {
 
     @action defeat() {
         const { world } = this.cell
-        this.cell.unit = undefined
-        
         world.eventLog.push({ type: 'defeated', unit: this })
-
-        if (this.unitsOnMyTeam.length === 0) {
-            if (this.team === Team.Enemy) {
-                world.eventLog.push({ type: 'floorCleared' })
-            } else {
-                // player defeat stuff todo
-            }
-        }
+        this.cell.unit = undefined        
     }
 
     @action endMove() {
-        this.moved = true
         this.cell.world.eventLog.push({ type: 'endMove', unit: this })
-
-        if (this.unitsOnMyTeam.every(unit => unit.moved)) {
-            this.cell.world.endPhase(this.team)
-        }
+        this.moved = true
     }
 
     canOccupy(cell: Cell) {

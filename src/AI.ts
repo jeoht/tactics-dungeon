@@ -37,7 +37,6 @@ export class AI {
                 if (path) unit.moveAlong(path)
                 unit.endMove()
             }
-
         }
     }
 }
