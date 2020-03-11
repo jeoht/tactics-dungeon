@@ -1,5 +1,5 @@
 import { GameView } from "./GameView"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, autorun, reaction, runInAction, IReactionDisposer } from "mobx"
 import { Cell } from "./Cell"
 import { PointVector } from "./PointVector"
 import _ = require("lodash")
@@ -62,6 +62,8 @@ export class World {
     boardHeight: number = BOARD_ROWS
     @observable eventLog: WorldEvent[] = []
     ai: AI
+    disposers: IReactionDisposer[]  = []
+    @observable phase: Team = Team.Player
 
     constructor() {
         const map2: MapDefinition = {
@@ -93,8 +95,8 @@ export class World {
             key: `
                 ########
                 #..>>..#
-                #e####e#
-                #.e..e.#
+                #.####.#
+                #...e..#
                 ###..###
                 __#__#__
                 _##__##_
@@ -135,6 +137,20 @@ export class World {
         this.loadMap(map)
 
         this.ai = new AI(this, Team.Enemy)
+
+        // Victory condition
+        this.disposers.push(autorun(() => {
+            if (this.units.every(u => u.team === Team.Player)) {
+                this.event('floorCleared')
+            }
+        }))
+
+        // Turn ends
+        this.disposers.push(autorun(() => {
+            if (this.units.filter(u => u.team === this.phase).every(u => u.moved)) {
+                this.endPhase()
+            }
+        }))
     }
 
     @action loadMap(defs: MapDefinition) {
@@ -190,6 +206,10 @@ export class World {
         return units
     }
 
+    @computed get playerUnits(): Unit[] {
+        return this.units.filter(u => u.team === Team.Player)
+    }
+
     @computed get spawnableCells(): Cell[] {
         return this.cells.filter(c => c.pathable && !c.unit)
     }
@@ -207,12 +227,18 @@ export class World {
         return new Unit(cell, stats, props.team)
     }
 
-    @action event(event: WorldEvent) {
-        this.eventLog.push(event)
+    @action event(event: WorldEvent|'floorCleared') {
+        if (typeof event === "string") {
+            this.eventLog.push({ type: event })
+        } else {
+            this.eventLog.push(event)
+        }
     }
 
     startPhase(team: Team) {
         this.event({ type: 'startPhase', team: team })
+        this.phase = team
+
         for (const unit of this.units) {
             if (unit.team === team) {
                 unit.moved = false
@@ -225,13 +251,11 @@ export class World {
         }
     }
 
-    endPlayerPhase() {
-        this.endPhase(Team.Player)
-    }
+    @action endPhase() {
+        const { phase } = this
+        this.event({ type: 'endPhase', team: phase })
 
-    endPhase(team: Team) {
-        this.event({ type: 'endPhase', team: team })
-        if (team === Team.Player) {
+        if (phase === Team.Player) {
             this.startPhase(Team.Enemy)
         } else {
             this.startPhase(Team.Player)
