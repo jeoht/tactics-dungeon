@@ -21,6 +21,14 @@ export class UnitSprite implements SceneObject {
     moved: boolean = false
     alpha: number = 1
 
+    constructor(board: CanvasBoard, unit: Unit) {
+        this.board = board
+        this.unit = unit
+        this.moved = unit.moved
+        this.pos = this.cell.pos
+        this.tileset = board.ui.assets.creatures
+    }
+
     get timestamp() {
         return this.board.ui.time.now
     }
@@ -59,13 +67,6 @@ export class UnitSprite implements SceneObject {
 
     @computed get cell(): CellSprite {
         return this.board.get(this.unit.cell)
-    }
-
-    constructor(board: CanvasBoard, unit: Unit) {
-        this.board = board
-        this.unit = unit
-        this.pos = this.cell.pos
-        this.tileset = board.ui.assets.creatures
     }
 
     async attackAnimation(event: { target: Unit, damage: number }) {

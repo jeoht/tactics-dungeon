@@ -19,6 +19,10 @@ export class PointVector {
         this.y = y
     }
 
+    get key(): string {
+        return `${this.x},${this.y}`
+    }
+
     neighbors() {
         const directions = [PointVector.up, PointVector.down, PointVector.left, PointVector.right]
         return directions.map(v => this.add(v))

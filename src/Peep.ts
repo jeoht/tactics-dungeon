@@ -1,18 +1,14 @@
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, toJS } from "mobx"
 import { nameByRace } from "fantasy-name-generator"
 import _ = require("lodash")
-import { v4 as uuidv4 } from 'uuid'
+
+import { uuid } from './util'
 
 interface AbilityDef {
     name: string
     description: string
 }
 
-interface ClassDef {
-    name: string
-    abilities: { level: number, ability: AbilityDef }[]
-    tileIndex: number
-}
 
 export namespace Ability {
     export const SenseThoughts = {
@@ -35,13 +31,37 @@ export namespace Ability {
     }
 }
 
+export type AbilityId = keyof typeof Ability
+
+interface ClassDef {
+    name: string
+    abilities: { level: number, ability: AbilityDef }[]
+    tileIndex: number
+}
+
+export class Class {
+    name: string
+    abilities: { level: number, ability: AbilityDef }[]
+    tileIndex: number
+
+    constructor(def: ClassDef) {
+        this.name = def.name
+        this.abilities = def.abilities
+        this.tileIndex = def.tileIndex
+    }
+
+    @computed get id(): ClassId {
+        return this.name.replace(/ /g, '') as ClassId
+    }
+}
+
 export namespace Class {
-    export const Rookie = { 
+    export const Rookie = new Class({ 
         name: "Rookie", 
         tileIndex: 47,
         abilities: [] 
-    }
-    export const Esper = {
+    })
+    export const Esper = new Class({
         name: "Esper",
         tileIndex: 3,
         abilities: [
@@ -49,20 +69,20 @@ export namespace Class {
             { level: 2, ability: Ability.KineticHold },
             { level: 2, ability: Ability.EmpathicBond },
         ]
-    }
-    export const SunPaladin = {
+    })
+    export const SunPaladin = new Class({
         name: "Sun Paladin",
         tileIndex: 0,
         abilities: []
-    }
-
-    export const Skeleton = {
+    })
+    export const Skeleton = new Class({
         name: "Skeleton", 
         abilities: [],
         tileIndex: 370
-    }
+    })
 }
 
+type ClassId = keyof typeof Class
 
 /** 
  * Represents a unit's base state, before they're actually
@@ -72,15 +92,43 @@ export class Peep {
     id: string
     @observable name: string
     @observable gender: Gender
-    @observable.ref class: ClassDef
+    @observable classId: ClassId
     @observable level: number = 2
-    @observable.ref learnedAbilities: Set<AbilityDef> = new Set([Ability.SenseThoughts])
+    @observable learnedAbilityIds: AbilityId[] = []
 
-    constructor(props: UnitSpec) {
-        this.id = uuidv4()
-        this.class = props.class || Class.Rookie
-        this.gender = props.gender || randomGender()
-        this.name = props.name || randomName(this.gender)
+    constructor(props: UnitSpec | Peep['save']) {
+        if ('classId' in props) {
+            this.id = props.id
+            this.name = props.name
+            this.gender = props.gender
+            this.classId = props.classId
+            this.level = props.level
+            this.learnedAbilityIds = props.learnedAbilityIds
+        } else {
+            this.id = uuid()
+            this.classId = props.class ? props.class.id : Class.Rookie.id
+            this.gender = props.gender || randomGender()
+            this.name = props.name || randomName(this.gender)    
+        }
+    }
+
+    @computed get save() {
+        return {
+            id: this.id,
+            name: this.name,
+            gender: this.gender,
+            classId: this.classId,
+            level: this.level,
+            learnedAbilityIds: this.learnedAbilityIds
+        }
+    }
+
+    @computed get class(): Class {
+        return Class[this.classId]
+    }
+
+    set class(klass: Class) {
+        this.classId = klass.id
     }
 
     @computed get tileIndex(): number {
@@ -89,6 +137,10 @@ export class Peep {
 
     @computed get canPromote(): boolean {
         return this.class === Class.Rookie && this.level > 1
+    }
+
+    @computed get learnedAbilities(): Set<AbilityDef> {
+        return new Set(this.learnedAbilityIds.map(id => Ability[id]))
     }
 
     @computed get abilityLevels(): { level: number, abilities: AbilityDef[] }[] {
@@ -144,7 +196,7 @@ function randomName(gender: Gender): string {
 }
 
 export type UnitSpec = {
-    class?: ClassDef
+    class?: Class
     name?: string
     gender?: Gender
 }

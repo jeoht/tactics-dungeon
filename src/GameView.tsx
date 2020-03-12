@@ -10,7 +10,7 @@ import { BoardFooter } from './BoardFooter'
 import { World } from './World'
 import { FloorCleared } from './FloorCleared'
 import { PeepBadge } from './PeepBadge'
-import { action, autorun, IReactionDisposer } from 'mobx'
+import { action, autorun, IReactionDisposer, runInAction } from 'mobx'
 import { Peep } from './Peep'
 import _ = require('lodash')
 import { Floor } from './Floor'
@@ -30,11 +30,16 @@ function BoardCanvas() {
         const canvas = canvasRef.current
         if (!canvas) return
 
-        const board = new CanvasBoard(floor, ui, canvas)
-        ui.time.add(board)
+        runInAction(() => {
+            ui.board = new CanvasBoard(floor, ui, canvas)
+            ui.time.add(ui.board)
+        })
 
         return () => {
-            ui.time.remove(board)
+            runInAction(() => {
+                ui.time.remove(ui.board!)
+                ui.board = undefined    
+            })
         }
     }, [])
 
@@ -42,9 +47,12 @@ function BoardCanvas() {
 }
 
 function DungeonScreen() {
-    const { ui } = useContext(GameContext)
+    const { ui, world } = useContext(GameContext)
 
-    const nextFloor = () => ui.goto('board')
+    const nextFloor = () => {
+        world.nextFloor()
+        ui.goto('board')
+    }
     const gotoTeam = () => ui.goto('team')
 
     return <div className="DungeonScreen">
@@ -63,7 +71,7 @@ function TeamScreen() {
     const { ui, world } = useContext(GameContext)
 
     const gotoPeep = (peep: Peep) => {
-        ui.goto({ type: 'peep', peep: peep })
+        ui.goto({ id: 'peep', peepId: peep.id })
     }
 
     return <div className="TeamScreen d-flex justify-content-center mt-4">
@@ -78,8 +86,10 @@ function TeamScreen() {
     </div>
 }
 
-function PeepScreen(props: { peep: Peep }) {
-    const { peep } = props
+function PeepScreen(props: { peepId: string }) {
+    const { peepId } = props
+    const { world } = useContext(GameContext)
+    const peep = world.team.find(p => p.id === peepId)!
 
     const changeName = action((e: React.ChangeEvent<HTMLInputElement>) => {
         peep.name = e.currentTarget.value
@@ -121,21 +131,21 @@ function CurrentScreen() {
     // useEffect(() => ui.goto({ type: 'peep', peep: world.team[0] }), [])
 
     return useObserver(() => {
-        if (ui.state.type === 'titleScreen') {
+        if (ui.screen.id === 'titleScreen') {
             return <TitleScreen/>
-        } else if (ui.state.type === 'dungeon') {
+        } else if (ui.screen.id === 'dungeon') {
             return <DungeonScreen/>
-        } else if (ui.state.type === 'team') {
+        } else if (ui.screen.id === 'team') {
             return <TeamScreen/>
-        } else if (ui.state.type === 'peep') {
-            return <PeepScreen peep={ui.state.peep}/>
+        } else if (ui.screen.id === 'peep') {
+            return <PeepScreen peepId={ui.screen.peepId}/>
         } else if (world.floor) {
             const context = { ui: ui, floor: world.floor }
             return <FloorContext.Provider value={context}>
                 <BoardHeader/>
                 <BoardCanvas/>
                 <BoardFooter/>
-                {ui.state.type === 'floorCleared' && <FloorCleared/>}
+                {ui.screen.id === 'floorCleared' && <FloorCleared/>}
             </FloorContext.Provider>
         } else {
             return null

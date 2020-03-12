@@ -1,7 +1,7 @@
 import { Assets } from "./Assets"
 import { World } from "./World"
 import { UI } from "./UI"
-import { computed, toJS } from "mobx"
+import { computed, toJS, autorun, action } from "mobx"
 import { Floor } from "./Floor"
 
 declare const window: any
@@ -11,7 +11,12 @@ class Debug {
     constructor(game: Game) {
         this.game = game
         window.debug = this
+        window.game = game
         window.world = game.world
+        window.ui = game.ui
+
+        autorun(() => window.floor = game.world.floor)
+        autorun(() => window.board = game.ui.board)
     }
 
     @computed get lastEvent() {
@@ -26,11 +31,41 @@ class Debug {
 export class Game {
     world: World
     ui: UI
+    debug: Debug
 
-    constructor(world: World, ui: UI) {
+    constructor(world: World, ui: UI, save: Game['save']|null) {
         this.world = world
         this.ui = ui
+        this.debug = new Debug(this)
 
-        const debug = new Debug(this)
+        if (save) {
+            try {
+                this.load(save)
+            } catch (err) {
+                console.error(err)
+                this.world.newGame()
+            }
+        }
+
+        autorun(() => {
+            const savestr = JSON.stringify(this.save)
+            localStorage.setItem('save', savestr)
+        })
+    }
+
+    @action load(save: Game['save']) {
+        this.world.load(save.world)
+        this.ui.screen = save.screen
+    }
+
+    @action clearSave() {
+        localStorage.removeItem('save')
+    }
+
+    @computed get save() {
+        return {
+            world: this.world.save,
+            screen: this.ui.screen
+        }
     }
 }
