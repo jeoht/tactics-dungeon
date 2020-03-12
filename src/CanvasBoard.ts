@@ -2,7 +2,7 @@ import { action, autorun, observable, computed, runInAction } from "mobx"
 
 import { Game } from "./Game"
 import { TouchInterface } from "./TouchInterface"
-import { World, WorldEvent } from "./World"
+import { World } from "./World"
 import { UI } from "./UI"
 import { Unit, Team } from "./Unit"
 import { UnitSprite } from "./UnitSprite"
@@ -12,10 +12,11 @@ import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
 import { CellSprite } from "./CellSprite"
 import { Tickable } from "./TimeReactor"
+import { Floor, FloorEvent } from "./Floor"
 
 export class CanvasBoard implements Tickable {
     ui: UI
-    world: World
+    floor: Floor
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
     touchInterface: TouchInterface
@@ -25,23 +26,29 @@ export class CanvasBoard implements Tickable {
     unitSprites: UnitSprite[] = []
     damageTexts: DamageText[] = []
 
-    constructor(game: Game, canvas: HTMLCanvasElement) {
-        this.world = game.world
-        this.ui = game.ui
+    constructor(floor: Floor, ui: UI, canvas: HTMLCanvasElement) {
+        this.floor = floor
+        this.ui = ui
         this.canvas = canvas
         this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D
         this.touchInterface = new TouchInterface(this)
         
-        for (const cell of this.world.cells) {
+        for (const cell of this.floor.cells) {
             this.cellSprites.push(new CellSprite(this, cell))
         }
 
-        for (const unit of this.world.units) {
+        for (const unit of this.floor.units) {
             this.unitSprites.push(new UnitSprite(this, unit))
         }
+    }
 
+    start() {
         window.addEventListener("resize", this.onResize)
         this.onResize()
+    }
+
+    stop() {
+        window.removeEventListener("resize", this.onResize)
     }
 
     @computed get drawWidth(): number {
@@ -79,12 +86,12 @@ export class CanvasBoard implements Tickable {
     }
     
     cellAt(pos: ScreenVector): Cell {
-        const cx = Math.min(this.world.boardWidth-1, Math.max(0, Math.floor(pos.x / CELL_WIDTH)))
-        const cy = Math.min(this.world.boardHeight-1, Math.max(0, Math.floor(pos.y / CELL_HEIGHT)))
-        return this.world.grid[cx][cy]
+        const cx = Math.min(this.floor.boardWidth-1, Math.max(0, Math.floor(pos.x / CELL_WIDTH)))
+        const cy = Math.min(this.floor.boardHeight-1, Math.max(0, Math.floor(pos.y / CELL_HEIGHT)))
+        return this.floor.grid[cx][cy]
     }
 
-    async handleEvent(event: WorldEvent) {
+    async handleEvent(event: FloorEvent) {
         const { ui } = this
         if (event.type === 'pathMove') {
             const { unit, fromCell, path } = event
@@ -130,11 +137,11 @@ export class CanvasBoard implements Tickable {
     }
 
     @action.bound onResize() {
-        const width = this.world.boardWidth * CELL_WIDTH
-        const height = this.world.boardHeight * CELL_HEIGHT
+        const width = this.floor.boardWidth * CELL_WIDTH
+        const height = this.floor.boardHeight * CELL_HEIGHT
 
         const styleWidth = this.canvas.parentElement!.offsetWidth
-        const styleHeight = styleWidth * (this.world.boardHeight / this.world.boardWidth)
+        const styleHeight = styleWidth * (this.floor.boardHeight / this.floor.boardWidth)
 
         const scale = 3
         this.canvas.width = width * scale
@@ -145,12 +152,12 @@ export class CanvasBoard implements Tickable {
     }
 
     async handleEvents() {
-        if (this.handlingEvent || this.handledEvents >= this.world.eventLog.length) return
+        if (this.handlingEvent || this.handledEvents >= this.floor.eventLog.length) return
 
-        while (this.world.eventLog.length > this.handledEvents) {
+        while (this.floor.eventLog.length > this.handledEvents) {
             this.handlingEvent = true
 
-            const event = this.world.eventLog[this.handledEvents]
+            const event = this.floor.eventLog[this.handledEvents]
             await this.handleEvent(event)
             
             this.handlingEvent = false

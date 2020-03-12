@@ -9,7 +9,6 @@ import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
 import { Structure } from "./Tile"
 import { Cell } from "./Cell"
-import { drag } from "d3"
 
 
 export class UnitDragState {

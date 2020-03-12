@@ -2,17 +2,18 @@ import { Team } from "./Unit"
 import { World } from "./World"
 import { computed } from "mobx"
 import _ = require("lodash")
+import { Floor } from "./Floor"
 
 export class AI {
-    world: World
+    floor: Floor
     team: Team
-    constructor(world: World, team: Team) {
-        this.world = world
+    constructor(floor: Floor, team: Team) {
+        this.floor = floor
         this.team = team
     }
 
     @computed get units() {
-        return this.world.units.filter(u => u.team === this.team)
+        return this.floor.units.filter(u => u.team === this.team)
     }
 
     doPhase() {

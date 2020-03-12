@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { observer, useObserver } from 'mobx-react-lite'
+import { observer, useObserver, useLocalStore } from 'mobx-react-lite'
 
 import { Game } from './Game'
 import { TitleScreen } from './TitleScreen'
@@ -11,9 +11,10 @@ import { World } from './World'
 import { FloorCleared } from './FloorCleared'
 import { PeepBadge } from './PeepBadge'
 import { Unit } from './Unit'
-import { action } from 'mobx'
+import { action, autorun, IReactionDisposer } from 'mobx'
 import { Peep } from './Peep'
 import _ = require('lodash')
+import { Floor } from './Floor'
 
 export const GameContext = React.createContext<{ game: Game, ui: UI, world: World }>({} as any)
 
@@ -21,15 +22,16 @@ const BoardHeader = observer(function BoardHeader() {
     return <header/>
 })
 
-const BoardCanvas = observer(() => {
-    const { game, ui } = useContext(GameContext)
+function BoardCanvas(props: { floor: Floor }) {
+    const { ui } = useContext(GameContext)
+    const { floor } = props
     const canvasRef = React.createRef<HTMLCanvasElement>()
 
     let board: CanvasBoard|null = null
     useEffect(() => {
-        // Set the canvas 
-        if (!board && canvasRef.current) {
-            board = new CanvasBoard(game, canvasRef.current)
+        const canvas = canvasRef.current
+        if (canvas && !board) {
+            board = new CanvasBoard(floor, ui, canvas)
             ui.time.add(board)
         }
 
@@ -42,7 +44,7 @@ const BoardCanvas = observer(() => {
     })
 
     return <canvas ref={canvasRef} id="board"></canvas>
-})
+}
 
 function DungeonScreen() {
     const { ui } = useContext(GameContext)
@@ -72,8 +74,8 @@ function TeamScreen() {
     return <div className="TeamScreen d-flex justify-content-center mt-4">
         <table className="unitReports">
             <tbody>
-                {world.playerUnits.map((unit, i) => <tr key={i} onClick={() => gotoPeep(unit.peep)}>
-                    <td><PeepBadge peep={unit.peep}/> {unit.peep.name}</td>
+                {world.team.map(peep => <tr key={peep.id} onClick={() => gotoPeep(peep)}>
+                    <td><PeepBadge peep={peep}/> {peep.name}</td>
                     <td><span className="levelUp">Level Up!</span></td>
                 </tr>)}
             </tbody>
@@ -121,7 +123,7 @@ function PeepScreen(props: { peep: Peep }) {
 const CurrentScreen = observer(function CurrentScreen() {
     const { ui, world } = useContext(GameContext)
 
-    useEffect(() => ui.goto({ type: 'peep', peep: world.playerUnits[0].peep }), [])
+    // useEffect(() => ui.goto({ type: 'peep', peep: world.team[0] }), [])
 
     if (ui.state.type === 'titleScreen') {
         return <TitleScreen/>
@@ -131,14 +133,16 @@ const CurrentScreen = observer(function CurrentScreen() {
         return <TeamScreen/>
     } else if (ui.state.type === 'peep') {
         return <PeepScreen peep={ui.state.peep}/>
-    } else {
+    } else if (world.floor) {
         return <>
             <BoardHeader/>
-            <BoardCanvas/>
+            <BoardCanvas floor={world.floor}/>
             <BoardFooter/>
             {ui.state.type === 'floorCleared' && <FloorCleared/>}
         </>
-    }    
+    } else {
+        return null
+    }
 })
 
 export const GameView = observer(function GameView(props: { game: Game }) {

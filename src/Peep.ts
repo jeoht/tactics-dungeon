@@ -1,6 +1,7 @@
 import { observable, computed, action } from "mobx"
 import { nameByRace } from "fantasy-name-generator"
 import _ = require("lodash")
+import { v4 as uuidv4 } from 'uuid'
 
 interface AbilityDef {
     name: string
@@ -68,11 +69,19 @@ export namespace Class {
  * attached to any position on an active map
  */
 export class Peep {
+    id: string
     @observable name: string
     @observable gender: Gender
     @observable.ref class: ClassDef
     @observable level: number = 2
     @observable.ref learnedAbilities: Set<AbilityDef> = new Set([Ability.SenseThoughts])
+
+    constructor(props: UnitSpec) {
+        this.id = uuidv4()
+        this.class = props.class || Class.Rookie
+        this.gender = props.gender || randomGender()
+        this.name = props.name || randomName(this.gender)
+    }
 
     @computed get tileIndex(): number {
         return this.class.tileIndex
@@ -102,12 +111,6 @@ export class Peep {
 
     knows(ability: AbilityDef) {
         return this.learnedAbilities.has(ability)
-    }
-
-    constructor(props: UnitSpec) {
-        this.class = props.class || Class.Rookie
-        this.gender = props.gender || randomGender()
-        this.name = props.name || randomName(this.gender)
     }
 }
 

@@ -55,10 +55,11 @@ function TitleScreenBG() {
 }
 
 export function TitleScreen() {
-    const { game } = React.useContext(GameContext)
+    const { world, ui } = React.useContext(GameContext)
 
     const newGame = action(() => {
-        game.ui.state = { type: 'board' }
+        world.newGame()
+        ui.goto('board')
     })
 
     return <div className="TitleScreen">
