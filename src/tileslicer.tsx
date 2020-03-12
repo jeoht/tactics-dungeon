@@ -36,6 +36,7 @@ function Tileslicer() {
     return useObserver(() => <div>
         <p>{state.tileIndex}</p>
         <img src="/oryx_16bit_fantasy_world_trans.png" onMouseMove={onMouseMove}/>
+        <img src="/oryx_16bit_fantasy_creatures_trans.png" onMouseMove={onMouseMove}/>
     </div>)
 }
 

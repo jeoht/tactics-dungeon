@@ -183,7 +183,7 @@ export class World {
             if (cell.features.has(Feature.EnemySpawn)) {
                 this.spawnUnit({ team: Team.Enemy, class: Class.Skeleton, cell: cell })
             } else if (cell.features.has(Feature.PlayerSpawn)) {
-                this.spawnUnit({ team: Team.Player, class: Class.Rookie, cell: cell })
+                this.spawnUnit({ team: Team.Player, class: Class.SunPaladin, cell: cell })
             }
         }
     }

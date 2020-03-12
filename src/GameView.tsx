@@ -13,6 +13,7 @@ import { PeepBadge } from './PeepBadge'
 import { Unit } from './Unit'
 import { action } from 'mobx'
 import { Peep } from './Peep'
+import _ = require('lodash')
 
 export const GameContext = React.createContext<{ game: Game, ui: UI, world: World }>({} as any)
 
@@ -80,25 +81,40 @@ function TeamScreen() {
     </div>
 }
 
-function UnitScreen(props: { peep: Peep }) {
-    const { ui, world } = useContext(GameContext)
+function PeepScreen(props: { peep: Peep }) {
     const { peep } = props
 
     const changeName = action((e: React.ChangeEvent<HTMLInputElement>) => {
         peep.name = e.currentTarget.value
     })
 
-    return useObserver(() => <div className="UnitScreen d-flex justify-content-center mt-4">
-        <header className="d-flex align-items-center">
-            <PeepBadge peep={peep}/>
-            <div>
-                <input className="name" type="text" value={peep.name} onChange={changeName}/>
-                <br/><span className={`unitClass ${peep.class}`}>{peep.class}</span>
-                {}
-            </div>
-            {peep.canPromote && <button>Promote Unit</button>}
-        </header>
-    </div>)
+    const promote = () => peep.promote()
+
+    return useObserver(() => {
+        return <div className="PeepScreen d-flex flex-column justify-content-center mt-2">
+            <header className="d-flex align-items-center">
+                <PeepBadge peep={peep}/>
+                <div>
+                    <input className="name" type="text" value={peep.name} onChange={changeName}/>
+                    <br/><span className={`unitClass ${peep.class.name.replace(' ', '')}`}>{peep.class.name}</span>
+                    {}
+                </div>
+            </header>
+            {peep.canPromote && <section>
+                <button className="btn promote" onClick={promote}>Promote Unit</button>
+            </section>}
+            {Array.from(peep.abilityLevels).reverse().map(level => <section key={level.level}>
+                <h3>Level {level.level}</h3>
+                {level.abilities.map(ability => <button key={ability.name} className="btn ability">
+                    <div>
+                        <h4>{ability.name}</h4>
+                        <span>{peep.knows(ability) ? `Learned` : `1 AP`}</span>
+                    </div>
+                    <p>{ability.description}</p>
+                </button>)}
+            </section>)}
+        </div>
+    })
 }
 
 
@@ -114,7 +130,7 @@ const CurrentScreen = observer(function CurrentScreen() {
     } else if (ui.state.type === 'team') {
         return <TeamScreen/>
     } else if (ui.state.type === 'peep') {
-        return <UnitScreen peep={ui.state.peep}/>
+        return <PeepScreen peep={ui.state.peep}/>
     } else {
         return <>
             <BoardHeader/>
