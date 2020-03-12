@@ -3,9 +3,10 @@ import { action } from "mobx"
 
 import { GameContext } from "./GameView"
 import { CELL_WIDTH, CELL_HEIGHT, BOARD_COLS, TILESET_BIOME_COLS } from "./settings"
+import { useContext } from "react"
 
 function TitleScreenBG() {
-    const { game } = React.useContext(GameContext)
+    const { game } = useContext(GameContext)
     const ref = React.createRef<HTMLCanvasElement>()    
 
     React.useEffect(() => {
@@ -55,7 +56,7 @@ function TitleScreenBG() {
 }
 
 export function TitleScreen() {
-    const { world, ui } = React.useContext(GameContext)
+    const { world, ui } = useContext(GameContext)
 
     const newGame = action(() => {
         world.newGame()

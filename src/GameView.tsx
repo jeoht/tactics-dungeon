@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { observer, useObserver, useLocalStore } from 'mobx-react-lite'
+import { observer, useObserver } from 'mobx-react-lite'
 
 import { Game } from './Game'
 import { TitleScreen } from './TitleScreen'
@@ -10,38 +10,33 @@ import { BoardFooter } from './BoardFooter'
 import { World } from './World'
 import { FloorCleared } from './FloorCleared'
 import { PeepBadge } from './PeepBadge'
-import { Unit } from './Unit'
 import { action, autorun, IReactionDisposer } from 'mobx'
 import { Peep } from './Peep'
 import _ = require('lodash')
 import { Floor } from './Floor'
 
 export const GameContext = React.createContext<{ game: Game, ui: UI, world: World }>({} as any)
+export const FloorContext = React.createContext<{ ui: UI, floor: Floor }>({} as any)
 
 const BoardHeader = observer(function BoardHeader() {
     return <header/>
 })
 
-function BoardCanvas(props: { floor: Floor }) {
-    const { ui } = useContext(GameContext)
-    const { floor } = props
+function BoardCanvas() {
+    const { ui, floor } = useContext(FloorContext)
     const canvasRef = React.createRef<HTMLCanvasElement>()
 
-    let board: CanvasBoard|null = null
     useEffect(() => {
         const canvas = canvasRef.current
-        if (canvas && !board) {
-            board = new CanvasBoard(floor, ui, canvas)
-            ui.time.add(board)
-        }
+        if (!canvas) return
+
+        const board = new CanvasBoard(floor, ui, canvas)
+        ui.time.add(board)
 
         return () => {
-            if (board) {
-                ui.time.remove(board)
-                board = null
-            }
+            ui.time.remove(board)
         }
-    })
+    }, [])
 
     return <canvas ref={canvasRef} id="board"></canvas>
 }
@@ -120,32 +115,35 @@ function PeepScreen(props: { peep: Peep }) {
 }
 
 
-const CurrentScreen = observer(function CurrentScreen() {
+function CurrentScreen() {
     const { ui, world } = useContext(GameContext)
 
     // useEffect(() => ui.goto({ type: 'peep', peep: world.team[0] }), [])
 
-    if (ui.state.type === 'titleScreen') {
-        return <TitleScreen/>
-    } else if (ui.state.type === 'dungeon') {
-        return <DungeonScreen/>
-    } else if (ui.state.type === 'team') {
-        return <TeamScreen/>
-    } else if (ui.state.type === 'peep') {
-        return <PeepScreen peep={ui.state.peep}/>
-    } else if (world.floor) {
-        return <>
-            <BoardHeader/>
-            <BoardCanvas floor={world.floor}/>
-            <BoardFooter/>
-            {ui.state.type === 'floorCleared' && <FloorCleared/>}
-        </>
-    } else {
-        return null
-    }
-})
+    return useObserver(() => {
+        if (ui.state.type === 'titleScreen') {
+            return <TitleScreen/>
+        } else if (ui.state.type === 'dungeon') {
+            return <DungeonScreen/>
+        } else if (ui.state.type === 'team') {
+            return <TeamScreen/>
+        } else if (ui.state.type === 'peep') {
+            return <PeepScreen peep={ui.state.peep}/>
+        } else if (world.floor) {
+            const context = { ui: ui, floor: world.floor }
+            return <FloorContext.Provider value={context}>
+                <BoardHeader/>
+                <BoardCanvas/>
+                <BoardFooter/>
+                {ui.state.type === 'floorCleared' && <FloorCleared/>}
+            </FloorContext.Provider>
+        } else {
+            return null
+        }    
+    })
+}
 
-export const GameView = observer(function GameView(props: { game: Game }) {
+export function GameView(props: { game: Game }) {
     const { game } = props
     const { ui } = game
 
@@ -159,4 +157,4 @@ export const GameView = observer(function GameView(props: { game: Game }) {
     return <GameContext.Provider value={context}>
         <CurrentScreen/>
     </GameContext.Provider>
-})
+}

@@ -3,11 +3,11 @@ import { useContext } from "react"
 import { action } from "mobx"
 import React = require("react")
 
-import { GameContext } from "./GameView"
+import { FloorContext } from "./GameView"
 import { SelectedUnitState } from "./UI"
 
 const ActionChoices = observer(function ActionChoices() {
-    const { ui } = useContext(GameContext)
+    const { ui } = useContext(FloorContext)
     const { unit } = ui.state as SelectedUnitState
     
     const teleport = action(() => {
@@ -28,10 +28,10 @@ const TargetAbilityInfo = observer(function TargetAbilityInfo() {
 })
 
 const MainFooter = () => {
-    const { game } = useContext(GameContext)
+    const { floor } = useContext(FloorContext)
 
     const endTurn = action(() => {
-        for (const unit of game.world.playerUnits)
+        for (const unit of floor.playerUnits)
             unit.moved = true
     })
 
@@ -40,8 +40,8 @@ const MainFooter = () => {
     </ul>
 }
 
-export const BoardFooter = observer(function BoardFooter() {
-    const { ui } = useContext(GameContext)
+export function BoardFooter() {
+    const { ui } = useContext(FloorContext)
 
     const contents = () => {
         if (ui.selectedUnit && ui.selectedUnit.playerMove) {
@@ -55,5 +55,5 @@ export const BoardFooter = observer(function BoardFooter() {
         }
     }
 
-    return <footer>{contents()}</footer>
-})
+    return useObserver(() => <footer>{contents()}</footer>)
+}

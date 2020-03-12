@@ -4,7 +4,7 @@ import { action } from "mobx"
 
 import { Unit } from "./Unit"
 import { PeepBadge } from "./PeepBadge"
-import { GameContext } from "./GameView"
+import { GameContext, FloorContext } from "./GameView"
 
 function UnitReport(props: { unit: Unit }) {
     const { unit } = props
@@ -16,7 +16,7 @@ function UnitReport(props: { unit: Unit }) {
 }
 
 export function FloorCleared() {
-    const { ui, world } = useContext(GameContext)
+    const { ui, floor } = useContext(FloorContext)
 
     const onwards = action(() => {
         ui.goto('dungeon')
@@ -29,7 +29,7 @@ export function FloorCleared() {
         </h1>
         <table className="unitReports">
             <tbody>
-                {world.playerUnits.map((u, i) => <UnitReport key={i} unit={u}/>)}
+                {floor.playerUnits.map((u, i) => <UnitReport key={i} unit={u}/>)}
             </tbody>
         </table>
         {/* <section className="items">

@@ -60,13 +60,13 @@ export class Unit {
 
         const from = this.cell
         this.cell = path[path.length-1]
-        this.cell.world.event({ type: 'pathMove', unit: this, fromCell: from, path: path })
+        this.cell.floor.event({ type: 'pathMove', unit: this, fromCell: from, path: path })
     }
 
     teleportTo(cell: Cell) {
         const from = this.cell
         this.cell = cell
-        this.cell.world.event({ type: 'teleport', unit: this, fromCell: from, toCell: cell })
+        this.cell.floor.event({ type: 'teleport', unit: this, fromCell: from, toCell: cell })
     }
 
     canAttackFrom(cell: Cell, enemy: Unit): boolean {
@@ -99,7 +99,7 @@ export class Unit {
     }
 
     @computed get unitsOnMyTeam(): Unit[] {
-        return this.cell.world.units.filter(u => u.team === this.team)
+        return this.cell.floor.units.filter(u => u.team === this.team)
     }
 
     /** Find all cells which this unit could occupy in a single move. */
@@ -126,7 +126,7 @@ export class Unit {
     }
 
     @computed get enemies() {
-        return this.cell.world.units.filter(u => this.isEnemy(u))
+        return this.cell.floor.units.filter(u => this.isEnemy(u))
     }
 
     /** Get the shortest path to a point where we can attack some enemy from */
@@ -141,7 +141,7 @@ export class Unit {
 
     @action attack(enemy: Unit) {
         const damage = 4
-        this.cell.world.eventLog.push({ type: 'attack', unit: this, target: enemy, damage: damage })
+        this.cell.floor.event({ type: 'attack', unit: this, target: enemy, damage: damage })
 
         enemy.health -= damage
         if (enemy.health <= 0) {
@@ -150,13 +150,13 @@ export class Unit {
     }
 
     @action defeat() {
-        const { world } = this.cell
-        world.eventLog.push({ type: 'defeated', unit: this })
+        const { floor } = this.cell
+        floor.event({ type: 'defeated', unit: this })
         this.cell.unit = undefined        
     }
 
     @action endMove() {
-        this.cell.world.eventLog.push({ type: 'endMove', unit: this })
+        this.cell.floor.event({ type: 'endMove', unit: this })
         this.moved = true
     }
 

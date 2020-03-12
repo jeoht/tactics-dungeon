@@ -152,6 +152,12 @@ export class Floor {
         }))
     }
 
+    dispose() {
+        for (const disposer of this.disposers) {
+            disposer()
+        }
+    }
+
     @action loadMap(defs: MapDefinition, team: Peep[]) {
         const lines = defs.key.trim().split("\n").map(l => l.trim())
 
