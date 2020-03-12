@@ -4,12 +4,9 @@ import { bind } from 'decko'
 
 import { Team, Unit } from "./Unit"
 import { ScreenVector } from "./ScreenVector"
-import { UI, UnitMovePlan } from "./UI"
 import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
-import { Structure } from "./Tile"
 import { Cell } from "./Cell"
-
 
 export class UnitDragState {
     type: 'unitDrag' = 'unitDrag'
@@ -77,14 +74,33 @@ export class UnitDragState {
     }
 }
 
+export type SelectedUnitState = { type: 'selectedUnit', unit: Unit }
+export type TargetAbilityState = { type: 'targetAbility', unit: Unit, ability: 'teleport' }
+
+export type TapMoveState = {
+    type: 'tapMove'
+    plan: UnitMovePlan
+}
+
+
+
+export type UnitMovePlan = {
+    /** The unit being moved */
+    unit: Unit
+    /** The current path the unit will follow on plan execution */
+    path: Cell[]
+    /** Enemy the unit will attack */
+    attacking?: Unit
+}
+
+
 export class TouchInterface {
     board: CanvasBoard
-    ui: UI
     maybeDragUnit: Unit|null = null
+    @observable state: { type: 'board' } | UnitDragState | SelectedUnitState | TargetAbilityState | TapMoveState = { type: 'board' }
 
     constructor(board: CanvasBoard) {
         this.board = board
-        this.ui = board.ui
         board.canvas.addEventListener('mousedown', this.onTouchStart)
         board.canvas.addEventListener('mousemove', this.onTouchMove)
         board.canvas.addEventListener('mouseup', this.onTouchEnd)
@@ -93,15 +109,19 @@ export class TouchInterface {
         board.canvas.addEventListener('touchmove', this.onTouchMove)
     }
 
+    @action gotoBoard() {
+        this.state = { type: 'board' }
+    }
+
     get drag(): UnitDragState|null {
-        return this.ui.state.type === 'unitDrag' ? this.ui.state : null
+        return this.state.type === 'unitDrag' ? this.state : null
     }
 
     get plan() {
         if (this.drag)
             return this.drag.plan
-        else if (this.ui.state.type === 'tapMove')
-            return this.ui.state.plan
+        else if (this.state.type === 'tapMove')
+            return this.state.plan
         else
             return null
     }
@@ -128,8 +148,7 @@ export class TouchInterface {
     }
 
     @computed get canDragNow() {
-        const { ui } = this
-        return (ui.state.type === 'board' || ui.state.type === 'selectedUnit')
+        return (this.state.type === 'board' || this.state.type === 'selectedUnit')
     }
 
     @bind onTouchStart(e: TouchEvent|MouseEvent) {
@@ -162,7 +181,7 @@ export class TouchInterface {
     @bind onTouchEnd(e: TouchEvent|MouseEvent) {
         e.preventDefault()
 
-        const { drag, ui } = this
+        const { drag } = this
         if (!drag) {
             this.maybeDragUnit = null
             this.onTap(e)
@@ -171,19 +190,18 @@ export class TouchInterface {
         
         if (drag.cursorCell === drag.targetCell)
             this.executeMovePlan(drag.plan)
-        ui.goto('board')
+        this.gotoBoard()
     }
 
     @bind onTap(e: TouchEvent|MouseEvent) {
         const { board } = this
-        const { ui } = this.board
-        const { selectedUnit, state } = board.ui
+        const { selectedUnit, state } = this
         const cell = board.cellAt(this.touchToScreenPoint(e))
-        
+
         if (state.type === 'board') {
             // We can tap on a unit to select it
             if (cell.unit) {
-                ui.selectUnit(cell.unit)
+                this.selectUnit(cell.unit)
             }
         } else if (state.type === 'tapMove') {
             const { plan } = state
@@ -194,50 +212,50 @@ export class TouchInterface {
                 this.tryTapMove(plan.unit, cell)
             }
         } else if (selectedUnit) {
-            this.tryTapMove(selectedUnit, cell)
-
-        } else if (state.type === 'targetAbility') {
-            if (state.ability === 'teleport' && state.unit.canOccupy(cell)) {
-                runInAction(() => {
-                    state.unit.inventory = []
-                    state.unit.teleportTo(cell)    
-                })
+            if (state.type === 'selectedUnit')
+                this.tryTapMove(selectedUnit, cell)
+            else if (state.type === 'targetAbility') {
+                if (state.ability === 'teleport' && selectedUnit.canOccupy(cell)) {
+                    runInAction(() => {
+                        selectedUnit.inventory = []
+                        selectedUnit.teleportTo(cell)
+                        this.gotoBoard()
+                    })
+                }    
             }
         }
     }
 
     @action startDragFrom(cursorPos: ScreenVector, unit: Unit) {
-        this.ui.state = new UnitDragState(this.board, cursorPos, unit)
+        this.state = new UnitDragState(this.board, cursorPos, unit)
     }
 
     @action tryTapMove(unit: Unit, cell: Cell) {
-        const { ui } = this
-
         if (cell.unit) {
             if (unit.playerMove && unit.isEnemy(cell.unit)) {
                 const path = unit.getPathToAttackThisTurn(cell.unit)
                 if (path) {
-                    ui.prepareTapMove({
+                    this.prepareTapMove({
                         unit: unit,
                         path: path,
                         attacking: cell.unit
                     })
                 } else {
-                    ui.selectUnit(cell.unit)
+                    this.selectUnit(cell.unit)
                 }
             } else {
-                ui.selectUnit(cell.unit)
+                this.selectUnit(cell.unit)
             }
         } else {
             const path = unit.getPathToOccupyThisTurn(cell)
             if (unit.playerMove && path) {
-                ui.prepareTapMove({
+                this.prepareTapMove({
                     unit: unit,
                     path: path
                 })
             } else {
                 // Tap in a random place, deselect unit
-                ui.goto('board')
+                this.gotoBoard()
             }
         }     
     }
@@ -250,7 +268,7 @@ export class TouchInterface {
             plan.unit.attack(plan.attacking)
 
         plan.unit.endMove()
-        this.ui.goto('board')
+        this.gotoBoard()
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -293,6 +311,24 @@ export class TouchInterface {
                 board.ui.assets.creatures.drawTile(ctx, plan.unit.tileIndex, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)    
             }
         }
+    }
+
+    @computed get selectedUnit(): Unit|undefined {
+        if ('unit' in this.state)
+            return this.state.unit
+        else
+            return undefined
+    }
+
+    @action selectUnit(unit: Unit) {
+        this.state = { type: 'selectedUnit', unit: unit }
+    }
+
+    @action prepareTapMove(plan: UnitMovePlan) {
+        this.state = {
+            type: 'tapMove',
+            plan: plan
+        }        
     }
 }
 

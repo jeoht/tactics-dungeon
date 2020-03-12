@@ -2,8 +2,10 @@ import { observable, computed, action } from "mobx"
 import _ = require("lodash")
 
 import { Cell } from "./Cell"
-import { Peep } from "./Peep"
+import { Peep, Class } from "./Peep"
 import { dijkstra, dijkstraRange } from "./pathfinding"
+import { Floor } from "./Floor"
+import { PointVector } from "./PointVector"
 
 export enum Team {
     Player = "Player",
@@ -11,9 +13,10 @@ export enum Team {
 }
 
 export class Unit {
-    private _cell!: Cell
+    floor: Floor
+    pos: PointVector
     peep: Peep
-    @observable team: Team
+    @observable team: Team = Team.Enemy
     @observable moved: boolean = false
     @observable moveRange: number = 3
     @observable inventory: string[] = ['teleport']
@@ -24,11 +27,39 @@ export class Unit {
         return this.health <= 0
     }
 
-    constructor(cell: Cell, stats: Peep, team: Team) {
-        this._cell = cell
-        this._cell.unit = this
-        this.peep = stats
-        this.team = team
+    @computed get save() {
+        return {
+            x: this.pos.x,
+            y: this.pos.y,
+            peep: this.peep.save,
+            team: this.team,
+            moved: this.moved,
+            moveRange: this.moveRange,
+            inventory: this.inventory,
+            health: this.health,
+            maxHealth: this.maxHealth
+        }
+    }
+
+    constructor(floor: Floor, props: { pos: PointVector, peep: Peep, team: Team } | Unit['save']) {
+        this.floor = floor
+        if ('x' in props) {
+            _.extend(this, props)
+            this.pos = new PointVector(props.x, props.y)
+            this.peep = new Peep(props.peep)
+        } else {
+            this.peep = props.peep
+            this.pos = props.pos
+            this.team = props.team
+        }
+    }
+
+    @computed get cell(): Cell {
+        return this.floor.cellAt(this.pos)!
+    }
+
+    set cell(cell: Cell) {
+        this.pos = cell.pos
     }
 
     get tileIndex() { return this.peep.tileIndex }
@@ -75,19 +106,6 @@ export class Unit {
 
     canAttackFromHere(enemy: Unit): boolean {
         return this.canAttackFrom(this.cell, enemy)
-    }
-
-    set cell(cell: Cell) {
-        const from = this._cell
-        if (from)
-            from.unit = undefined
-
-        this._cell = cell
-        this._cell.unit = this
-    }
-
-    get cell(): Cell {
-        return this._cell
     }
 
     @computed get playerMove(): boolean {
@@ -150,9 +168,9 @@ export class Unit {
     }
 
     @action defeat() {
-        const { floor } = this.cell
+        const { floor } = this
         floor.event({ type: 'defeated', unit: this })
-        this.cell.unit = undefined        
+        floor.removeUnit(this)
     }
 
     @action endMove() {

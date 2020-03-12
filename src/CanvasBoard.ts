@@ -1,8 +1,6 @@
 import { action, observable, computed, runInAction } from "mobx"
 
-import { Game } from "./Game"
 import { TouchInterface } from "./TouchInterface"
-import { World } from "./World"
 import { UI } from "./UI"
 import { Unit, Team } from "./Unit"
 import { UnitSprite } from "./UnitSprite"
@@ -13,13 +11,14 @@ import { Cell } from "./Cell"
 import { CellSprite } from "./CellSprite"
 import { Tickable } from "./TimeReactor"
 import { Floor, FloorEvent } from "./Floor"
+import { PointVector } from "./PointVector"
 
 export class CanvasBoard implements Tickable {
     ui: UI
     floor: Floor
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
-    touchInterface: TouchInterface
+    touch: TouchInterface
     @observable handledEvents: number = 0
     handlingEvent: boolean = false
     cellSprites: CellSprite[] = []
@@ -31,7 +30,7 @@ export class CanvasBoard implements Tickable {
         this.ui = ui
         this.canvas = canvas
         this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D
-        this.touchInterface = new TouchInterface(this)
+        this.touch = new TouchInterface(this)
         
         for (const cell of this.floor.cells) {
             this.cellSprites.push(new CellSprite(this, cell))
@@ -88,7 +87,7 @@ export class CanvasBoard implements Tickable {
     cellAt(pos: ScreenVector): Cell {
         const cx = Math.min(this.floor.boardWidth-1, Math.max(0, Math.floor(pos.x / CELL_WIDTH)))
         const cy = Math.min(this.floor.boardHeight-1, Math.max(0, Math.floor(pos.y / CELL_HEIGHT)))
-        return this.floor.grid[cx][cy]
+        return this.floor.cellAt(new PointVector(cx, cy))!
     }
 
     async handleEvent(event: FloorEvent) {
@@ -106,7 +105,6 @@ export class CanvasBoard implements Tickable {
             const { unit, toCell } = event
             const sprite = this.get(unit)
             sprite.pos = this.get(toCell).pos
-            ui.goto('board')
         } else if (event.type === 'attack') {
             const damageText = new DamageText(this, event.damage, this.get(event.target.cell).pos)
             this.damageTexts.push(damageText)
@@ -117,10 +115,6 @@ export class CanvasBoard implements Tickable {
             this.unitSprites = this.unitSprites.filter(o => o !== sprite)
         } else if (event.type === 'endMove') {
             this.get(event.unit).moved = true
-
-            // if (ui.state.type === 'targetAbility' || ui.state.type === 'unitDrag') {
-            //     ui.goto('board')
-            // }
         } else if (event.type === 'startPhase') {
             for (const sprite of this.unitSprites) {
                 if (sprite.unit.team === event.team)
@@ -159,7 +153,6 @@ export class CanvasBoard implements Tickable {
             this.handlingEvent = true
 
             const event = this.floor.eventLog[this.handledEvents]
-            console.log(event.type)
             await this.handleEvent(event)
             
             this.handlingEvent = false
@@ -173,34 +166,32 @@ export class CanvasBoard implements Tickable {
     }
 
     draw() {
-        const { ctx, touchInterface, ui } = this
+        const { ctx, touch } = this
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
         for (const sprite of this.cellSprites) {
             sprite.draw(ctx)
         }
 
-        if (ui.state.type === 'targetAbility') {
-            const { unit } = ui.state
+        if (touch.selectedUnit && touch.state.type === 'targetAbility') {
             ctx.fillStyle = "rgba(51, 153, 255, 0.5)"
             for (const sprite of this.cellSprites) {
-                if (!unit.canOccupy(sprite.cell)) continue
+                if (!touch.selectedUnit.canOccupy(sprite.cell)) continue
                 sprite.fill(ctx)
             }
         }
 
-        if (ui.state.type === 'selectedUnit') {
-            const sprite = this.get(ui.state.unit)
+        if (touch.selectedUnit && touch.state.type === 'selectedUnit') {
+            const sprite = this.get(touch.selectedUnit)
             sprite.drawInfoUnderlay(ctx)
         }
 
         for (const sprite of this.unitSprites) {
             sprite.draw(ctx)
         }
-
-        if (ui.state.type === 'selectedUnit' || ui.state.type === 'targetAbility') {
-            const sprite = this.get(ui.state.unit)
-            sprite.drawSelectionIndicator(ctx)
+        
+        if (touch.selectedUnit) {
+            this.get(touch.selectedUnit).drawSelectionIndicator(ctx)
         }
 
         for (const damageText of this.damageTexts) {
@@ -211,6 +202,6 @@ export class CanvasBoard implements Tickable {
             sprite.drawHealthBar(ctx)
         }
 
-        touchInterface.draw(ctx)
+        touch.draw(ctx)
     }
 }

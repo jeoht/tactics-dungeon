@@ -11,14 +11,27 @@ export class Cell {
     readonly def: CellDef
     readonly pos: PointVector
     @observable tileIndex: number = -1
-    @observable unit?: Unit
 
-    constructor(floor: Floor, x: number, y: number, def: CellDef) {
+    @computed get save() {
+        return {
+            x: this.pos.x,
+            y: this.pos.y,
+            def: this.def,
+            tileIndex: this.tileIndex
+        }
+    }
+
+    constructor(floor: Floor, props: { pos: PointVector, def: CellDef } | Cell['save']) {
         this.floor = floor
-        this.pos = new PointVector(x, y)
-        this.def = def
-        if (typeof def[1] === 'number') {
-            this.tileIndex = def[1]
+        this.def = props.def
+        if ('tileIndex' in props) {
+            this.pos = new PointVector(props.x, props.y)
+            this.tileIndex = props.tileIndex
+        } else {
+            this.pos = props.pos
+            if (typeof props.def[1] === 'number') {
+                this.tileIndex = props.def[1]
+            }    
         }
     }
 
@@ -28,6 +41,10 @@ export class Cell {
 
     @computed get y(): number {
         return this.pos.y
+    }
+
+    @computed get unit(): Unit|undefined {
+        return this.floor.unitAt(this.pos)
     }
 
     @computed get pathable() {

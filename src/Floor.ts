@@ -8,7 +8,7 @@ import { AI } from "./AI"
 import { Feature, MapDefinition } from "./MapDefinition"
 import { BOARD_COLS, BOARD_ROWS } from "./settings"
 import { Structure, Biome, Pattern } from "./Tile"
-import { Class, UnitSpec, Peep } from "./Peep"
+import { Class, Peep } from "./Peep"
 
 type AttackEvent = {
     type: 'attack'
@@ -56,7 +56,8 @@ type BasicFloorEventType = 'floorCleared'
 export type FloorEvent = { type: BasicFloorEventType } | AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent | DefeatedEvent
 
 export class Floor {
-    @observable grid: Cell[][] = []
+    @observable cells: Cell[] = []
+    @observable units: Unit[] = []
     boardWidth: number = BOARD_COLS
     boardHeight: number = BOARD_ROWS
     @observable eventLog: FloorEvent[] = []
@@ -64,89 +65,59 @@ export class Floor {
     disposers: IReactionDisposer[]  = []
     @observable phase: Team = Team.Player
 
-    constructor(team: Peep[]) {
-        const map2: MapDefinition = {
-            key: `
-                ########
-                #e>>>>e#
-                #..ee..#
-                #......#
-                ###..###
-                ________
-                ________
-                ________
-                ________
-                __pppp__
-                ________
-                ________
-            `,
-            where: {
-                '.': [Biome.Stone, Pattern.Floor],
-                '#': [Biome.Stone, Pattern.Wall],
-                '>': [Biome.Stone, Structure.DownStair],
-                '_': [Biome.Stone, Pattern.Floor],
-                'e': [Biome.Stone, Pattern.Floor, Feature.EnemySpawn],
-                'p': [Biome.Stone, Pattern.Floor, Feature.PlayerSpawn]
-            }
+    @computed get save() {
+        return {
+            phase: this.phase,
+            units: this.units.map(u => u.save),
+            cells: this.cells.map(c => c.save)
         }
+    }
 
-        const map: MapDefinition = {
-            key: `
-                ########
-                #..>>..#
-                #.####.#
-                #...e..#
-                ###..###
-                __#__#__
-                _##__##_
-                __#__#__
-                _#____#_
-                __pppp___
-                _#_##_#_
-                ########
-            `,
-            where: {
-                '.': [Biome.Mossy, Pattern.Floor],
-                '#': [Biome.Mossy, Pattern.Wall],
-                '>': [Biome.Mossy, Structure.DownStair],
-                '_': [Biome.Mossy, Pattern.Floor],
-                'e': [Biome.Mossy, Pattern.Floor, Feature.EnemySpawn],
-                'p': [Biome.Mossy, Pattern.Floor, Feature.PlayerSpawn]
+    constructor(props: { team: Peep[] } | Floor['save']) {
+        if ('cells' in props) {
+            this.phase = props.phase
+            this.cells = props.cells.map(c => new Cell(this, c))
+            this.units = props.units.map(u => new Unit(this, u))
+        } else {
+            const map: MapDefinition = {
+                key: `
+                    ########
+                    #..>>..#
+                    #.####.#
+                    #...e..#
+                    ###..###
+                    __#__#__
+                    _##__##_
+                    __#__#__
+                    _#____#_
+                    __pppp___
+                    _#_##_#_
+                    ########
+                `,
+                where: {
+                    '.': [Biome.Mossy, Pattern.Floor],
+                    '#': [Biome.Mossy, Pattern.Wall],
+                    '>': [Biome.Mossy, Structure.DownStair],
+                    '_': [Biome.Mossy, Pattern.Floor],
+                    'e': [Biome.Mossy, Pattern.Floor, Feature.EnemySpawn],
+                    'p': [Biome.Mossy, Pattern.Floor, Feature.PlayerSpawn]
+                }
             }
+            this.loadMap(map, props.team)
         }
-        const map3: MapDefinition = {
-            key: `
-                ______##########
-                _p____#......e.#
-                _p____..##..e>.#
-                _p____..##..e>.#
-                _p____#......e.#
-                ______##########
-            `,
-            where: {
-                '.': [Biome.Mossy, Pattern.Floor],
-                '#': [Biome.Mossy, Pattern.Wall],
-                '>': [Biome.Mossy, Structure.DownStair],
-                '_': [Biome.Mossy, Pattern.Floor],
-                'e': [Biome.Mossy, Pattern.Floor, Feature.EnemySpawn],
-                'p': [Biome.Mossy, Pattern.Floor, Feature.PlayerSpawn]
-            }
-        }
-
-        this.loadMap(map, team)
 
         this.ai = new AI(this, Team.Enemy)
 
         // Victory condition
         this.disposers.push(autorun(() => {
-            if (this.units.every(u => u.team === Team.Player)) {
+            if (this.units.length && this.units.every(u => u.team === Team.Player)) {
                 this.event('floorCleared')
             }
         }))
 
         // Turn ends
         this.disposers.push(autorun(() => {
-            if (this.units.filter(u => u.team === this.phase).every(u => u.moved)) {
+            if (this.units.length && this.units.filter(u => u.team === this.phase).every(u => u.moved)) {
                 this.endPhase()
             }
         }))
@@ -162,10 +133,9 @@ export class Floor {
         const lines = defs.key.trim().split("\n").map(l => l.trim())
 
         for (let x = 0; x < this.boardWidth; x++) {
-            this.grid[x] = []
             for (let y = 0; y < this.boardHeight; y++) {
                 const def = defs.where[lines[y][x]]
-                this.grid[x][y] = new Cell(this, x, y, def)
+                this.cells.push(new Cell(this, { pos: new PointVector(x, y), def }))
             }
         }
 
@@ -195,25 +165,6 @@ export class Floor {
         }
     }
 
-    @computed get cells(): Cell[] {
-        const cells: Cell[] = []
-        for (let i = 0 ; i < this.boardWidth; i++) {
-            for (let j = 0; j < this.boardHeight; j++) {
-                cells.push(this.grid[i][j])
-            }
-        }
-        return cells
-    }
-
-    @computed get units(): Unit[] {
-        const units = []
-        for (const cell of this.cells) {
-            if (cell.unit)
-                units.push(cell.unit)
-        }
-        return units
-    }
-
     @computed get playerUnits(): Unit[] {
         return this.units.filter(u => u.team === Team.Player)
     }
@@ -222,16 +173,31 @@ export class Floor {
         return this.cells.filter(c => c.pathable && !c.unit)
     }
 
+    @computed get unitsByPos(): {[key: string]: Unit|undefined} {
+        return _.keyBy(this.units, u => u.pos.key)
+    }
+
+    @computed get cellsByPos(): {[key: string]: Cell|undefined} {
+        return _.keyBy(this.cells, c => c.pos.key)
+    }
+
     cellAt(pos: PointVector): Cell|undefined {
-        if (pos.x < 0 || pos.y < 0 || pos.x >= this.grid.length || pos.y >= this.grid[0].length)
-            return undefined
-        else
-            return this.grid[pos.x][pos.y]
+        return this.cellsByPos[pos.key]
+    }
+
+    unitAt(pos: PointVector): Unit|undefined {
+        return this.unitsByPos[pos.key]
     }
 
     spawnUnit(peep: Peep, props: { cell?: Cell, team: Team }): Unit {
         const cell = props.cell || _.sample(this.spawnableCells) as Cell
-        return new Unit(cell, peep, props.team)
+        const unit = new Unit(this, { pos: cell.pos, peep: peep, team: props.team })
+        this.units.push(unit)
+        return unit
+    }
+
+    @action removeUnit(unit: Unit) {
+        this.units = this.units.filter(u => u !== unit)
     }
 
     @action event(event: FloorEvent|BasicFloorEventType) {

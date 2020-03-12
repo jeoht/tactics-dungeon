@@ -4,21 +4,22 @@ import { action } from "mobx"
 import React = require("react")
 
 import { FloorContext } from "./GameView"
-import { SelectedUnitState } from "./UI"
+import { Unit } from "./Unit"
+import { Floor } from "./Floor"
 
-const ActionChoices = observer(function ActionChoices() {
+function ActionChoices(props: { unit: Unit }) {
+    const { unit } = props
     const { ui } = useContext(FloorContext)
-    const { unit } = ui.state as SelectedUnitState
-    
+    const touch = ui.board!.touch
+
     const teleport = action(() => {
-        ui.state = { type: 'targetAbility', unit: unit, ability: 'teleport' }
+        touch.state = { type: 'targetAbility', unit: unit, ability: 'teleport' }
     })
 
-    return <ul className="ActionChoices">
-        {unit.inventory.length && <li onClick={teleport}>Teleport x1</li>}
-        {!unit.inventory.length && <li className="disabled">Teleport x0</li>}
-    </ul>
-})
+    return useObserver(() => <ul className="ActionChoices">
+        {unit.inventory.length ? <li onClick={teleport}>Teleport x1</li> : <li className="disabled">Teleport x0</li>}
+    </ul>)
+}
 
 const TargetAbilityInfo = observer(function TargetAbilityInfo() {
     return <div className="TargetAbilityInfo">
@@ -43,17 +44,23 @@ const MainFooter = () => {
 export function BoardFooter() {
     const { ui } = useContext(FloorContext)
 
-    const contents = () => {
-        if (ui.selectedUnit && ui.selectedUnit.playerMove) {
-            return <ActionChoices/>
-        } else if (ui.state.type === 'targetAbility') {
-            return <TargetAbilityInfo/>
-        } else if (ui.main) {
-            return <MainFooter/>
-        } else {
-            return null
-        }
-    }
+    return useObserver(() => {
+        const touch = ui.board?.touch
 
-    return useObserver(() => <footer>{contents()}</footer>)
+        const contents = () => {
+            if (!touch) return null
+    
+            if (touch.selectedUnit && touch.selectedUnit.playerMove) {
+                return <ActionChoices unit={touch.selectedUnit}/>
+            } else if (touch.state.type === 'targetAbility') {
+                return <TargetAbilityInfo/>
+            } else if (touch.state.type === 'board') {
+                return <MainFooter/>
+            } else {
+                return null
+            }
+        }
+    
+        return <footer>{contents()}</footer>
+    })
 }

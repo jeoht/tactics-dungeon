@@ -28,7 +28,10 @@ async function main() {
     const assets = new Assets()
     await assets.load()
     const ui = new UI(world, assets)
-    const game = new Game(world, ui)
+
+    const save = JSON.parse(localStorage.getItem('save')||"null")
+    const game = new Game(world, ui, save)
+
 
 
     const root = document.querySelector("#root")!
