@@ -1,4 +1,4 @@
-import { action, autorun, observable, computed, runInAction } from "mobx"
+import { action, observable, computed, runInAction } from "mobx"
 
 import { Game } from "./Game"
 import { TouchInterface } from "./TouchInterface"
@@ -154,10 +154,12 @@ export class CanvasBoard implements Tickable {
     async handleEvents() {
         if (this.handlingEvent || this.handledEvents >= this.floor.eventLog.length) return
 
+
         while (this.floor.eventLog.length > this.handledEvents) {
             this.handlingEvent = true
 
             const event = this.floor.eventLog[this.handledEvents]
+            console.log(event.type)
             await this.handleEvent(event)
             
             this.handlingEvent = false

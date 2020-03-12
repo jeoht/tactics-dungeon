@@ -4,7 +4,16 @@ import { Floor } from "./Floor"
 
 export class World {
     team: Peep[] = []
-    floor: Floor|null = null
+    private _floor: Floor|null = null
+
+    get floor(): Floor|null {
+        return this._floor
+    }
+
+    set floor(floor: Floor|null) {
+        if (this._floor) this._floor.dispose()
+        this._floor = floor
+    }
 
     constructor() {
 
