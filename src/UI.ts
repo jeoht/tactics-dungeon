@@ -33,7 +33,7 @@ type SimpleStateType = 'titleScreen'|'dungeon'|'board'|'enemyPhase'|'event'|'flo
 type Showing = { type: SimpleStateType } | { type: 'selectedUnit', unit: Unit } | UnitDragState | TargetAbilityState | PeepState | TapMoveState
 
 export class UI {
-    @observable state: Showing = { type: 'team' }
+    @observable state: Showing = { type: 'titleScreen' }
     world: World
     assets: Assets
     time: TimeReactor

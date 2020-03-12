@@ -2,19 +2,19 @@ import { observable, computed } from "mobx"
 
 import { PointVector } from "./PointVector"
 import { Unit } from "./Unit"
-import { World } from "./World"
-import { Feature, CellDef } from "./MapDefinition"
-import { pathable, Biome, Pattern, Structure } from "./Tile"
+import { CellDef } from "./MapDefinition"
+import { Pattern, Structure } from "./Tile"
+import { Floor } from "./Floor"
 
 export class Cell {
-    readonly world: World
+    readonly floor: Floor
     readonly def: CellDef
     readonly pos: PointVector
     @observable tileIndex: number = -1
     @observable unit?: Unit
 
-    constructor(world: World, x: number, y: number, def: CellDef) {
-        this.world = world
+    constructor(floor: Floor, x: number, y: number, def: CellDef) {
+        this.floor = floor
         this.pos = new PointVector(x, y)
         this.def = def
         if (typeof def[1] === 'number') {
@@ -49,7 +49,7 @@ export class Cell {
     @computed get neighbors(): Cell[] {
         const neighbors = []
         for (const n of this.pos.neighbors()) {
-            const cell = this.world.cellAt(n)
+            const cell = this.floor.cellAt(n)
             if (cell) {
                 neighbors.push(cell)
             }
@@ -62,19 +62,19 @@ export class Cell {
     }
 
     @computed get north(): Cell|undefined {
-        return this.world.cellAt(this.pos.north())
+        return this.floor.cellAt(this.pos.north())
     }
 
     @computed get east(): Cell|undefined {
-        return this.world.cellAt(this.pos.east())
+        return this.floor.cellAt(this.pos.east())
     }
 
     @computed get south(): Cell|undefined {
-        return this.world.cellAt(this.pos.south())
+        return this.floor.cellAt(this.pos.south())
     }
 
     @computed get west(): Cell|undefined {
-        return this.world.cellAt(this.pos.west())
+        return this.floor.cellAt(this.pos.west())
     }
 
     /** 
