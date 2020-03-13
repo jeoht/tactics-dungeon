@@ -67,6 +67,4 @@ export class Game {
     @action clearSave() {
         localStorage.removeItem('save')
     }
-
-
 }

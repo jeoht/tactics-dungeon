@@ -9,39 +9,49 @@ interface AbilityDef {
     description: string
 }
 
+export class Ability {
+    name: string
+    description: string
+    constructor(def: AbilityDef) {
+        this.name = def.name
+        this.description = def.description
+    }
+
+    @computed get id(): AbilityId {
+        return this.name.replace(/ /g, '') as AbilityId
+    }
+}
 
 export namespace Ability {
-    export const SenseThoughts = {
+    export const SenseThoughts = new Ability({
         name: "Sense Thoughts",
         description: `Creatures on the next floor are revealed in advance. Only living creatures with minds can be sensed this way.`
-    }
-
-    export const KineticHold = {
+    })
+    export const KineticHold = new Ability({
         name: "Kinetic Hold",
         description: `Once per floor, target an enemy within line of sight to reduce their movement range to 0 for one turn.`
-    }
-    export const EmpathicBond = {
+    })
+    export const EmpathicBond = new Ability({
         name: "Empathic Bond",
         description: `Activate to bond with a friendly unit. Until deactivated, damage to either unit is split across both.`
-    }
-
-    export const ForceWall = {
+    })
+    export const ForceWall = new Ability({
         name: "Force Wall",
         description: `Once per encounter, generate a wall of psychic force across a target line that prevents all movement for a turn.`
-    }
+    })
 }
 
 export type AbilityId = keyof typeof Ability
 
 interface ClassDef {
     name: string
-    abilities: { level: number, ability: AbilityDef }[]
+    abilities: { level: number, ability: Ability }[]
     tileIndex: number
 }
 
 export class Class {
     name: string
-    abilities: { level: number, ability: AbilityDef }[]
+    abilities: { level: number, ability: Ability }[]
     tileIndex: number
 
     constructor(def: ClassDef) {
@@ -139,11 +149,11 @@ export class Peep {
         return this.class === Class.Rookie && this.level > 1
     }
 
-    @computed get learnedAbilities(): Set<AbilityDef> {
+    @computed get learnedAbilities(): Set<Ability> {
         return new Set(this.learnedAbilityIds.map(id => Ability[id]))
     }
 
-    @computed get abilityLevels(): { level: number, abilities: AbilityDef[] }[] {
+    @computed get abilityLevels(): { level: number, abilities: Ability[] }[] {
         const grouped = _(this.class.abilities).groupBy(d => d.level).value()
 
         const abilityLevels = []
@@ -161,7 +171,11 @@ export class Peep {
         this.class = Class.Esper
     }
 
-    knows(ability: AbilityDef) {
+    @action learn(ability: Ability) {
+        this.learnedAbilityIds.push(ability.id)
+    }
+
+    knows(ability: Ability) {
         return this.learnedAbilities.has(ability)
     }
 }
