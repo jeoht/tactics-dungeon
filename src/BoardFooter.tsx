@@ -5,7 +5,6 @@ import React = require("react")
 
 import { FloorContext } from "./GameView"
 import { Unit } from "./Unit"
-import { Floor } from "./Floor"
 
 function ActionChoices(props: { unit: Unit }) {
     const { unit } = props
@@ -61,6 +60,6 @@ export function BoardFooter() {
             }
         }
     
-        return <footer>{contents()}</footer>
+        return <footer className="BoardFooter">{contents()}</footer>
     })
 }

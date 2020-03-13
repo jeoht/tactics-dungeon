@@ -1,25 +1,25 @@
 import * as React from 'react'
+import { useContext, useEffect } from 'react'
 import { observer, useObserver } from 'mobx-react-lite'
+import { runInAction } from 'mobx'
+import _ = require('lodash')
 
 import { Game } from './Game'
 import { TitleScreen } from './TitleScreen'
-import { useContext, useEffect } from 'react'
 import { UI } from './UI'
 import { CanvasBoard } from './CanvasBoard'
 import { BoardFooter } from './BoardFooter'
 import { World } from './World'
 import { FloorCleared } from './FloorCleared'
-import { PeepBadge } from './PeepBadge'
-import { action, autorun, IReactionDisposer, runInAction } from 'mobx'
-import { Peep } from './Peep'
-import _ = require('lodash')
 import { Floor } from './Floor'
+import { PeepScreen } from './PeepScreen'
+import { TeamScreen } from './TeamScreen'
 
 export const GameContext = React.createContext<{ game: Game, ui: UI, world: World }>({} as any)
 export const FloorContext = React.createContext<{ ui: UI, floor: Floor }>({} as any)
 
 const BoardHeader = observer(function BoardHeader() {
-    return <header/>
+    return <header className="BoardHeader"/>
 })
 
 function BoardCanvas() {
@@ -67,63 +67,6 @@ function DungeonScreen() {
     </div>
 }
 
-function TeamScreen() {
-    const { ui, world } = useContext(GameContext)
-
-    const gotoPeep = (peep: Peep) => {
-        ui.goto({ id: 'peep', peepId: peep.id })
-    }
-
-    return <div className="TeamScreen d-flex justify-content-center mt-4">
-        <table className="unitReports">
-            <tbody>
-                {world.team.map(peep => <tr key={peep.id} onClick={() => gotoPeep(peep)}>
-                    <td><PeepBadge peep={peep}/> {peep.name}</td>
-                    <td><span className="levelUp">Level Up!</span></td>
-                </tr>)}
-            </tbody>
-        </table>
-    </div>
-}
-
-function PeepScreen(props: { peepId: string }) {
-    const { peepId } = props
-    const { world } = useContext(GameContext)
-    const peep = world.team.find(p => p.id === peepId)!
-
-    const changeName = action((e: React.ChangeEvent<HTMLInputElement>) => {
-        peep.name = e.currentTarget.value
-    })
-
-    const promote = () => peep.promote()
-
-    return useObserver(() => {
-        return <div className="PeepScreen d-flex flex-column justify-content-center mt-2">
-            <header className="d-flex align-items-center">
-                <PeepBadge peep={peep}/>
-                <div>
-                    <input className="name" type="text" value={peep.name} onChange={changeName}/>
-                    <br/><span className={`unitClass ${peep.class.name.replace(' ', '')}`}>{peep.class.name}</span>
-                    {}
-                </div>
-            </header>
-            {peep.canPromote && <section>
-                <button className="btn promote" onClick={promote}>Promote Unit</button>
-            </section>}
-            {Array.from(peep.abilityLevels).reverse().map(level => <section key={level.level}>
-                <h3>Level {level.level}</h3>
-                {level.abilities.map(ability => <button key={ability.name} className="btn ability">
-                    <div>
-                        <h4>{ability.name}</h4>
-                        <span>{peep.knows(ability) ? `Learned` : `1 AP`}</span>
-                    </div>
-                    <p>{ability.description}</p>
-                </button>)}
-            </section>)}
-        </div>
-    })
-}
-
 
 function CurrentScreen() {
     const { ui, world } = useContext(GameContext)
@@ -138,7 +81,7 @@ function CurrentScreen() {
         } else if (ui.screen.id === 'team') {
             return <TeamScreen/>
         } else if (ui.screen.id === 'peep') {
-            return <PeepScreen peepId={ui.screen.peepId}/>
+            return <PeepScreen peepId={ui.screen.peepId} tab={ui.screen.tab}/>
         } else if (world.floor) {
             const context = { ui: ui, floor: world.floor }
             return <FloorContext.Provider value={context}>

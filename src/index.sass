@@ -37,12 +37,12 @@ body
 	flex-direction: column
 	overflow: hidden
 
-header 
-	height: 100%
-
 .btn
 	color: white
 	border: 0
+
+.BoardHeader
+	height: 100%
 
 canvas#board 
 	width: 100%
@@ -52,7 +52,7 @@ canvas#board
 	-webkit-tap-highlight-color: transparent
 	// image-rendering: pixelated
 
-footer 
+.BoardFooter
 	height: 100%
 	display: flex
 	align-items: center
@@ -175,12 +175,10 @@ footer
 
 
 .PeepScreen 
-	padding: 1.5rem
 	background: rgba(0, 0, 0, 0.8)
+	overflow-y: auto
 
-	header 
-		display: flex
-		align-items: center
+	header
 		margin-bottom: 1rem
 
 	img
@@ -312,3 +310,27 @@ footer
 
 	li:not(:first-child) 
 		margin-top: 1.5rem
+
+.tabs
+	display: flex
+	margin-bottom: 1rem
+	
+	button
+		background: none
+		color: white
+		padding: 0.9rem 1rem
+		flex-grow: 1
+		border-radius: 5px
+
+button.back
+	font-size: 1.4rem
+	border: 0
+	background: none
+	color: white
+	margin-right: 0.5rem
+
+	&::before
+		content: "<"
+
+.menu
+	padding: 1.5rem
