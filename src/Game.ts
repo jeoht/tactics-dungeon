@@ -48,9 +48,15 @@ export class Game {
         }
 
         autorun(() => {
-            const savestr = JSON.stringify(this.save)
-            localStorage.setItem('save', savestr)
+            localStorage.setItem('save', JSON.stringify(this.save))
         })
+    }
+
+    @computed get save() {
+        return {
+            world: this.world.save,
+            screen: this.ui.screen
+        }
     }
 
     @action load(save: Game['save']) {
@@ -62,10 +68,5 @@ export class Game {
         localStorage.removeItem('save')
     }
 
-    @computed get save() {
-        return {
-            world: this.world.save,
-            screen: this.ui.screen
-        }
-    }
+
 }

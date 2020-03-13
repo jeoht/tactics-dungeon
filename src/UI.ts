@@ -1,17 +1,14 @@
 import { Assets } from "./Assets"
-import { computed, observable, action } from "mobx"
+import { observable, action } from "mobx"
 import { World } from "./World"
-import { Cell } from "./Cell"
-import { Unit } from "./Unit"
 import { TimeReactor } from "./TimeReactor"
-import { UnitDragState } from "./TouchInterface"
-import { Peep } from "./Peep"
 import { CanvasBoard } from "./CanvasBoard"
 
 
 export type PeepScreenRef = {
     id: 'peep'
     peepId: string
+    tab: 'equipment'|'abilities'
 }
 
 export type SimpleScreenId = 'titleScreen'|'dungeon'|'board'|'enemyPhase'|'event'|'floorCleared'|'team'
