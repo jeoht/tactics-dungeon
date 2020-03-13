@@ -10,20 +10,22 @@ import { Peep } from "./Peep"
 function AbilitiesTab(props: { peep: Peep }) {
     const { peep } = props
 
-    const levels = Array.from(peep.abilityLevels).reverse()
+    return useObserver(() => {
+        const levels = Array.from(peep.abilityLevels).reverse()
 
-    return <>
-        {levels.map(level => <section key={level.level}>
-            <h3>Level {level.level}</h3>
-            {level.abilities.map(ability => <button key={ability.name} className="btn ability">
-                <div>
-                    <h4>{ability.name}</h4>
-                    <span>{peep.knows(ability) ? `Learned` : `1 AP`}</span>
-                </div>
-                <p>{ability.description}</p>
-            </button>)}
-        </section>)}
-    </>
+        return <>
+            {levels.map(level => <section key={level.level}>
+                <h3>Level {level.level}</h3>
+                {level.abilities.map(ability => <button onClick={() => peep.learn(ability)} key={ability.name} className="btn ability">
+                    <div>
+                        <h4>{ability.name}</h4>
+                        <span>{peep.knows(ability) ? `Learned` : `1 AP`}</span>
+                    </div>
+                    <p>{ability.description}</p>
+                </button>)}
+            </section>)}
+        </>    
+    })
 }
 
 export function PeepScreen(props: { peepId: string, tab: 'equipment'|'abilities' }) {
