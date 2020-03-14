@@ -117,12 +117,15 @@ export class UnitSprite implements SceneObject {
 
         const { board, unit, moved, pos, timestamp } = this
         const altTile = timestamp % 500 >= 250
-        const tileIndex = unit.tileIndex + (altTile ? this.tileset.columns : 0)
+
+        const row = Math.floor(unit.tileIndex / this.tileset.columns)
+        const tileIndex = unit.tileIndex + (row * this.tileset.columns)
+        const tile = tileIndex + (altTile ? this.tileset.columns : 0)
         const tileset = moved ? board.ui.assets.grayscaleCreatures : board.ui.assets.creatures
 
         ctx.globalAlpha = this.alpha
         tileset.drawTile(ctx, 396, pos.x, pos.y, this.width, this.height)
-        tileset.drawTile(ctx, tileIndex, pos.x, pos.y, this.width, this.height)
+        tileset.drawTile(ctx, tile, pos.x, pos.y, this.width, this.height)
         ctx.globalAlpha = 1
     }
 

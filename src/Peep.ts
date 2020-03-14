@@ -3,6 +3,7 @@ import { nameByRace } from "fantasy-name-generator"
 import _ = require("lodash")
 
 import { uuid } from './util'
+import { Creature } from "./Tile"
 
 interface AbilityDef {
     name: string
@@ -82,13 +83,13 @@ export namespace Class {
     })
     export const SunPaladin = new Class({
         name: "Sun Paladin",
-        tileIndex: 0,
+        tileIndex: Creature.SunPaladin,
         abilities: []
     })
     export const Skeleton = new Class({
         name: "Skeleton", 
         abilities: [],
-        tileIndex: 370
+        tileIndex: Creature.LichFaceless
     })
 }
 
