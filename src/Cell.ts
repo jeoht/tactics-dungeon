@@ -2,34 +2,37 @@ import { observable, computed } from "mobx"
 
 import { PointVector } from "./PointVector"
 import { Unit } from "./Unit"
-import { CellDef } from "./MapDefinition"
-import { Pattern, Structure } from "./Tile"
 import { Floor } from "./Floor"
+import { Block } from "./MapBase"
 
 export class Cell {
     readonly floor: Floor
-    readonly def: CellDef
     readonly pos: PointVector
     readonly random: number = Math.random()
+    @observable blocks: Block[]
 
-    @computed get save() {
-        return {
-            x: this.pos.x,
-            y: this.pos.y,
-            def: this.def,
-            random: this.random
-        }
-    }
-
-    constructor(floor: Floor, props: { pos: PointVector, def: CellDef } | Cell['save']) {
+    constructor(floor: Floor, props: { pos: PointVector, blocks: Block[] } | Cell['save']) {
         this.floor = floor
-        this.def = props.def
+        this.blocks = props.blocks
         if ('random' in props) {
             this.pos = new PointVector(props.x, props.y)
             this.random = props.random
         } else {
             this.pos = props.pos
-            this.def = props.def
+            this.blocks = props.blocks
+        }
+    }
+
+    @computed get biome() {
+        return this.floor.base.biome
+    }
+
+    @computed get save() {
+        return {
+            x: this.pos.x,
+            y: this.pos.y,
+            blocks: this.blocks,
+            random: this.random
         }
     }
 
@@ -41,24 +44,16 @@ export class Cell {
         return this.pos.y
     }
 
+    @computed get blockSet(): Set<Block> {
+        return new Set(this.blocks)
+    }
+
     @computed get unit(): Unit|undefined {
         return this.floor.unitAt(this.pos)
     }
 
     @computed get pathable() {
         return !this.isWall
-    }
-
-    @computed get features() {
-        return new Set(this.def[2] ? [this.def[2]] : [])
-    }
-
-    @computed get biome() {
-        return this.def[0]
-    }
-
-    @computed get pattern() {
-        return typeof this.def[1] === 'string' ? this.def[1] : undefined
     }
 
     @computed get neighbors(): Cell[] {
@@ -73,7 +68,7 @@ export class Cell {
     }
 
     @computed get isWall(): boolean {
-        return this.pattern === Pattern.Wall
+        return this.blockSet.has(Block.Wall)
     }
 
     @computed get north(): Cell|undefined {

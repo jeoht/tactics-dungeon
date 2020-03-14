@@ -4,6 +4,7 @@ import { Cell } from "./Cell"
 import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
 import { Structure, Pattern } from "./Tile"
+import { Block } from "./MapBase"
 
 export class CellSprite {
     board: CanvasBoard
@@ -23,17 +24,23 @@ export class CellSprite {
     }
 
     @computed get tileIndex() {
-        const { pattern, biome, def, random } = this.cell
-
+        const { blocks, biome, random } = this.cell
         const cols = 38
-        if (typeof def[1] === 'number')
-            return def[1]
-        if (pattern === Pattern.Floor)
-            return biome*cols + (random > 0.5 ? Structure.Floor : Structure.FloorIndent)
-        else if (pattern === Pattern.Wall)
-            return biome*cols + this.wallType
-        else
-            return -1
+    
+        for (let i = blocks.length-1; i >= 0; i--) {
+            const block = blocks[i]
+
+            if (block === Block.Wall)
+                return biome*cols + this.wallType
+            else if (block === Block.Floor)
+                return biome*cols + (random > 0.5 ? Structure.Floor : Structure.FloorIndent)
+            else if (block === Block.DownStair)
+                return biome*cols + Structure.DownStair
+            else if (block === Block.UpStair)
+                return biome*cols + Structure.UpStair
+        }
+
+        return -1
     }
 
     /** Position of the upper left corner of the cell in screen coordinates. */

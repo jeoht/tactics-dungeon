@@ -85,8 +85,8 @@ export class CanvasBoard implements Tickable {
     }
     
     cellAt(pos: ScreenVector): Cell {
-        const cx = Math.min(this.floor.boardWidth-1, Math.max(0, Math.floor(pos.x / CELL_WIDTH)))
-        const cy = Math.min(this.floor.boardHeight-1, Math.max(0, Math.floor(pos.y / CELL_HEIGHT)))
+        const cx = Math.min(this.floor.width-1, Math.max(0, Math.floor(pos.x / CELL_WIDTH)))
+        const cy = Math.min(this.floor.height-1, Math.max(0, Math.floor(pos.y / CELL_HEIGHT)))
         return this.floor.cellAt(new PointVector(cx, cy))!
     }
 
@@ -131,11 +131,11 @@ export class CanvasBoard implements Tickable {
     }
 
     @action.bound onResize() {
-        const width = this.floor.boardWidth * CELL_WIDTH
-        const height = this.floor.boardHeight * CELL_HEIGHT
+        const width = this.floor.width * CELL_WIDTH
+        const height = this.floor.height * CELL_HEIGHT
 
         const styleWidth = this.canvas.parentElement!.offsetWidth
-        const styleHeight = styleWidth * (this.floor.boardHeight / this.floor.boardWidth)
+        const styleHeight = styleWidth * (this.floor.height / this.floor.width)
 
         const scale = 3
         this.canvas.width = width * scale

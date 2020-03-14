@@ -3,7 +3,7 @@
 interface CellDef {
     x: number
     y: number
-
+    
 }
 
 interface MapgenSettings {
@@ -11,5 +11,5 @@ interface MapgenSettings {
 }
 
 export function generateMap(props: MapgenSettings = {}) {
-    
+
 }
