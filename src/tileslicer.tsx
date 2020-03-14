@@ -18,26 +18,36 @@ class SlicerState {
     @observable tileIndex: number|null = null
 }
 
-function Tileslicer() {
+function SlicerWithImg(props: { src: string, width?: number }) {
     const state = useLocalStore(() => new SlicerState())
+
+    const width = props.width || 24
+    const height = width || 24
 
     const onMouseMove = action((e: React.MouseEvent<HTMLImageElement>) => {
         const rect = e.currentTarget.getBoundingClientRect()
         const x = e.clientX - rect.left
         const y = e.clientY - rect.top
 
-        const col = Math.floor(x / CELL_WIDTH)
-        const row = Math.floor(y / CELL_HEIGHT)
+        const col = Math.floor(x / width)
+        const row = Math.floor(y / height)
         const imgWidth = e.currentTarget.naturalWidth
-        const tilesPerRow = Math.floor(imgWidth / CELL_WIDTH)
+        const tilesPerRow = Math.floor(imgWidth / width)
         state.tileIndex = row * tilesPerRow + col
     })
 
     return useObserver(() => <div>
         <p>{state.tileIndex}</p>
-        <img src="/oryx_16bit_fantasy_world_trans.png" onMouseMove={onMouseMove}/>
-        <img src="/oryx_16bit_fantasy_creatures_trans.png" onMouseMove={onMouseMove}/>
+        <img src={props.src} onMouseMove={onMouseMove}/>
     </div>)
+}
+
+function Tileslicer() {
+    return <div>
+        <SlicerWithImg src="/oryx_16bit_fantasy_world_trans.png"/>
+        <SlicerWithImg src="/oryx_16bit_fantasy_creatures_trans.png"/>
+        <SlicerWithImg src="/oryx_16bit_fantasy_items_trans.png" width={16}/>
+    </div>
 }
 
 async function main() {

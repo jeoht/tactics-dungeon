@@ -41,7 +41,7 @@ export function generateMap(map: Floor, opts: MapgenOpts) {
     upstairCell.blocks = [Block.Floor, Block.UpStair]
 
     const downstairCell = sampleBest(map.cells, c => Math.min(height, c.pos.manhattanDistance(upstairCell.pos)))!
-    downstairCell.blocks = [Block.DownStair]
+    downstairCell.blocks = [Block.Floor, Block.DownStair]
 
     let enemies = 4
     for (const cell of _.sortBy(map.cells, c => c.pos.manhattanDistance(downstairCell.pos))) {

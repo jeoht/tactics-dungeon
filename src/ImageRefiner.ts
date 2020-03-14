@@ -46,13 +46,22 @@ export class RefiningImage {
         let r, g, b, avg
         for (let p = 0, len = data.length; p < len; p += 4) {
             r = data[p]
-            g = data[p+1];
-            b = data[p+2];
+            g = data[p+1]
+            b = data[p+2]
             // alpha channel (p+3) is ignored           
 
             avg = Math.floor((r+g+b)/3);
 
             data[p] = data[p+1] = data[p+2] = avg;
+        }
+        return this
+    }
+
+
+    purewhite() {
+        const { data } = this.imgData
+        for (let p = 0, len = data.length; p < len; p += 4) {
+            data[p] = data[p+1] = data[p+2] = 255
         }
         return this
     }

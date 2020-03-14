@@ -5,6 +5,8 @@ export class Assets {
     world!: Tileset
     creatures!: Tileset
     grayscaleCreatures!: Tileset
+    items!: Tileset
+    iconitems!: Tileset
     imgRefiner: ImageRefiner
 
     constructor() {
@@ -22,16 +24,22 @@ export class Assets {
     }
 
     async load() {
-        const [world, creatures] = await Promise.all([
+        const [world, creatures, items] = await Promise.all([
             this.loadImage('oryx_16bit_fantasy_world_trans.png'),
-            this.loadImage('oryx_16bit_fantasy_creatures_trans.png')
+            this.loadImage('oryx_16bit_fantasy_creatures_trans.png'),
+            this.loadImage('oryx_16bit_fantasy_items_trans.png')
         ])
 
         this.world = new Tileset(world, 24, 24)
         this.creatures = new Tileset(creatures, 24, 24)
+        this.items = new Tileset(items, 16, 16)
 
         const grayscale = await this.imgRefiner.edit(creatures).grayscale().bitmap()
         this.grayscaleCreatures = new Tileset(grayscale, 24, 24)
+
+
+        const iconic = await this.imgRefiner.edit(items).purewhite().bitmap()
+        this.iconitems = new Tileset(iconic, 16, 16)
     }
 
 
