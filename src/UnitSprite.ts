@@ -42,11 +42,11 @@ export class UnitSprite implements SceneObject {
     } | null = null
 
     @computed get width() {
-        return CELL_WIDTH
+        return this.tileset.tileWidth
     }
 
     @computed get height() {
-        return CELL_HEIGHT
+        return this.tileset.tileHeight
     }
 
     @computed get topLeft() {
@@ -124,8 +124,14 @@ export class UnitSprite implements SceneObject {
         const tileset = moved ? board.ui.assets.grayscaleCreatures : board.ui.assets.creatures
 
         ctx.globalAlpha = this.alpha
-        tileset.drawTile(ctx, 396, pos.x, pos.y, this.width, this.height)
+        tileset.drawTile(ctx, 396, pos.x, pos.y, this.width, this.height) // Shadow
         tileset.drawTile(ctx, tile, pos.x, pos.y, this.width, this.height)
+
+        const itemset = this.board.ui.assets.iconitems
+        ctx.fillStyle = "green"
+        ctx.fillRect(this.topLeft.x, this.topLeft.y, 7, 7)
+        itemset.drawTile(ctx, 190, this.topLeft.x + 1, this.topLeft.y + 1, 5, 5)
+
         ctx.globalAlpha = 1
     }
 
