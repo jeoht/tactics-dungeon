@@ -1,5 +1,5 @@
-import { makeGrid, randomPos, sampleBest, sampleEnum } from "./util";
-import { Block, MapBase } from "./MapBase";
+import {sampleBest, sampleEnum } from "./util";
+import { Block } from "./MapBase";
 import { BOARD_ROWS, BOARD_COLS } from "./settings";
 import { Biome } from "./Tile";
 import _ = require("lodash");
@@ -12,7 +12,7 @@ import { Team } from "./Unit";
 
 function randomBlocks(): Block[] {
     if (Math.random() > 0.8) { 
-        return [Block.Wall]
+        return [Block.Floor, Block.Wall]
     } else {
         return [Block.Floor]
     }

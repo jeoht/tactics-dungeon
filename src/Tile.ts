@@ -1,5 +1,3 @@
-const cols = 38
-
 // The oryx world tiles have a number of different sets of
 // tiles that vary together, we call them a Biome
 export enum Structure {

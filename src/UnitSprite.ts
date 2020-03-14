@@ -121,6 +121,7 @@ export class UnitSprite implements SceneObject {
         const tileset = moved ? board.ui.assets.grayscaleCreatures : board.ui.assets.creatures
 
         ctx.globalAlpha = this.alpha
+        tileset.drawTile(ctx, 396, pos.x, pos.y, this.width, this.height)
         tileset.drawTile(ctx, tileIndex, pos.x, pos.y, this.width, this.height)
         ctx.globalAlpha = 1
     }
