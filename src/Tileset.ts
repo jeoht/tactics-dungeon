@@ -15,8 +15,8 @@ export class Tileset {
 
         const imgWidth = 'naturalWidth' in image ? image.naturalWidth : image.width
         const imgHeight = 'naturalHeight' in image ? image.naturalHeight : image.height
-        this.rows = Math.floor(imgWidth / tileHeight)
-        this.columns = Math.floor(imgHeight / tileWidth)
+        this.columns = Math.floor(imgWidth / tileWidth)
+        this.rows = Math.floor(imgHeight / tileHeight)
     }
 
     drawTile(ctx: CanvasRenderingContext2D, tileIndex: number, dx: number, dy: number, dWidth: number, dHeight: number) {

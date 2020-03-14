@@ -84,7 +84,7 @@ export class CellSprite {
 
     blockToTileIndex(block: Block): number|undefined {
         const { biome, random } = this.cell
-        const cols = 38
+        const cols = 54
     
         if (block === Block.Wall)
             return biome*cols + this.wallType

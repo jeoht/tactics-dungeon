@@ -14,8 +14,8 @@ export enum Team {
 
 export class Unit {
     floor: Floor
-    pos: PointVector
     peep: Peep
+    @observable pos: PointVector
     @observable team: Team = Team.Enemy
     @observable moved: boolean = false
     @observable moveRange: number = 3
