@@ -120,6 +120,7 @@ export class Peep {
             this.gender = props.gender || randomGender()
             this.name = props.name || randomName(this.gender)    
         }
+        this.name = randomName(this.gender)
     }
 
     @computed get save() {

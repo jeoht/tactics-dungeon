@@ -1,3 +1,11 @@
+
+
+interface CellDef {
+    x: number
+    y: number
+
+}
+
 interface MapgenSettings {
 
 }
