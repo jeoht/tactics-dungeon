@@ -139,19 +139,6 @@ export class Floor {
             }
         }
 
-        // Resolve patterns
-        for (const cell of this.cells) {
-            const { biome, pattern } = cell
-            if (!pattern) continue
-
-            const cols = 38
-            if (pattern === Pattern.Floor)
-                cell.tileIndex = biome*cols + (Math.random() > 0.5 ? Structure.Floor : Structure.FloorIndent)
-            if (pattern === Pattern.Wall) {
-                cell.tileIndex = biome*cols + cell.wallType
-            }
-        }
-
         // Resolve features
         const teamLeft = team.slice()
         for (const cell of this.cells) {
