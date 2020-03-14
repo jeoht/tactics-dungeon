@@ -1,76 +1,21 @@
-import { GameView } from "./GameView"
 import { observable, computed, action, autorun, IReactionDisposer } from "mobx"
 import { Cell } from "./Cell"
 import { PointVector } from "./PointVector"
 import _ = require("lodash")
 import { Unit, Team } from "./Unit"
-import { AI } from "./AI"
-import { BOARD_COLS, BOARD_ROWS } from "./settings"
-import { Structure, Biome, Pattern } from "./Tile"
 import { Class, Peep } from "./Peep"
-import { Block, floorOne, MapBase } from "./MapBase"
+import { Block, MapBase } from "./MapBase"
 import { generateMap } from "./mapGeneration"
 
-type AttackEvent = {
-    type: 'attack'
-    unit: Unit
-    target: Unit
-    damage: number
-}
-
-type PathMoveEvent = {
-    type: 'pathMove'
-    unit: Unit
-    fromCell: Cell
-    path: Cell[]
-}
-
-type TeleportEvent = {
-    type: 'teleport'
-    unit: Unit
-    fromCell: Cell
-    toCell: Cell
-}
-
-type EndMoveEvent = {
-    type: 'endMove'
-    unit: Unit
-}
-
-type EndPhaseEvent = {
-    type: 'endPhase'
-    team: Team
-}
-
-type StartPhaseEvent = {
-    type: 'startPhase'
-    team: Team
-}
-
-type DefeatedEvent = {
-    type: 'defeated'
-    unit: Unit
-}
-
-type BasicFloorEventType = 'floorCleared'
-
-export type FloorEvent = { type: BasicFloorEventType } | AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent | DefeatedEvent
-
-export class Floor {
+export class FloorMap {
     @observable cells: Cell[] = []
     @observable units: Unit[] = []
-    @observable eventLog: FloorEvent[] = []
-    ai: AI
     disposers: IReactionDisposer[]  = []
-    @observable phase: Team = Team.Player
-    base: MapBase
 
     @computed get save() {
         return {
-            base: this.base.save,
             cells: this.cells.map(c => c.save),
-            units: this.units.map(u => u.save),
-            phase: this.phase,
+            units: this.units.map(u => u.save)
         }
     }
 
@@ -79,27 +24,11 @@ export class Floor {
             this.base = new MapBase(props.base)
             this.cells = props.cells.map(c => new Cell(this, c))
             this.units = props.units.map(u => new Unit(this, u))
-            this.phase = props.phase
         } else {
-            this.base = generateMap()
-            this.loadMap(this.base, props.team)
+            const base = generateMap()
+            this.base = base
+            this.loadMap(base, props.team)
         }
-
-        this.ai = new AI(this, Team.Enemy)
-
-        // Victory condition
-        this.disposers.push(autorun(() => {
-            if (this.units.length && this.units.every(u => u.team === Team.Player)) {
-                this.event('floorCleared')
-            }
-        }))
-
-        // Turn ends
-        this.disposers.push(autorun(() => {
-            if (this.units.length && this.units.filter(u => u.team === this.phase).every(u => u.moved)) {
-                this.endPhase()
-            }
-        }))
     }
 
     dispose() {
@@ -171,40 +100,5 @@ export class Floor {
 
     @action removeUnit(unit: Unit) {
         this.units = this.units.filter(u => u !== unit)
-    }
-
-    @action event(event: FloorEvent|BasicFloorEventType) {
-        if (typeof event === "string") {
-            this.eventLog.push({ type: event })
-        } else {
-            this.eventLog.push(event)
-        }
-    }
-
-    startPhase(team: Team) {
-        this.event({ type: 'startPhase', team: team })
-        this.phase = team
-
-        for (const unit of this.units) {
-            if (unit.team === team) {
-                unit.moved = false
-            }
-        }
-
-        if (team === Team.Enemy) {
-            // Do AI stuff
-            this.ai.doPhase()
-        }
-    }
-
-    @action endPhase() {
-        const { phase } = this
-        this.event({ type: 'endPhase', team: phase })
-
-        if (phase === Team.Player) {
-            this.startPhase(Team.Enemy)
-        } else {
-            this.startPhase(Team.Player)
-        }
     }
 }
