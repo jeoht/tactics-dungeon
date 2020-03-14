@@ -128,9 +128,9 @@ export class UnitSprite implements SceneObject {
         tileset.drawTile(ctx, tile, pos.x, pos.y, this.width, this.height)
 
         const itemset = this.board.ui.assets.iconitems
-        ctx.fillStyle = "green"
+        ctx.fillStyle = unit.peep.weaponType === 'bow' ? "green" : "red"
         ctx.fillRect(this.topLeft.x, this.topLeft.y, 7, 7)
-        itemset.drawTile(ctx, 190, this.topLeft.x + 1, this.topLeft.y + 1, 5, 5)
+        itemset.drawTile(ctx, unit.peep.weaponType === 'bow' ? 190 : 209, this.topLeft.x + 1, this.topLeft.y + 1, 5, 5)
 
         ctx.globalAlpha = 1
     }

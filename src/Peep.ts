@@ -106,6 +106,7 @@ export class Peep {
     @observable classId: ClassId
     @observable level: number = 2
     @observable learnedAbilityIds: AbilityId[] = []
+    @observable weaponType: 'bow'|'sword' = Math.random() > 0.5 ? 'bow' : 'sword'
 
     constructor(props: UnitSpec | Peep['save']) {
         if ('classId' in props) {

@@ -54,6 +54,10 @@ export class Unit {
         }
     }
 
+    @computed get attackRange(): number {
+        return this.peep.weaponType === 'bow' ? 3 : 1   
+    }
+
     @computed get cell(): Cell {
         return this.floor.cellAt(this.pos)!
     }
@@ -101,7 +105,12 @@ export class Unit {
     }
 
     canAttackFrom(cell: Cell, enemy: Unit): boolean {
-        return cell.neighbors.includes(enemy.cell)
+        return this.canAttackCellFrom(cell, enemy.cell)
+    }
+
+    canAttackCellFrom(cell: Cell, target: Cell) {
+        const line = cell.lineOfSight(target)
+        return !!(line && line.length <= this.attackRange)
     }
 
     canAttackFromHere(enemy: Unit): boolean {
@@ -131,16 +140,20 @@ export class Unit {
 
     /** Find all cells which the unit can attack in the next turn, but not move into */
     @computed get attackBorderCells(): Cell[] {
-        const nonBorderCells = new Set<Cell>()
-        const candidates = new Set<Cell>()
-        for (const cell of this.reachableUnoccupiedCells) {
-            nonBorderCells.add(cell)
-            for (const c of cell.neighbors) {
-                candidates.add(c)
+        const reachable = new Set(this.reachableUnoccupiedCells)
+        const attackCells: Cell[] = []
+        for (const target of this.floor.cells) {
+            if (reachable.has(target)) continue
+
+            for (const cell of this.reachableUnoccupiedCells) {
+                if (this.canAttackCellFrom(cell, target)) {
+                    attackCells.push(target)
+                    break
+                }
             }
         }
 
-        return Array.from(candidates).filter(c => !nonBorderCells.has(c))
+        return attackCells
     }
 
     @computed get enemies() {
