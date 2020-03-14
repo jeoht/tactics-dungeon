@@ -14,6 +14,7 @@ export class World {
     set floor(floor: Floor|null) {
         if (this._floor) this._floor.dispose()
         this._floor = floor
+        floor?.prepare()
     }
 
     constructor() {

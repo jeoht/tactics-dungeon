@@ -6,7 +6,7 @@ import _ = require("lodash")
 import { Unit, Team } from "./Unit"
 import { AI } from "./AI"
 import { BOARD_COLS, BOARD_ROWS } from "./settings"
-import { Structure, Biome, Pattern } from "./Tile"
+import { Structure, Biome } from "./Tile"
 import { Class, Peep } from "./Peep"
 import { Block, floorOne, MapBase } from "./MapBase"
 import { generateMap } from "./mapGeneration"
@@ -63,11 +63,11 @@ export class Floor {
     ai: AI
     disposers: IReactionDisposer[]  = []
     @observable phase: Team = Team.Player
-    base: MapBase
+    biome: Biome = Biome.Stone
 
     @computed get save() {
         return {
-            base: this.base.save,
+            biome: this.biome,
             cells: this.cells.map(c => c.save),
             units: this.units.map(u => u.save),
             phase: this.phase,
@@ -76,17 +76,18 @@ export class Floor {
 
     constructor(props: { team: Peep[] } | Floor['save']) {
         if ('cells' in props) {
-            this.base = new MapBase(props.base)
+            this.biome = props.biome
             this.cells = props.cells.map(c => new Cell(this, c))
             this.units = props.units.map(u => new Unit(this, u))
             this.phase = props.phase
         } else {
-            this.base = generateMap()
-            this.loadMap(this.base, props.team)
+            generateMap(this, { peeps: props.team })
         }
-
+    
         this.ai = new AI(this, Team.Enemy)
+    }
 
+    prepare() {
         // Victory condition
         this.disposers.push(autorun(() => {
             if (this.units.length && this.units.every(u => u.team === Team.Player)) {
@@ -131,18 +132,20 @@ export class Floor {
     }
 
     @computed get width(): number {
-        return this.base.width
+        const xs = this.cells.map(c => c.pos.x)
+        return 1 + (_.max(xs)! - _.min(xs)!)
     }
 
     @computed get height(): number {
-        return this.base.height
+        const ys = this.cells.map(c => c.pos.y)
+        return 1 + (_.max(ys)! - _.min(ys)!)
     }
 
     @computed get playerUnits(): Unit[] {
         return this.units.filter(u => u.team === Team.Player)
     }
 
-    @computed get spawnableCells(): Cell[] {
+    @computed get unoccupiedCells(): Cell[] {
         return this.cells.filter(c => c.pathable && !c.unit)
     }
 
@@ -163,7 +166,7 @@ export class Floor {
     }
 
     spawnUnit(peep: Peep, props: { cell?: Cell, team: Team }): Unit {
-        const cell = props.cell || _.sample(this.spawnableCells) as Cell
+        const cell = props.cell || _.sample(this.unoccupiedCells) as Cell
         const unit = new Unit(this, { pos: cell.pos, peep: peep, team: props.team })
         this.units.push(unit)
         return unit

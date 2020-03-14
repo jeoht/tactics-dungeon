@@ -232,8 +232,8 @@ export enum Plants {
 
 export enum Biome {
     Stone = 0,
-    Stone2,
-    Rock,
+    Stone2 = 1,
+    Rock = 2,
     Clay,
     Inlaid,
     Jade,
@@ -252,13 +252,3 @@ export enum Biome {
     SnowStone2,
     Sandstone
 }
-
-export enum Pattern {
-    Floor = "floor",
-    Wall = "wall"
-}
-
-
-export function pathable(tile: number): boolean {
-    return tile % cols !== 0
-}    

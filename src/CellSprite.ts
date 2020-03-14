@@ -3,7 +3,7 @@ import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
 import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
-import { Structure, Pattern } from "./Tile"
+import { Structure } from "./Tile"
 import { Block } from "./MapBase"
 
 export class CellSprite {
@@ -21,26 +21,6 @@ export class CellSprite {
 
     @computed get height() {
         return CELL_HEIGHT
-    }
-
-    @computed get tileIndex() {
-        const { blocks, biome, random } = this.cell
-        const cols = 38
-    
-        for (let i = blocks.length-1; i >= 0; i--) {
-            const block = blocks[i]
-
-            if (block === Block.Wall)
-                return biome*cols + this.wallType
-            else if (block === Block.Floor)
-                return biome*cols + (random > 0.5 ? Structure.Floor : Structure.FloorIndent)
-            else if (block === Block.DownStair)
-                return biome*cols + Structure.DownStair
-            else if (block === Block.UpStair)
-                return biome*cols + Structure.UpStair
-        }
-
-        return -1
     }
 
     /** Position of the upper left corner of the cell in screen coordinates. */
@@ -102,9 +82,31 @@ export class CellSprite {
         }
     }
 
+    blockToTileIndex(block: Block): number|undefined {
+        const { biome, random } = this.cell
+        const cols = 38
+    
+        if (block === Block.Wall)
+            return biome*cols + this.wallType
+        else if (block === Block.Floor)
+            return biome*cols + (random > 0.5 ? Structure.Floor : Structure.FloorIndent)
+        else if (block === Block.DownStair)
+            return biome*cols + Structure.DownStair
+        else if (block === Block.UpStair)
+            return biome*cols + Structure.UpStair
+
+        return undefined
+    }
+
+    @computed get tiles(): number[] {
+        return this.cell.blocks.map(block => this.blockToTileIndex(block)).filter(n => n !== undefined) as number[]
+    }
+
     draw(ctx: CanvasRenderingContext2D) {
-        const { board, cell, pos } = this
-        board.ui.assets.world.drawTile(ctx, this.tileIndex, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
+        const { board, pos } = this
+        for (const tile of this.tiles) {
+            board.ui.assets.world.drawTile(ctx, tile, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
+        }
     }
 
     fill(ctx: CanvasRenderingContext2D) {
