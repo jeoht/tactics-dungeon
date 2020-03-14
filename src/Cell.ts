@@ -24,7 +24,11 @@ export class Cell {
     }
 
     @computed get biome() {
-        return this.floor.base.biome
+        return this.floor.biome
+    }
+
+    @computed get unoccupied(): boolean {
+        return this.pathable && !this.unit
     }
 
     @computed get save() {
