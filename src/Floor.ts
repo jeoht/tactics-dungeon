@@ -5,10 +5,10 @@ import { PointVector } from "./PointVector"
 import _ = require("lodash")
 import { Unit, Team } from "./Unit"
 import { AI } from "./AI"
-import { Feature, MapDefinition } from "./MapDefinition"
 import { BOARD_COLS, BOARD_ROWS } from "./settings"
 import { Structure, Biome, Pattern } from "./Tile"
 import { Class, Peep } from "./Peep"
+import { Block, floorOne, MapBase } from "./MapBase"
 
 type AttackEvent = {
     type: 'attack'
@@ -58,52 +58,30 @@ export type FloorEvent = { type: BasicFloorEventType } | AttackEvent | PathMoveE
 export class Floor {
     @observable cells: Cell[] = []
     @observable units: Unit[] = []
-    boardWidth: number = BOARD_COLS
-    boardHeight: number = BOARD_ROWS
     @observable eventLog: FloorEvent[] = []
     ai: AI
     disposers: IReactionDisposer[]  = []
     @observable phase: Team = Team.Player
+    base: MapBase
 
     @computed get save() {
         return {
-            phase: this.phase,
+            base: this.base.save,
+            cells: this.cells.map(c => c.save),
             units: this.units.map(u => u.save),
-            cells: this.cells.map(c => c.save)
+            phase: this.phase,
         }
     }
 
     constructor(props: { team: Peep[] } | Floor['save']) {
         if ('cells' in props) {
-            this.phase = props.phase
+            this.base = new MapBase(props.base)
             this.cells = props.cells.map(c => new Cell(this, c))
             this.units = props.units.map(u => new Unit(this, u))
+            this.phase = props.phase
         } else {
-            const map: MapDefinition = {
-                key: `
-                    ########
-                    #..>>..#
-                    #.####.#
-                    #...e..#
-                    ###..###
-                    __#__#__
-                    _##__##_
-                    __#__#__
-                    _#____#_
-                    __pppp___
-                    _#_##_#_
-                    ########
-                `,
-                where: {
-                    '.': [Biome.Mossy, Pattern.Floor],
-                    '#': [Biome.Mossy, Pattern.Wall],
-                    '>': [Biome.Mossy, Structure.DownStair],
-                    '_': [Biome.Mossy, Pattern.Floor],
-                    'e': [Biome.Mossy, Pattern.Floor, Feature.EnemySpawn],
-                    'p': [Biome.Mossy, Pattern.Floor, Feature.PlayerSpawn]
-                }
-            }
-            this.loadMap(map, props.team)
+            this.base = floorOne
+            this.loadMap(floorOne, props.team)
         }
 
         this.ai = new AI(this, Team.Enemy)
@@ -129,27 +107,34 @@ export class Floor {
         }
     }
 
-    @action loadMap(defs: MapDefinition, team: Peep[]) {
-        const lines = defs.key.trim().split("\n").map(l => l.trim())
-
-        for (let x = 0; x < this.boardWidth; x++) {
-            for (let y = 0; y < this.boardHeight; y++) {
-                const def = defs.where[lines[y][x]]
-                this.cells.push(new Cell(this, { pos: new PointVector(x, y), def }))
+    @action loadMap(base: MapBase, team: Peep[]) {
+        for (let i = 0; i < base.width; i++) {
+            for (let j = 0; j < base.height; j++) {
+                const pos = new PointVector(i, j)
+                const cell = new Cell(this, { pos, blocks: base.blocks[i][j] })
+                this.cells.push(cell)
             }
         }
 
-        // Resolve features
+        // Resolve spawns
         const teamLeft = team.slice()
         for (const cell of this.cells) {
-            if (cell.features.has(Feature.EnemySpawn)) {
+            if (cell.blockSet.has(Block.EnemySpawn)) {
                 this.spawnUnit(new Peep({ class: Class.Skeleton }), { team: Team.Enemy, cell: cell })
-            } else if (cell.features.has(Feature.PlayerSpawn)) {
+            } else if (cell.blockSet.has(Block.PlayerSpawn)) {
                 const peep = teamLeft.pop()
                 if (peep)
                     this.spawnUnit(peep, { team: Team.Player, cell: cell })
             }
         }
+    }
+
+    @computed get width(): number {
+        return this.base.width
+    }
+
+    @computed get height(): number {
+        return this.base.height
     }
 
     @computed get playerUnits(): Unit[] {
