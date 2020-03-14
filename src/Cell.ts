@@ -4,6 +4,7 @@ import { PointVector } from "./PointVector"
 import { Unit } from "./Unit"
 import { Floor } from "./Floor"
 import { Block } from "./MapBase"
+import { bresenham } from "./pathfinding"
 
 export class Cell {
     readonly floor: Floor
@@ -93,5 +94,27 @@ export class Cell {
 
     isAdjacentTo(otherCell: Cell) {
         return this.pos.manhattanDistance(otherCell.pos) === 1
+    }
+
+    lineOfSight(otherCell: Cell): Cell[]|undefined {
+        const line: Cell[] = []
+        let blocked: boolean = false
+        bresenham(this.x, this.y, otherCell.x, otherCell.y, (x, y) => {
+            const cell = this.floor.cellAt(new PointVector(x, y))
+            if (!cell || cell.isWall) {
+                blocked = true
+                return false
+            } else {
+                if (cell !== this)
+                    line.push(cell)
+                return true
+            }
+        })
+
+        if (blocked) {
+            return undefined
+        } else {
+            return line
+        }
     }
 }

@@ -1,3 +1,5 @@
+import { ScreenVector } from "./ScreenVector"
+
 declare const require: any
 const TinyQueue = require('tinyqueue').default
 
@@ -93,3 +95,40 @@ export function dijkstraRange<T>(props: { start: T, range: number, expand: (node
 
     return Array.from(reachable) as T[]
 }
+
+export function bresenham(x0: number, y0: number, x1: number, y1: number, plot: (x: number, y: number) => boolean){
+    let tmp
+    let steep = Math.abs(y1-y0) > Math.abs(x1-x0)
+    if (steep){
+      //swap x0,y0
+      tmp=x0
+      x0=y0
+      y0=tmp
+   
+      //swap x1,y1
+      tmp=x1
+      x1=y1
+      y1=tmp
+    }
+   
+    let sign = 1
+    if (x0 > x1){
+      sign = -1
+      x0 *= -1
+      x1 *= -1
+    }
+    let dx = x1 - x0
+    let dy = Math.abs(y1 - y0)
+    let err = ((dx/2))
+    let ystep = y0 < y1 ? 1 : -1
+    let y = y0
+
+    for(let x=x0; x<=x1; x++){
+      if(!(steep ? plot(y,sign*x) : plot(sign*x,y))) return
+      err = (err - dy)
+      if(err < 0){
+        y+=ystep
+        err+=dx
+      }
+    }
+  }
