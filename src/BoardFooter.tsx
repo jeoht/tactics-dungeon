@@ -28,9 +28,10 @@ const TargetAbilityInfo = observer(function TargetAbilityInfo() {
 })
 
 const MainFooter = () => {
-    const { ui, floor } = useContext(FloorContext)
+    const { ui, world, floor } = useContext(FloorContext)
 
     const retreat = action(() => {
+        world.prevFloor()
         ui.goto('dungeon')
     })
 

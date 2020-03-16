@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useContext, useEffect } from 'react'
 import { observer, useObserver } from 'mobx-react-lite'
-import { runInAction } from 'mobx'
+import { runInAction, action } from 'mobx'
 import _ = require('lodash')
 
 import { Game } from './Game'
@@ -16,7 +16,7 @@ import { PeepScreen } from './PeepScreen'
 import { TeamScreen } from './TeamScreen'
 
 export const GameContext = React.createContext<{ game: Game, ui: UI, world: World }>({} as any)
-export const FloorContext = React.createContext<{ ui: UI, floor: Floor }>({} as any)
+export const FloorContext = React.createContext<{ ui: UI, world: World, floor: Floor }>({} as any)
 
 const BoardHeader = observer(function BoardHeader() {
     return <header className="BoardHeader"/>
@@ -49,10 +49,10 @@ function BoardCanvas() {
 function DungeonScreen() {
     const { ui, world } = useContext(GameContext)
 
-    const nextFloor = () => {
+    const nextFloor = action(() => {
         world.nextFloor()
         ui.goto('board')
-    }
+    })
     const gotoTeam = () => ui.goto('team')
 
     return <div className="DungeonScreen">
@@ -83,7 +83,7 @@ function CurrentScreen() {
         } else if (ui.screen.id === 'peep') {
             return <PeepScreen peepId={ui.screen.peepId} tab={ui.screen.tab}/>
         } else if (world.floor) {
-            const context = { ui: ui, floor: world.floor }
+            const context = { ui: ui, world: world, floor: world.floor }
             return <FloorContext.Provider value={context}>
                 <BoardHeader/>
                 <BoardCanvas/>
