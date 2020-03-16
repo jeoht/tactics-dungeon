@@ -1,4 +1,3 @@
-import {sampleBest, sampleEnum } from "./util";
 import { Block } from "./MapBase";
 import { BOARD_ROWS, BOARD_COLS } from "./settings";
 import { Biome } from "./Tile";
@@ -8,10 +7,10 @@ import { Cell } from "./Cell";
 import { PointVector } from "./PointVector";
 import { Peep, Class } from "./Peep";
 import { Team } from "./Unit";
+import { RNG } from "./RNG";
 
-
-function randomBlocks(): Block[] {
-    if (Math.random() > 0.8) { 
+function randomBlocks(rng: RNG): Block[] {
+    if (rng.random() > 0.8) { 
         return [Block.Floor, Block.Wall]
     } else {
         return [Block.Floor]
@@ -23,7 +22,8 @@ export type MapgenOpts = {
 }
 
 export function generateMap(map: Floor, opts: MapgenOpts) {
-    const biome = sampleEnum(Biome)
+    const rng = new RNG(map.seed)
+    const biome = rng.sampleEnum(Biome)
     map.biome = biome
 
     const [width, height] = [BOARD_COLS, BOARD_ROWS]
@@ -37,10 +37,10 @@ export function generateMap(map: Floor, opts: MapgenOpts) {
         }
     }
     
-    const upstairCell = _.sample(map.cells)!
+    const upstairCell = rng.sample(map.cells)!
     upstairCell.blocks = [Block.Floor, Block.UpStair]
 
-    const downstairCell = sampleBest(map.cells, c => Math.min(height, c.pos.manhattanDistance(upstairCell.pos)))!
+    const downstairCell = rng.sampleBest(map.cells, c => Math.min(height, c.pos.manhattanDistance(upstairCell.pos)))!
     downstairCell.blocks = [Block.Floor, Block.DownStair]
 
     let enemies = 4
@@ -66,6 +66,6 @@ export function generateMap(map: Floor, opts: MapgenOpts) {
 
     for (const cell of map.cells) {
         if (!cell.blocks.length)
-            cell.blocks = randomBlocks()
+            cell.blocks = randomBlocks(rng)
     }
 }

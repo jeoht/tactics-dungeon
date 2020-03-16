@@ -65,6 +65,7 @@ export class Floor {
     disposers: IReactionDisposer[]  = []
     @observable phase: Team = Team.Player
     biome: Biome = Biome.Stone
+    seed: string
 
     @computed get save() {
         return {
@@ -72,16 +73,19 @@ export class Floor {
             cells: this.cells.map(c => c.save),
             units: this.units.map(u => u.save),
             phase: this.phase,
+            seed: this.seed
         }
     }
 
-    constructor(props: { peeps: Peep[] } | Floor['save']) {
+    constructor(props: { seed: string, peeps: Peep[] } | Floor['save']) {
         if ('cells' in props) {
             this.biome = props.biome
             this.cells = props.cells.map(c => new Cell(this, c))
             this.units = props.units.map(u => new Unit(this, u))
             this.phase = props.phase
+            this.seed = props.seed || Math.random().toString()
         } else {
+            this.seed = props.seed
             generateMap(this, { peeps: props.peeps })
         }
     
