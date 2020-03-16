@@ -4,6 +4,8 @@ import _ = require("lodash")
 
 import { uuid } from './util'
 import { Creature } from "./Tile"
+import { Weapon } from "./Weapon"
+import { Consumable } from "./Consumable"
 
 interface AbilityDef {
     name: string
@@ -93,7 +95,8 @@ export namespace Class {
     })
 }
 
-type ClassId = keyof typeof Class
+export type ClassId = keyof typeof Class
+
 
 /** 
  * Represents a unit's base state, before they're actually
@@ -107,6 +110,11 @@ export class Peep {
     @observable level: number = 2
     @observable learnedAbilityIds: AbilityId[] = []
     @observable weaponType: 'bow'|'sword' = Math.random() > 0.5 ? 'bow' : 'sword'
+    
+    // Equipment
+    weapon?: Weapon
+    item1?: Consumable
+    item2?: Consumable
 
     constructor(props: UnitSpec | Peep['save']) {
         if ('classId' in props) {

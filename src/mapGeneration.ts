@@ -53,10 +53,11 @@ export function generateMap(map: Floor, opts: MapgenOpts) {
         if (enemies === 0) break
     }
 
+    const peeps = [...opts.peeps]
     for (const cell of _.sortBy(map.cells, c => c.pos.manhattanDistance(upstairCell.pos))) {
         if (cell === upstairCell) continue
 
-        const peep = opts.peeps.pop()
+        const peep = peeps.pop()
         if (!peep) break
 
         cell.blocks = [Block.Floor]

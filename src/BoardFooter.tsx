@@ -28,7 +28,11 @@ const TargetAbilityInfo = observer(function TargetAbilityInfo() {
 })
 
 const MainFooter = () => {
-    const { floor } = useContext(FloorContext)
+    const { ui, floor } = useContext(FloorContext)
+
+    const retreat = action(() => {
+        ui.goto('dungeon')
+    })
 
     const endTurn = action(() => {
         for (const unit of floor.playerUnits)
@@ -37,6 +41,7 @@ const MainFooter = () => {
 
     return <ul className="MainFooter">
         <li onClick={endTurn}>End<br/>Turn</li>
+        <li onClick={retreat}>Retreat</li>
     </ul>
 }
 

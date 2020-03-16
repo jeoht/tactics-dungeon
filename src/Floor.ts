@@ -10,6 +10,7 @@ import { Structure, Biome } from "./Tile"
 import { Class, Peep } from "./Peep"
 import { Block, floorOne, MapBase } from "./MapBase"
 import { generateMap } from "./mapGeneration"
+import { World } from "./World"
 
 type AttackEvent = {
     type: 'attack'
@@ -52,7 +53,7 @@ type DefeatedEvent = {
     unit: Unit
 }
 
-type BasicFloorEventType = 'floorCleared'
+type BasicFloorEventType = 'floorCleared'|'floorFailed'
 
 export type FloorEvent = { type: BasicFloorEventType } | AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent | DefeatedEvent
 
@@ -74,14 +75,14 @@ export class Floor {
         }
     }
 
-    constructor(props: { team: Peep[] } | Floor['save']) {
+    constructor(props: { peeps: Peep[] } | Floor['save']) {
         if ('cells' in props) {
             this.biome = props.biome
             this.cells = props.cells.map(c => new Cell(this, c))
             this.units = props.units.map(u => new Unit(this, u))
             this.phase = props.phase
         } else {
-            generateMap(this, { peeps: props.team })
+            generateMap(this, { peeps: props.peeps })
         }
     
         this.ai = new AI(this, Team.Enemy)
@@ -92,6 +93,13 @@ export class Floor {
         this.disposers.push(autorun(() => {
             if (this.units.length && this.units.every(u => u.team === Team.Player)) {
                 this.event('floorCleared')
+            }
+        }))
+
+        // Loss condition
+        this.disposers.push(autorun(() => {
+            if (this.units.length && this.units.every(u => u.team === Team.Enemy)) {
+                this.event('floorFailed')
             }
         }))
 
@@ -106,28 +114,6 @@ export class Floor {
     dispose() {
         for (const disposer of this.disposers) {
             disposer()
-        }
-    }
-
-    @action loadMap(base: MapBase, team: Peep[]) {
-        for (let i = 0; i < base.width; i++) {
-            for (let j = 0; j < base.height; j++) {
-                const pos = new PointVector(i, j)
-                const cell = new Cell(this, { pos, blocks: base.blocks[i][j] })
-                this.cells.push(cell)
-            }
-        }
-
-        // Resolve spawns
-        const teamLeft = team.slice()
-        for (const cell of this.cells) {
-            if (cell.blockSet.has(Block.EnemySpawn)) {
-                this.spawnUnit(new Peep({ class: Class.Skeleton }), { team: Team.Enemy, cell: cell })
-            } else if (cell.blockSet.has(Block.PlayerSpawn)) {
-                const peep = teamLeft.pop()
-                if (peep)
-                    this.spawnUnit(peep, { team: Team.Player, cell: cell })
-            }
         }
     }
 
