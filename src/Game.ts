@@ -40,8 +40,7 @@ export class Game {
 
         if (save) {
             try {
-                // this.load(save)
-                this.world.newGame()
+                this.load(save)
             } catch (err) {
                 console.error(err)
                 this.world.newGame()

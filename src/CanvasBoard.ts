@@ -127,6 +127,8 @@ export class CanvasBoard implements Tickable {
                 ui.goto('enemyPhase')
         } else if (event.type === 'floorCleared') {
             setTimeout(() => ui.goto('floorCleared'), 500)
+        } else if (event.type === 'floorFailed') {
+            setTimeout(() => ui.goto('titleScreen'), 500)
         }
     }
 
@@ -147,7 +149,6 @@ export class CanvasBoard implements Tickable {
 
     async handleEvents() {
         if (this.handlingEvent || this.handledEvents >= this.floor.eventLog.length) return
-
 
         while (this.floor.eventLog.length > this.handledEvents) {
             this.handlingEvent = true

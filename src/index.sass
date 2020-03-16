@@ -41,6 +41,14 @@ body
 	color: white
 	border: 0
 
+.overlay
+	position: fixed
+	left: 0
+	top: 0
+	width: 100%
+	height: 100%
+	background-color: rgba(0, 0, 0, 0.5)
+
 .BoardHeader
 	height: 100%
 
@@ -72,6 +80,11 @@ canvas#board
 		padding: 0.3rem
 		font-size: 0.7rem
 		text-align: center
+		display: flex
+		align-items: center
+	
+	li:not(:first-child)
+		margin-left: 0.5rem
 	
 
 .TargetAbilityInfo 
@@ -237,17 +250,17 @@ canvas#board
 			font-size: 0.7rem
 			margin: 0
 
-	table 
-		width: 100%
+	// table 
+	// 	width: 100%
 
-	table td 
-		padding: 0.5rem 1rem
-		text-align: right
+	// table td 
+	// 	padding: 0.5rem 1rem
+	// 	text-align: right
 
-	table td:first-child 
-		color: #fff18a
-		font-style: italic
-		text-align: left
+	// table td:first-child 
+	// 	color: #fff18a
+	// 	font-style: italic
+	// 	text-align: left
 
 	footer 
 		position: absolute

@@ -60,7 +60,7 @@ export function TitleScreen() {
 
     const newGame = action(() => {
         world.newGame()
-        ui.goto('board')
+        ui.goto('dungeon')
     })
 
     return <div className="TitleScreen">

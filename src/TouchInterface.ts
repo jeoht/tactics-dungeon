@@ -58,11 +58,11 @@ export class UnitDragState {
         if (!enemy)
             return
 
-        if (unit.canAttackFrom(finalPathCell, enemy)) {
-            // Current path works fine
-            this.targetCell = cell
-            return
-        }
+        // if (unit.canAttackFrom(finalPathCell, enemy)) {
+        //     // Current path works fine
+        //     this.targetCell = cell
+        //     return
+        // }
 
         const attackPath = unit.getPathToAttackThisTurn(enemy)
         if (attackPath) {
