@@ -52,6 +52,9 @@ body
 .BoardHeader
 	height: 100%
 
+.boardContainer
+	position: relative
+
 canvas#board 
 	width: 100%
 	height: auto
@@ -59,6 +62,17 @@ canvas#board
 	user-select: none
 	-webkit-tap-highlight-color: transparent
 	// image-rendering: pixelated
+
+.MessageLog
+	padding: 0
+	margin: 0
+	position: absolute
+	bottom: 10px
+	left: 10px
+	font-size: 12px
+
+	li
+		list-style-type: none
 
 .BoardFooter
 	height: 100%
