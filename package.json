@@ -2,11 +2,14 @@
   "homepage": "https//foldspark.github.io/aoc-wires",
   "scripts": {
     "dev": "webpack-dev-server",
-    "build": "rm -rf build/* && webpack -p",
+    "build": "rm -rf build/* && webpack -p && cap copy",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build"
   },
   "dependencies": {
+    "@capacitor/cli": "^2.1.0",
+    "@capacitor/core": "^2.1.0",
+    "@capacitor/ios": "2.1.0",
     "@types/lodash": "^4.14.71",
     "@types/react": "^16.9.23",
     "@types/react-dom": "^16.9.5",
