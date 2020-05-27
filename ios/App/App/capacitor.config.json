@@ -1,0 +1,13 @@
+{
+  "appId": "com.tacticsdungeon.app",
+  "appName": "Tactics Dungeon",
+  "bundledWebRuntime": false,
+  "npmClient": "yarn",
+  "webDir": "build",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  },
+  "cordova": {}
+}
