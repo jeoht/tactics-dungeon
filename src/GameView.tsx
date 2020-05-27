@@ -14,6 +14,7 @@ import { FloorCleared } from './FloorCleared'
 import { Floor } from './Floor'
 import { PeepScreen } from './PeepScreen'
 import { TeamScreen } from './TeamScreen'
+import { MessageLog } from './MessageLog'
 
 export const GameContext = React.createContext<{ game: Game, ui: UI, world: World }>({} as any)
 export const FloorContext = React.createContext<{ ui: UI, world: World, floor: Floor }>({} as any)
@@ -67,7 +68,6 @@ function DungeonScreen() {
     </div>
 }
 
-
 function CurrentScreen() {
     const { ui, world } = useContext(GameContext)
 
@@ -86,7 +86,10 @@ function CurrentScreen() {
             const context = { ui: ui, world: world, floor: world.floor }
             return <FloorContext.Provider value={context}>
                 <BoardHeader/>
-                <BoardCanvas/>
+                <div className="boardContainer">
+                    <BoardCanvas/>
+                    <MessageLog/>
+                </div>
                 <BoardFooter/>
                 {ui.screen.id === 'floorCleared' && <FloorCleared/>}
             </FloorContext.Provider>
