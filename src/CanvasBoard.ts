@@ -2,7 +2,7 @@ import { action, observable, computed, runInAction } from "mobx"
 
 import { TouchInterface } from "./TouchInterface"
 import { UI } from "./UI"
-import { Unit, Team } from "./Unit"
+import { Unit } from "./Unit"
 import { UnitSprite } from "./UnitSprite"
 import { DamageText } from "./DamageText"
 import { CELL_WIDTH, CELL_HEIGHT, BOARD_COLS, BOARD_ROWS } from "./settings"
@@ -12,6 +12,7 @@ import { CellSprite } from "./CellSprite"
 import { Tickable } from "./TimeReactor"
 import { Floor, FloorEvent } from "./Floor"
 import { PointVector } from "./PointVector"
+import { EventPlayer } from "./EventPlayer"
 
 export class CanvasBoard implements Tickable {
     ui: UI
@@ -19,11 +20,11 @@ export class CanvasBoard implements Tickable {
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
     touch: TouchInterface
-    @observable handledEvents: number = 0
-    handlingEvent: boolean = false
+    eventPlayer: EventPlayer
     cellSprites: CellSprite[] = []
     unitSprites: UnitSprite[] = []
     damageTexts: DamageText[] = []
+    @observable messageEvents: FloorEvent[] = []
 
     constructor(floor: Floor, ui: UI, canvas: HTMLCanvasElement) {
         this.floor = floor
@@ -31,7 +32,8 @@ export class CanvasBoard implements Tickable {
         this.canvas = canvas
         this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D
         this.touch = new TouchInterface(this)
-        
+        this.eventPlayer = new EventPlayer(this)
+
         for (const cell of this.floor.cells) {
             this.cellSprites.push(new CellSprite(this, cell))
         }
@@ -48,6 +50,10 @@ export class CanvasBoard implements Tickable {
 
     stop() {
         window.removeEventListener("resize", this.onResize)
+    }
+
+    @action mlog(event: FloorEvent) {
+        this.messageEvents.push(event)
     }
 
     @computed get drawWidth(): number {
@@ -76,60 +82,18 @@ export class CanvasBoard implements Tickable {
 
     get(model: Cell): CellSprite;
     get(model: Unit): UnitSprite;
-    get(model: Cell|Unit): CellSprite|UnitSprite {
+    get(model: Cell | Unit): CellSprite | UnitSprite {
         if (model instanceof Cell) {
             return this.spritesByCell.get(model)!
         } else {// if (model instanceof Unit) {
             return this.spritesByUnit.get(model)!
         }
     }
-    
+
     cellAt(pos: ScreenVector): Cell {
-        const cx = Math.min(this.floor.width-1, Math.max(0, Math.floor(pos.x / CELL_WIDTH)))
-        const cy = Math.min(this.floor.height-1, Math.max(0, Math.floor(pos.y / CELL_HEIGHT)))
+        const cx = Math.min(this.floor.width - 1, Math.max(0, Math.floor(pos.x / CELL_WIDTH)))
+        const cy = Math.min(this.floor.height - 1, Math.max(0, Math.floor(pos.y / CELL_HEIGHT)))
         return this.floor.cellAt(new PointVector(cx, cy))!
-    }
-
-    async handleEvent(event: FloorEvent) {
-        const { ui } = this
-        if (event.type === 'pathMove') {
-            const { unit, fromCell, path } = event
-            const sprite = this.get(unit)
-            if (unit.team === Team.Player) {
-                // Instant move for player
-                sprite.pos = this.get(path[path.length - 1]).pos
-            } else {
-                await sprite.animatePathMove(fromCell, path)
-            }
-        } else if (event.type === 'teleport') {
-            const { unit, toCell } = event
-            const sprite = this.get(unit)
-            sprite.pos = this.get(toCell).pos
-        } else if (event.type === 'attack') {
-            const damageText = new DamageText(this, event.damage, this.get(event.target.cell).pos)
-            this.damageTexts.push(damageText)
-            await this.get(event.unit).attackAnimation(event)
-        } else if (event.type === 'defeated') {
-            const sprite = this.get(event.unit)
-            await sprite.fadeOut()
-            this.unitSprites = this.unitSprites.filter(o => o !== sprite)
-        } else if (event.type === 'endMove') {
-            this.get(event.unit).moved = true
-        } else if (event.type === 'startPhase') {
-            for (const sprite of this.unitSprites) {
-                if (sprite.unit.team === event.team)
-                    sprite.moved = false
-            }
-
-            if (event.team === Team.Player)
-                ui.goto('board')
-            else
-                ui.goto('enemyPhase')
-        } else if (event.type === 'floorCleared') {
-            setTimeout(() => ui.goto('floorCleared'), 500)
-        } else if (event.type === 'floorFailed') {
-            setTimeout(() => ui.goto('titleScreen'), 500)
-        }
     }
 
     @action.bound onResize() {
@@ -147,22 +111,8 @@ export class CanvasBoard implements Tickable {
         this.ctx.scale(scale, scale)
     }
 
-    async handleEvents() {
-        if (this.handlingEvent || this.handledEvents >= this.floor.eventLog.length) return
-
-        while (this.floor.eventLog.length > this.handledEvents) {
-            this.handlingEvent = true
-
-            const event = this.floor.eventLog[this.handledEvents]
-            await this.handleEvent(event)
-            
-            this.handlingEvent = false
-            this.handledEvents += 1
-        }
-    }
-
     frame() {
-        this.handleEvents()
+        this.eventPlayer.playAll()
         this.draw()
     }
 
@@ -190,7 +140,7 @@ export class CanvasBoard implements Tickable {
         for (const sprite of this.unitSprites) {
             sprite.draw(ctx)
         }
-        
+
         if (touch.selectedUnit) {
             this.get(touch.selectedUnit).drawSelectionIndicator(ctx)
         }

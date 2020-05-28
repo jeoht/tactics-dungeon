@@ -1,11 +1,9 @@
-import { UI } from "./UI"
 import { Unit, Team } from "./Unit"
 import { observable, computed } from "mobx"
 import { ScreenVector } from "./ScreenVector"
 import { Tileset } from "./Tileset"
 import { Cell } from "./Cell"
 import { CanvasBoard } from "./CanvasBoard"
-import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
 import { CellSprite } from "./CellSprite"
 
 interface SceneObject {
@@ -142,7 +140,7 @@ export class UnitSprite implements SceneObject {
         const { startTime, startPos, targetPos, resolve } = attacking
 
         const attackTime = timestamp - startTime
-        const bumpDuration = 150
+        const bumpDuration = 200
         const t = attackTime / bumpDuration
 
 
