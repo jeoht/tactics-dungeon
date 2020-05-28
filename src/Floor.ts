@@ -51,6 +51,7 @@ type StartPhaseEvent = {
 type DefeatedEvent = {
     type: 'defeated'
     unit: Unit
+    by?: Unit
 }
 
 type BasicFloorEventType = 'floorCleared'|'floorFailed'

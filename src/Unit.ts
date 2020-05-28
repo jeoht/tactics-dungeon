@@ -41,6 +41,14 @@ export class Unit {
         }
     }
 
+    @computed get displayName() {
+        if (this.team === Team.Player) {
+            return this.peep.name
+        } else {
+            return this.peep.class.name
+        }
+    }
+
     constructor(floor: Floor, props: { pos: PointVector, peep: Peep, team: Team } | Unit['save']) {
         this.floor = floor
         if ('x' in props) {
@@ -55,7 +63,7 @@ export class Unit {
     }
 
     @computed get attackRange(): number {
-        return this.peep.weaponType === 'bow' ? 3 : 1   
+        return this.peep.weaponType === 'bow' ? 3 : 1
     }
 
     @computed get cell(): Cell {
@@ -82,10 +90,10 @@ export class Unit {
         }
 
         // Go as far along the path as we can and still end up somewhere
-        for (let i = path.length-1; i >= 0; i--) {
+        for (let i = path.length - 1; i >= 0; i--) {
             const cell = path[i]
             if (this.canOccupy(cell)) {
-                path = path.slice(0, i+1)
+                path = path.slice(0, i + 1)
                 break
             }
         }
@@ -94,7 +102,7 @@ export class Unit {
             return // Not going anywhere
 
         const from = this.cell
-        this.cell = path[path.length-1]
+        this.cell = path[path.length - 1]
         this.cell.floor.event({ type: 'pathMove', unit: this, fromCell: from, path: path })
     }
 
@@ -115,6 +123,10 @@ export class Unit {
 
     canAttackFromHere(enemy: Unit): boolean {
         return this.canAttackFrom(this.cell, enemy)
+    }
+
+    @computed get isPlayerTeam(): boolean {
+        return this.team === Team.Player
     }
 
     @computed get playerMove(): boolean {
@@ -176,13 +188,13 @@ export class Unit {
 
         enemy.health -= damage
         if (enemy.health <= 0) {
-            enemy.defeat()
+            enemy.defeat(this)
         }
     }
 
-    @action defeat() {
+    @action defeat(by?: Unit) {
         const { floor } = this
-        floor.event({ type: 'defeated', unit: this })
+        floor.event({ type: 'defeated', unit: this, by: by })
         floor.removeUnit(this)
     }
 
@@ -203,7 +215,7 @@ export class Unit {
         return cell.pathable && (!cell.unit || cell.unit.team === this.team)
     }
 
-    getPathTo(cell: Cell): Cell[]|null {
+    getPathTo(cell: Cell): Cell[] | null {
         return dijkstra({
             start: this.cell,
             goal: (node: Cell) => node === cell,
@@ -211,7 +223,7 @@ export class Unit {
         })
     }
 
-    getPathToOccupyEventually(cell: Cell): Cell[]|null {
+    getPathToOccupyEventually(cell: Cell): Cell[] | null {
         if (!this.canOccupy(cell)) return null
 
         return dijkstra({
@@ -221,7 +233,7 @@ export class Unit {
         })
     }
 
-    getPathToOccupyThisTurn(cell: Cell): Cell[]|null {
+    getPathToOccupyThisTurn(cell: Cell): Cell[] | null {
         const path = this.getPathToOccupyEventually(cell)
         if (path && path.length <= this.moveRange)
             return path
@@ -229,7 +241,7 @@ export class Unit {
             return null
     }
 
-    getPathToAttackEventually(enemy: Unit): Cell[]|null {
+    getPathToAttackEventually(enemy: Unit): Cell[] | null {
         const goal = (node: Cell) => this.canOccupy(node) && this.canAttackFrom(node, enemy)
         return dijkstra({
             start: this.cell,
@@ -238,7 +250,7 @@ export class Unit {
         })
     }
 
-    getPathToAttackThisTurn(enemy: Unit): Cell[]|null {
+    getPathToAttackThisTurn(enemy: Unit): Cell[] | null {
         const path = this.getPathToAttackEventually(enemy)
         if (path && path.length <= this.moveRange)
             return path
