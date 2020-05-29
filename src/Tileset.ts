@@ -2,21 +2,21 @@ import { ImageRefiner } from "./ImageRefiner"
 
 
 export class Tileset {
-    image: HTMLImageElement|ImageBitmap
+    image: HTMLImageElement | ImageBitmap
     tileWidth: number
     tileHeight: number
     rows: number
     columns: number
 
-    constructor(image: HTMLImageElement|ImageBitmap, tileWidth: number, tileHeight: number) {
+    constructor(image: HTMLImageElement | ImageBitmap, tileWidth: number, tileHeight: number) {
         this.image = image
         this.tileWidth = tileWidth
         this.tileHeight = tileHeight
 
         const imgWidth = 'naturalWidth' in image ? image.naturalWidth : image.width
         const imgHeight = 'naturalHeight' in image ? image.naturalHeight : image.height
-        this.columns = Math.floor(imgWidth / tileWidth)
-        this.rows = Math.floor(imgHeight / tileHeight)
+        this.columns = Math.ceil(imgWidth / tileWidth)
+        this.rows = Math.ceil(imgHeight / tileHeight)
     }
 
     drawTile(ctx: CanvasRenderingContext2D, tileIndex: number, dx: number, dy: number, dWidth: number, dHeight: number) {
@@ -24,7 +24,7 @@ export class Tileset {
         const row = Math.floor(tileIndex / this.columns)
         const sx = column * this.tileWidth
         const sy = row * this.tileHeight
-        
-        ctx.drawImage(this.image, sx, sy, this.tileWidth, this.tileHeight, dx, dy, dWidth, dHeight)        
+
+        ctx.drawImage(this.image, sx, sy, this.tileWidth, this.tileHeight, dx, dy, dWidth, dHeight)
     }
 }
