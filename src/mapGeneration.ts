@@ -8,9 +8,10 @@ import { PointVector } from "./PointVector";
 import { Peep, Class } from "./Peep";
 import { Team } from "./Unit";
 import { RNG } from "./RNG";
+import { Chest } from "./Chest";
 
 function randomBlocks(rng: RNG): Block[] {
-    if (rng.random() > 0.8) { 
+    if (rng.random() > 0.8) {
         return [Block.Floor, Block.Wall]
     } else {
         return [Block.Floor]
@@ -36,12 +37,18 @@ export function generateMap(map: Floor, opts: MapgenOpts) {
             map.cells.push(cell)
         }
     }
-    
-    const upstairCell = rng.sample(map.cells)!
+
+    const upstairCell = rng.sample(map.cells)
     upstairCell.blocks = [Block.Floor, Block.UpStair]
 
-    const downstairCell = rng.sampleBest(map.cells, c => Math.min(height, c.pos.manhattanDistance(upstairCell.pos)))!
+    const downstairCell = rng.sampleBest(map.cells, c => Math.min(height, c.pos.manhattanDistance(upstairCell.pos)))
     downstairCell.blocks = [Block.Floor, Block.DownStair]
+
+    const cell = rng.sampleFind(map.cells, cell => cell.pathable)
+    if (cell) {
+        cell.add(new Chest())
+    }
+
 
     let enemies = 4
     for (const cell of _.sortBy(map.cells, c => c.pos.manhattanDistance(downstairCell.pos))) {
