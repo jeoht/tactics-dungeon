@@ -69,10 +69,10 @@ export class Class {
 }
 
 export namespace Class {
-    export const Rookie = new Class({ 
-        name: "Rookie", 
+    export const Rookie = new Class({
+        name: "Rookie",
         tileIndex: 47,
-        abilities: [] 
+        abilities: []
     })
     export const Esper = new Class({
         name: "Esper",
@@ -89,9 +89,9 @@ export namespace Class {
         abilities: []
     })
     export const Skeleton = new Class({
-        name: "Skeleton", 
+        name: "Skeleton",
         abilities: [],
-        tileIndex: Creature.LichFaceless
+        tileIndex: Creature.Skeleton
     })
 }
 
@@ -109,8 +109,8 @@ export class Peep {
     @observable classId: ClassId
     @observable level: number = 2
     @observable learnedAbilityIds: AbilityId[] = []
-    @observable weaponType: 'bow'|'sword' = Math.random() > 0.5 ? 'bow' : 'sword'
-    
+    @observable weaponType: 'bow' | 'sword' = 'sword'
+
     // Equipment
     weapon?: Weapon
     item1?: Consumable
@@ -128,7 +128,7 @@ export class Peep {
             this.id = uuid()
             this.classId = props.class ? props.class.id : Class.Rookie.id
             this.gender = props.gender || randomGender()
-            this.name = props.name || randomName(this.gender)    
+            this.name = props.name || randomName(this.gender)
         }
         this.name = randomName(this.gender)
     }
@@ -197,7 +197,7 @@ export enum Gender {
     Soft = "Soft",
     Powerful = "Powerful",
     Mystery = "Mystery"
-}   
+}
 
 
 function randomGender(): Gender {
@@ -213,9 +213,9 @@ function randomGender(): Gender {
 
 function randomName(gender: Gender): string {
     if (gender === Gender.Boy)
-        return nameByRace("human", { gender: "male"}) as string
+        return nameByRace("human", { gender: "male" }) as string
     else if (gender === Gender.Girl)
-        return nameByRace("human", { gender: "female"}) as string
+        return nameByRace("human", { gender: "female" }) as string
     else
         return nameByRace("human") as string
 }
