@@ -5,18 +5,18 @@ const soundUrls = {
 }
 
 export class Sound {
+    gainNode: GainNode
     constructor(readonly context: AudioContext, readonly buffer: AudioBuffer) {
-
+        const gainNode = context.createGain()
+        gainNode.gain.value = 0.5
+        gainNode.connect(context.destination)
+        this.gainNode = gainNode
     }
 
     play() {
-        const gainNode = this.context.createGain()
-        gainNode.gain.value = 0.5
-        gainNode.connect(this.context.destination)
-
         const source = this.context.createBufferSource()
         source.buffer = this.buffer
-        source.connect(gainNode)
+        source.connect(this.gainNode)
         source.start()
     }
 }
