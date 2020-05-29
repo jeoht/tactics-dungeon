@@ -1,18 +1,18 @@
 @import "node_modules/bootstrap/scss/bootstrap.scss"
-	
-@font-face 
+
+@font-face
 	font-family: "Pixeled"
 	src: url("/Pixeled.ttf")
 
-@font-face 
+@font-face
 	font-family: "pixelmix"
 	src: url("/pixelmix.ttf")
 
-html, body  
+html, body
 	margin: 0
 	height: 100%
 
-body 
+body
 	width: 100%
 	height: 100%
 	margin: 0
@@ -24,11 +24,11 @@ body
 	color: #ccc
 	// Lock screen so no scrolling https://stackoverflow.com/a/40598268
 	overflow: hidden
-	position: fixed	
+	position: fixed
 	display: flex
 	justify-content: center
 
-#root 
+#root
 	position: relative
 	width: 100%
 	max-width: 390px
@@ -55,7 +55,7 @@ body
 .boardContainer
 	position: relative
 
-canvas#board 
+canvas#board
 	width: 100%
 	height: auto
 	cursor: pointer
@@ -70,6 +70,7 @@ canvas#board
 	bottom: 10px
 	left: 10px
 	font-size: 12px
+	pointer-events: none
 
 	li
 		list-style-type: none
@@ -80,12 +81,12 @@ canvas#board
 	display: flex
 	align-items: center
 
-.ActionChoices, .MainFooter 
+.ActionChoices, .MainFooter
 	list-style-type: none
 	display: flex
 	margin: 0
 
-	li 
+	li
 		background: #3F5C67
 		background: -moz-linear-gradient(45deg, #3F5C67 0%, #000000 53%, #3F5C67 100%)
 		background: -webkit-linear-gradient(45deg, #3F5C67 0%, #000000 53%, #3F5C67 100%)
@@ -97,30 +98,28 @@ canvas#board
 		text-align: center
 		display: flex
 		align-items: center
-	
+
 	li:not(:first-child)
 		margin-left: 0.5rem
-	
 
-.TargetAbilityInfo 
+.TargetAbilityInfo
 	font-size: 0.8rem
 	text-align: center
 	position: relative
 	top: -2px
 
-	h3 
+	h3
 		margin: 0
 		font-size: 0.9rem
 		color: #feffaf
 
-	p 
+	p
 		margin: 0
 		color: white
 		font-size: 0.6rem
 		line-height: 1.4em
 
-
-.FloorCleared 
+.FloorCleared
 	position: absolute
 	left: 0
 	top: 0
@@ -134,49 +133,46 @@ canvas#board
 	align-items: center
 
 	text-align: center
-	h1 
+	h1
 		font-size: 2rem
-		padding-top: 3rem	
+		padding-top: 3rem
 
-
-	.floor 
+	.floor
 		animation: pop 0.25s ease-in-out
 
-	
 	@keyframes pop
-		0% 
+		0%
 			opacity: 0
-	
-		50%  
+
+		50%
 			opacity: 0.5
 			transform: scale(1.25)
 
-	.cleared 
+	.cleared
 		transform: translateX(-500px)
 		animation: zoomin 0.1s ease-in-out forwards
 		animation-delay: 0.5s
-	
-	@keyframes zoomin 
-		0% 
+
+	@keyframes zoomin
+		0%
 			opacity: 0
 			transform: translateX(-500px)
-		50% 
+		50%
 			transform: translateX(-250px)
-		100% 
+		100%
 			opacity: 1
 			transform: translateX(0px)
-	
-	.items 
-		p 
+
+	.items
+		p
 			color: white
 			font-size: 0.9rem
-	
-	.continue 
+
+	.continue
 		margin-top: 5rem
 		font-size: 0.9rem
 
-
-.td-btn 
+.td-btn
 	border: 0
 	border-radius: 4px
 	padding: .5rem .9rem
@@ -185,24 +181,23 @@ canvas#board
 	color: #feffa8
 	font: inherit
 
-.unitReports 
+.unitReports
 	color: white
 	font-size: 0.8rem
 	text-align: left
 
-	td:first-child 
+	td:first-child
 		display: flex
 		align-items: center
 		padding-right: 1rem
 
-	img 
+	img
 		padding-right: 0.3rem
-	
-	.levelUp 
+
+	.levelUp
 		color: #feffa8
 
-
-.PeepScreen 
+.PeepScreen
 	background: rgba(0, 0, 0, 0.8)
 	overflow-y: auto
 
@@ -214,19 +209,19 @@ canvas#board
 		width: 48px
 		height: 48px
 
-	input.name 
+	input.name
 		background: none
 		border: none
 		color: #ccc
 		font-size: inherit
 		width: 180px
 
-	.unitClass 
+	.unitClass
 		font-weight: bold
 
 	.unitClass.Rookie
 		color: #b89600
-	
+
 	.unitClass.Esper
 		color: #c768fc
 
@@ -277,14 +272,14 @@ canvas#board
 	// 	font-style: italic
 	// 	text-align: left
 
-	footer 
+	footer
 		position: absolute
 		left: 0
 		bottom: 0
 		width: 100%
 		padding: 1rem
 
-	button.close 
+	button.close
 		-webkit-appearance: none
 		border: none
 		background: none
@@ -293,14 +288,13 @@ canvas#board
 		padding: 1rem
 		float: right
 
-
-.TitleScreen 
+.TitleScreen
 	position: relative
 	padding: 1rem
 	color: white
 	height: 100%
 
-	.background 
+	.background
 		position: absolute
 		left: 0
 		top: 0
@@ -309,13 +303,13 @@ canvas#board
 		opacity: 0.5
 		overflow: hidden
 
-		canvas 
+		canvas
 			width: 100%
 
-	> *:not(.background) 
+	> *:not(.background)
 		position: relative
 
-	h1 
+	h1
 		margin-top: 3.2rem
 		text-align: center
 		font-family: "Pixeled"
@@ -324,11 +318,11 @@ canvas#board
 
 		// text-shadow: 4px 3px 0 #666
 
-	ul 
+	ul
 		list-style-type: none
 		padding: 0
 
-	li 
+	li
 		display: block
 		width: 80%
 		margin: auto
@@ -336,13 +330,13 @@ canvas#board
 		padding: 16px 16px
 		text-align: center
 
-	li:not(:first-child) 
+	li:not(:first-child)
 		margin-top: 1.5rem
 
 .tabs
 	display: flex
 	margin-bottom: 1rem
-	
+
 	button
 		background: none
 		color: white
