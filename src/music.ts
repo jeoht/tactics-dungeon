@@ -17,7 +17,7 @@ export class Track {
         const source = this.context.createMediaElementSource(this.audio);
         source.connect(this.gainNode)
         this.audio.loop = true
-        this.audio.play()
+        // this.audio.play()
     }
 }
 

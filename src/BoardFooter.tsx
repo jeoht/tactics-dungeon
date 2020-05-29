@@ -40,9 +40,14 @@ const MainFooter = () => {
             unit.moved = true
     })
 
+    const help = action(() => {
+        ui.goto('help')
+    })
+
     return <ul className="MainFooter">
-        <li onClick={endTurn}>End<br/>Turn</li>
+        <li onClick={endTurn}>End<br />Turn</li>
         <li onClick={retreat}>Retreat</li>
+        <li onClick={help}>Help</li>
     </ul>
 }
 
@@ -54,18 +59,18 @@ export function BoardFooter() {
 
         const contents = () => {
             if (!touch) return null
-    
+
             if (touch.selectedUnit && touch.selectedUnit.playerMove) {
-                return <ActionChoices unit={touch.selectedUnit}/>
+                return <ActionChoices unit={touch.selectedUnit} />
             } else if (touch.state.type === 'targetAbility') {
-                return <TargetAbilityInfo/>
+                return <TargetAbilityInfo />
             } else if (touch.state.type === 'board') {
-                return <MainFooter/>
+                return <MainFooter />
             } else {
                 return null
             }
         }
-    
+
         return <footer className="BoardFooter">{contents()}</footer>
     })
 }

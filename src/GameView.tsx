@@ -11,6 +11,7 @@ import { CanvasBoard } from './CanvasBoard'
 import { BoardFooter } from './BoardFooter'
 import { World } from './World'
 import { FloorCleared } from './FloorCleared'
+import { HelpOverlay } from './HelpOverlay'
 import { Floor } from './Floor'
 import { PeepScreen } from './PeepScreen'
 import { TeamScreen } from './TeamScreen'
@@ -20,7 +21,7 @@ export const GameContext = React.createContext<{ game: Game, ui: UI, world: Worl
 export const FloorContext = React.createContext<{ ui: UI, world: World, floor: Floor }>({} as any)
 
 const BoardHeader = observer(function BoardHeader() {
-    return <header className="BoardHeader"/>
+    return <header className="BoardHeader" />
 })
 
 function BoardCanvas() {
@@ -39,7 +40,7 @@ function BoardCanvas() {
         return () => {
             runInAction(() => {
                 ui.time.remove(ui.board!)
-                ui.board = undefined    
+                ui.board = undefined
             })
         }
     }, [])
@@ -75,27 +76,28 @@ function CurrentScreen() {
 
     return useObserver(() => {
         if (ui.screen.id === 'titleScreen') {
-            return <TitleScreen/>
+            return <TitleScreen />
         } else if (ui.screen.id === 'dungeon') {
-            return <DungeonScreen/>
+            return <DungeonScreen />
         } else if (ui.screen.id === 'team') {
-            return <TeamScreen/>
+            return <TeamScreen />
         } else if (ui.screen.id === 'peep') {
-            return <PeepScreen peepId={ui.screen.peepId} tab={ui.screen.tab}/>
+            return <PeepScreen peepId={ui.screen.peepId} tab={ui.screen.tab} />
         } else if (world.floor) {
             const context = { ui: ui, world: world, floor: world.floor }
             return <FloorContext.Provider value={context}>
-                <BoardHeader/>
+                <BoardHeader />
                 <div className="boardContainer">
-                    <BoardCanvas/>
-                    <MessageLog/>
+                    <BoardCanvas />
+                    <MessageLog />
                 </div>
-                <BoardFooter/>
-                {ui.screen.id === 'floorCleared' && <FloorCleared/>}
+                <BoardFooter />
+                {ui.screen.id === 'floorCleared' && <FloorCleared />}
+                {ui.screen.id === 'help' && <HelpOverlay />}
             </FloorContext.Provider>
         } else {
             return null
-        }    
+        }
     })
 }
 
@@ -111,6 +113,6 @@ export function GameView(props: { game: Game }) {
     const context = { game: game, ui: ui, world: game.world }
 
     return <GameContext.Provider value={context}>
-        <CurrentScreen/>
+        <CurrentScreen />
     </GameContext.Provider>
 }
