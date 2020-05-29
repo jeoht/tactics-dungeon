@@ -4,6 +4,7 @@ import { World } from "./World"
 import { TimeReactor } from "./TimeReactor"
 import { CanvasBoard } from "./CanvasBoard"
 import { Soundboard } from "./soundboard"
+import { MusicTracks } from "../public/music"
 
 
 export type PeepScreenRef = {
@@ -18,16 +19,11 @@ export type ScreenRef = { id: SimpleScreenId } | PeepScreenRef
 export class UI {
     @observable screen: ScreenRef = { id: 'titleScreen' }
     @observable.ref board?: CanvasBoard
-    world: World
-    assets: Assets
-    sounds: Soundboard
     time: TimeReactor
 
-    constructor(world: World, assets: Assets, sounds: Soundboard) {
-        this.world = world
-        this.assets = assets
-        this.sounds = sounds
+    constructor(readonly world: World, readonly assets: Assets, readonly sounds: Soundboard, readonly music: MusicTracks) {
         this.time = new TimeReactor()
+        this.music.floor.play()
     }
 
     @action goto(screen: SimpleScreenId | ScreenRef) {
