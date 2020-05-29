@@ -6,6 +6,7 @@ import { Floor } from "./Floor"
 import { Block } from "./MapBase"
 import { bresenham } from "./pathfinding"
 import { Placeable } from "./Placeable"
+import { Chest } from "./Chest"
 
 export class Cell {
     readonly floor: Floor
@@ -22,7 +23,6 @@ export class Cell {
             this.random = props.random
         } else {
             this.pos = props.pos
-            this.blocks = props.blocks
         }
     }
 
@@ -92,6 +92,10 @@ export class Cell {
 
     @computed get west(): Cell | undefined {
         return this.floor.cellAt(this.pos.west())
+    }
+
+    @computed get chest(): Chest | undefined {
+        return this.contents.find(c => c instanceof Chest)
     }
 
     @action add(thing: Placeable) {
