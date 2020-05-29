@@ -3,7 +3,7 @@ import { observable, action } from "mobx"
 import { World } from "./World"
 import { TimeReactor } from "./TimeReactor"
 import { CanvasBoard } from "./CanvasBoard"
-import { Soundboard } from "./Soundboard"
+import { Soundboard } from "./soundboard"
 
 
 export type PeepScreenRef = {

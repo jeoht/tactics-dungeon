@@ -1,7 +1,7 @@
 const path = require('path')
 const webpack = require('webpack')
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
@@ -11,13 +11,13 @@ module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production'
     return {
         context: __dirname,
-        mode: argv.mode||'development',
+        mode: argv.mode || 'development',
         entry: {
             index: path.join(__dirname, 'src/index.tsx'),
             tilesets: path.join(__dirname, 'src/tileslicer.tsx')
         },
         output: {
-            path: path.join(__dirname, "build", BASE_PATH||""),
+            path: path.join(__dirname, "build", BASE_PATH || ""),
             filename: "assets/[name].js",
             libraryTarget: 'umd'
         },
@@ -39,11 +39,11 @@ module.exports = (env, argv) => {
                 },
                 {
                     test: /\.css$/,
-                    loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]'] })
+                    use: [MiniCssExtractPlugin.loader, 'css-loader?modules&importLoaders=1&localIdentName=[local]']
                 },
                 {
                     test: /\.sass$/,
-                    loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader?modules&importLoaders=1&localIdentName=[local]', 'sass-loader'] })
+                    use: [MiniCssExtractPlugin.loader, 'css-loader?modules&importLoaders=1&localIdentName=[local]', 'sass-loader']
                 },
                 {
                     test: /\.(jpe?g|gif|png|eot|woff|ttf|svg|woff2)$/,
@@ -52,16 +52,16 @@ module.exports = (env, argv) => {
             ],
         },
         plugins: [
-            // This plugin extracts css files required in the entry points
-            // into a separate CSS bundle for download
-            new ExtractTextPlugin('assets/[name].css'),
+            new MiniCssExtractPlugin({
+                filename: 'assets/[name].css'
+            }),
             new ManifestPlugin(),
-            new CopyWebpackPlugin([{ 
+            new CopyWebpackPlugin([{
                 from: 'public',
                 transform: (content, path) => {
                     if (BASE_PATH && path.match(/index.html$/)) {
                         const s = content.toString('utf8')
-                        return Buffer.from(s.replace(/\.\/assets/g, BASE_PATH+'/assets'))
+                        return Buffer.from(s.replace(/\.\/assets/g, BASE_PATH + '/assets'))
                     }
                     return content
                 }
@@ -77,6 +77,6 @@ module.exports = (env, argv) => {
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
                 "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
             }
-        },    
+        },
     }
 }
