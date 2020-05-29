@@ -3,7 +3,7 @@ import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
 import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
-import { Structure } from "./Tile"
+import { Structure, Furniture } from "./Tile"
 import { Block } from "./MapBase"
 
 export class CellSprite {
@@ -34,7 +34,7 @@ export class CellSprite {
     /** Position of the center of the cell in screen coordinates. */
     @computed get centerPos(): ScreenVector {
         const { x, y } = this.pos
-        return new ScreenVector(x + CELL_WIDTH/2, y + CELL_HEIGHT/2)
+        return new ScreenVector(x + CELL_WIDTH / 2, y + CELL_HEIGHT / 2)
     }
 
     /** 
@@ -82,18 +82,18 @@ export class CellSprite {
         }
     }
 
-    blockToTileIndex(block: Block): number|undefined {
+    blockToTileIndex(block: Block): number | undefined {
         const { biome, random } = this.cell
-        const cols = 54
-    
+        const cols = 55
+
         if (block === Block.Wall)
-            return biome*cols + this.wallType
+            return biome * cols + this.wallType
         else if (block === Block.Floor)
-            return biome*cols + (random > 0.5 ? Structure.Floor : Structure.FloorIndent)
+            return biome * cols + (random > 0.5 ? Structure.Floor : Structure.FloorIndent)
         else if (block === Block.DownStair)
-            return biome*cols + Structure.DownStair
+            return biome * cols + Structure.DownStair
         else if (block === Block.UpStair)
-            return biome*cols + Structure.UpStair
+            return biome * cols + Structure.UpStair
 
         return undefined
     }
@@ -102,10 +102,19 @@ export class CellSprite {
         return this.cell.blocks.map(block => this.blockToTileIndex(block)).filter(n => n !== undefined) as number[]
     }
 
+    drawTile(ctx: CanvasRenderingContext2D, tile: number) {
+        const { board, pos } = this
+        board.ui.assets.world.drawTile(ctx, tile, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
+    }
+
     draw(ctx: CanvasRenderingContext2D) {
         const { board, pos } = this
         for (const tile of this.tiles) {
-            board.ui.assets.world.drawTile(ctx, tile, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
+            this.drawTile(ctx, tile)
+        }
+
+        for (const c of this.cell.contents) {
+            this.drawTile(ctx, Furniture.Chest)
         }
     }
 

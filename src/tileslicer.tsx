@@ -15,7 +15,7 @@ import { CELL_WIDTH, CELL_HEIGHT } from './settings'
 mobx.configure({ enforceActions: 'observed' })
 
 class SlicerState {
-    @observable tileIndex: number|null = null
+    @observable tileIndex: number | null = null
 }
 
 function SlicerWithImg(props: { src: string, width?: number }) {
@@ -32,27 +32,27 @@ function SlicerWithImg(props: { src: string, width?: number }) {
         const col = Math.floor(x / width)
         const row = Math.floor(y / height)
         const imgWidth = e.currentTarget.naturalWidth
-        const tilesPerRow = Math.floor(imgWidth / width)
+        const tilesPerRow = Math.ceil(imgWidth / width)
         state.tileIndex = row * tilesPerRow + col
     })
 
     return useObserver(() => <div>
         <p>{state.tileIndex}</p>
-        <img src={props.src} onMouseMove={onMouseMove}/>
+        <img src={props.src} onMouseMove={onMouseMove} />
     </div>)
 }
 
 function Tileslicer() {
     return <div>
-        <SlicerWithImg src="/oryx_16bit_fantasy_world_trans.png"/>
-        <SlicerWithImg src="/oryx_16bit_fantasy_creatures_trans.png"/>
-        <SlicerWithImg src="/oryx_16bit_fantasy_items_trans.png" width={16}/>
+        <SlicerWithImg src="/oryx_16bit_fantasy_world_trans.png" />
+        <SlicerWithImg src="/oryx_16bit_fantasy_creatures_trans.png" />
+        <SlicerWithImg src="/oryx_16bit_fantasy_items_trans.png" width={16} />
     </div>
 }
 
 async function main() {
     const root = document.querySelector("#root")!
-    ReactDOM.render(<Tileslicer/>, root)
+    ReactDOM.render(<Tileslicer />, root)
 }
 
 main()

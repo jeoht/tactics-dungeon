@@ -1,4 +1,7 @@
 // The oryx world tiles have a number of different sets of
+
+import _ = require("lodash")
+
 // tiles that vary together, we call them a Biome
 export enum Structure {
     Wall = 0,
@@ -31,7 +34,7 @@ export enum Structure {
 }
 
 // Starts 28 to 41
-export enum Furniture {
+enum FurnitureEnum {
     Grave = 0,
     GraveCracked,
     GraveDestroyed,
@@ -179,6 +182,24 @@ export enum Furniture {
     MoonCracked,
     MoonBlueRings
 }
+
+export const Furniture: Record<keyof typeof FurnitureEnum, number> = (() => {
+    const cols = 55
+    // Starts 28 to 41
+
+    const mapping: Record<string, number> = {}
+    for (const key in FurnitureEnum) {
+        if (_.isString(key)) {
+            let num = FurnitureEnum[key] as any as number
+            const subcol = num % 14
+            const row = Math.floor(num / 14)
+
+            const index = (cols * row) + 28 + subcol
+            mapping[key] = index
+        }
+    }
+    return mapping
+})()
 
 // Starts 43 to 54
 export enum Plants {

@@ -1,16 +1,18 @@
-import { observable, computed } from "mobx"
+import { observable, computed, action } from "mobx"
 
 import { PointVector } from "./PointVector"
 import { Unit } from "./Unit"
 import { Floor } from "./Floor"
 import { Block } from "./MapBase"
 import { bresenham } from "./pathfinding"
+import { Placeable } from "./Placeable"
 
 export class Cell {
     readonly floor: Floor
     readonly pos: PointVector
     readonly random: number = Math.random()
     @observable blocks: Block[]
+    @observable contents: Placeable[] = []
 
     constructor(floor: Floor, props: { pos: PointVector, blocks: Block[] } | Cell['save']) {
         this.floor = floor
@@ -53,7 +55,7 @@ export class Cell {
         return new Set(this.blocks)
     }
 
-    @computed get unit(): Unit|undefined {
+    @computed get unit(): Unit | undefined {
         return this.floor.unitAt(this.pos)
     }
 
@@ -76,27 +78,39 @@ export class Cell {
         return this.blockSet.has(Block.Wall)
     }
 
-    @computed get north(): Cell|undefined {
+    @computed get north(): Cell | undefined {
         return this.floor.cellAt(this.pos.north())
     }
 
-    @computed get east(): Cell|undefined {
+    @computed get east(): Cell | undefined {
         return this.floor.cellAt(this.pos.east())
     }
 
-    @computed get south(): Cell|undefined {
+    @computed get south(): Cell | undefined {
         return this.floor.cellAt(this.pos.south())
     }
 
-    @computed get west(): Cell|undefined {
+    @computed get west(): Cell | undefined {
         return this.floor.cellAt(this.pos.west())
+    }
+
+    @action add(thing: Placeable) {
+        if (thing.cell) {
+            thing.cell.remove(thing)
+        }
+        thing.cell = this
+        this.contents.push(thing)
+    }
+
+    @action remove(thing: Placeable) {
+        this.contents.splice(this.contents.indexOf(thing), 1)
     }
 
     isAdjacentTo(otherCell: Cell) {
         return this.pos.manhattanDistance(otherCell.pos) === 1
     }
 
-    lineOfSight(otherCell: Cell): Cell[]|undefined {
+    lineOfSight(otherCell: Cell): Cell[] | undefined {
         const line: Cell[] = []
         let blocked: boolean = false
         bresenham(this.x, this.y, otherCell.x, otherCell.y, (x, y) => {
