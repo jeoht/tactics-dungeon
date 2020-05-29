@@ -119,15 +119,31 @@ canvas#board
 		font-size: 0.6rem
 		line-height: 1.4em
 
-.FloorCleared
+.overlay
 	position: absolute
 	left: 0
 	top: 0
 	width: 100%
 	height: 100%
 	background: rgba(0, 0, 0, 0.8)
-	color: #feffa8
 
+.HelpOverlay
+	@extend .overlay
+	display: flex
+	flex-direction: column
+	align-items: center
+	padding: 1rem
+	font-size: 0.8rem
+
+	h2
+		margin-bottom: 2rem
+
+	li
+		margin-bottom: 1rem
+
+.FloorCleared
+	@extend .overlay
+	color: #feffa8
 	display: flex
 	flex-direction: column
 	align-items: center

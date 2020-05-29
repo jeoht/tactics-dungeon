@@ -9,8 +9,8 @@ import { UI } from './UI'
 import ReactDOM = require('react-dom')
 import React = require('react')
 import * as mobx from 'mobx'
-import { loadSounds } from './Soundboard'
-import { loadMusic } from '../public/music'
+import { loadSounds } from './soundboard'
+import { loadMusic } from './music'
 
 /** 
  * Strict mode for mobx-- all state mutations

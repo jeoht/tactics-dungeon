@@ -4,8 +4,7 @@ import { World } from "./World"
 import { TimeReactor } from "./TimeReactor"
 import { CanvasBoard } from "./CanvasBoard"
 import { Soundboard } from "./soundboard"
-import { MusicTracks } from "../public/music"
-
+import { MusicTracks } from "./music"
 
 export type PeepScreenRef = {
     id: 'peep'
@@ -13,7 +12,7 @@ export type PeepScreenRef = {
     tab: 'equipment' | 'abilities'
 }
 
-export type SimpleScreenId = 'titleScreen' | 'dungeon' | 'board' | 'enemyPhase' | 'event' | 'floorCleared' | 'team'
+export type SimpleScreenId = 'titleScreen' | 'dungeon' | 'board' | 'enemyPhase' | 'event' | 'floorCleared' | 'team' | 'help'
 export type ScreenRef = { id: SimpleScreenId } | PeepScreenRef
 
 export class UI {
