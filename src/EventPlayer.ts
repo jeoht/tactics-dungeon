@@ -46,6 +46,7 @@ export class EventPlayer {
                 // Instant move for player
                 sprite.pos = board.get(path[path.length - 1]).pos
             } else {
+                ui.sounds.footstep.play()
                 await sprite.animatePathMove(fromCell, path)
             }
         } else if (event.type === 'teleport') {

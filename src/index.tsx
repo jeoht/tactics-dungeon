@@ -9,6 +9,7 @@ import { UI } from './UI'
 import ReactDOM = require('react-dom')
 import React = require('react')
 import * as mobx from 'mobx'
+import { loadSounds } from './Soundboard'
 
 /** 
  * Strict mode for mobx-- all state mutations
@@ -18,7 +19,7 @@ mobx.configure({ enforceActions: 'observed' })
 
 
 declare global {
-    interface Window { 
+    interface Window {
         game: Game
     }
 }
@@ -26,16 +27,19 @@ declare global {
 async function main() {
     const world = new World()
     const assets = new Assets()
-    await assets.load()
-    const ui = new UI(world, assets)
+    const assetLoad = assets.load()
+    const soundLoad = loadSounds()
+    await assetLoad
+    const sounds = await soundLoad
+    const ui = new UI(world, assets, sounds)
 
-    const save = JSON.parse(localStorage.getItem('save')||"null")
+    const save = JSON.parse(localStorage.getItem('save') || "null")
     const game = new Game(world, ui, save)
 
 
 
     const root = document.querySelector("#root")!
-    ReactDOM.render(<GameView game={game}/>, root)
+    ReactDOM.render(<GameView game={game} />, root)
 
     // Debug
     window.game = game
