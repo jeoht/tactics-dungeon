@@ -6,12 +6,17 @@ const soundUrls = {
 
 export class Sound {
     constructor(readonly context: AudioContext, readonly buffer: AudioBuffer) {
+
     }
 
     play() {
+        const gainNode = this.context.createGain()
+        gainNode.gain.value = 0.5
+        gainNode.connect(this.context.destination)
+
         const source = this.context.createBufferSource()
         source.buffer = this.buffer
-        source.connect(this.context.destination)
+        source.connect(gainNode)
         source.start()
     }
 }
@@ -20,6 +25,7 @@ export type Soundboard = Record<keyof typeof soundUrls, Sound>
 
 export async function loadSounds(): Promise<Soundboard> {
     const context = new AudioContext()
+
 
     return new Promise((resolve, reject) => {
         const sounds: { [key: string]: Sound } = {}
