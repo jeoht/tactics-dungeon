@@ -1,7 +1,9 @@
 import _ = require("lodash")
 
 const soundUrls = {
-    footstep: '/audio/footstep01.ogg'
+    footstep: '/audio/footstep01.ogg',
+    selectUnit: '/audio/click_001.ogg',
+    dropUnit: '/audio/drop_002.ogg'
 }
 
 export class Sound {

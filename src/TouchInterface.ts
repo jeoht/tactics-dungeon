@@ -16,7 +16,7 @@ export class UnitDragState {
     @observable cursorPos: ScreenVector
     @observable path: Cell[]
     @observable targetCell?: Cell
-    
+
     constructor(board: CanvasBoard, cursorPos: ScreenVector, unit: Unit) {
         this.board = board
         this.cursorPos = cursorPos
@@ -38,7 +38,7 @@ export class UnitDragState {
     }
 
     @computed get finalPathCell(): Cell {
-        return this.path[this.path.length-1] || this.unit.cell
+        return this.path[this.path.length - 1] || this.unit.cell
     }
 
     @action update(cursorPos: ScreenVector) {
@@ -96,7 +96,7 @@ export type UnitMovePlan = {
 
 export class TouchInterface {
     board: CanvasBoard
-    maybeDragUnit: Unit|null = null
+    maybeDragUnit: Unit | null = null
     @observable state: { type: 'board' } | UnitDragState | SelectedUnitState | TargetAbilityState | TapMoveState = { type: 'board' }
 
     constructor(board: CanvasBoard) {
@@ -113,7 +113,7 @@ export class TouchInterface {
         this.state = { type: 'board' }
     }
 
-    get drag(): UnitDragState|null {
+    get drag(): UnitDragState | null {
         return this.state.type === 'unitDrag' ? this.state : null
     }
 
@@ -126,7 +126,7 @@ export class TouchInterface {
             return null
     }
 
-    touchToScreenPoint(e: TouchEvent|MouseEvent): ScreenVector {
+    touchToScreenPoint(e: TouchEvent | MouseEvent): ScreenVector {
         let touchX = 0, touchY = 0
         if ('touches' in e && e.touches[0]) {
             touchX = e.touches[0].pageX
@@ -151,7 +151,7 @@ export class TouchInterface {
         return (this.state.type === 'board' || this.state.type === 'selectedUnit')
     }
 
-    @bind onTouchStart(e: TouchEvent|MouseEvent) {
+    @bind onTouchStart(e: TouchEvent | MouseEvent) {
         e.preventDefault()
 
         const { board, canDragNow } = this
@@ -164,12 +164,12 @@ export class TouchInterface {
             this.maybeDragUnit = null
     }
 
-    @bind onTouchMove(e: TouchEvent|MouseEvent) {
+    @bind onTouchMove(e: TouchEvent | MouseEvent) {
         e.preventDefault()
 
-        const {drag, maybeDragUnit, canDragNow } = this
+        const { drag, maybeDragUnit, canDragNow } = this
         const cursorPos = this.touchToScreenPoint(e)
-        
+
         if (drag) {
             drag.update(cursorPos)
         } else if (maybeDragUnit && canDragNow) {
@@ -178,7 +178,7 @@ export class TouchInterface {
         }
     }
 
-    @bind onTouchEnd(e: TouchEvent|MouseEvent) {
+    @bind onTouchEnd(e: TouchEvent | MouseEvent) {
         e.preventDefault()
 
         const { drag } = this
@@ -187,13 +187,13 @@ export class TouchInterface {
             this.onTap(e)
             return
         }
-        
+
         if (drag.cursorCell === drag.targetCell)
             this.executeMovePlan(drag.plan)
         this.gotoBoard()
     }
 
-    @bind onTap(e: TouchEvent|MouseEvent) {
+    @bind onTap(e: TouchEvent | MouseEvent) {
         const { board } = this
         const { selectedUnit, state } = this
         const cell = board.cellAt(this.touchToScreenPoint(e))
@@ -221,13 +221,14 @@ export class TouchInterface {
                         selectedUnit.teleportTo(cell)
                         this.gotoBoard()
                     })
-                }    
+                }
             }
         }
     }
 
     @action startDragFrom(cursorPos: ScreenVector, unit: Unit) {
         this.state = new UnitDragState(this.board, cursorPos, unit)
+        this.board.ui.sounds.selectUnit.play()
     }
 
     @action tryTapMove(unit: Unit, cell: Cell) {
@@ -257,7 +258,7 @@ export class TouchInterface {
                 // Tap in a random place, deselect unit
                 this.gotoBoard()
             }
-        }     
+        }
     }
 
     @action executeMovePlan(plan: UnitMovePlan) {
@@ -269,6 +270,7 @@ export class TouchInterface {
 
         plan.unit.endMove()
         this.gotoBoard()
+        this.board.ui.sounds.dropUnit.play()
     }
 
     draw(ctx: CanvasRenderingContext2D) {
@@ -281,39 +283,39 @@ export class TouchInterface {
             // Draw path the unit will follow
             if (plan.path.length) {
                 const startCell = plan.unit.cell
-                const {x, y} = board.get(startCell).centerPos
+                const { x, y } = board.get(startCell).centerPos
                 ctx.beginPath()
                 ctx.moveTo(x, y)
-    
+
                 for (const cell of plan.path) {
                     const spos = board.get(cell).centerPos
                     ctx.lineTo(spos.x, spos.y)
                 }
-    
+
                 ctx.strokeStyle = "#fff"
                 ctx.lineWidth = 5
-                ctx.stroke()    
+                ctx.stroke()
             }
 
             // If we're about to attack a unit, draw targeting
             if (plan.attacking) {
                 ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
-                board.get(plan.attacking.cell).fill(ctx)    
+                board.get(plan.attacking.cell).fill(ctx)
             }
 
             const finalPathCell = _.last(plan.path)
             // Draw the unit at the current cursor position
             if (drag) {
                 const pos = drag.cursorPos.subtract(drag.cursorOffset)
-                board.ui.assets.creatures.drawTile(ctx, plan.unit.tileIndex, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)    
+                board.ui.assets.creatures.drawTile(ctx, plan.unit.tileIndex, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
             } else if (finalPathCell) {
                 const pos = board.get(finalPathCell).pos
-                board.ui.assets.creatures.drawTile(ctx, plan.unit.tileIndex, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)    
+                board.ui.assets.creatures.drawTile(ctx, plan.unit.tileIndex, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
             }
         }
     }
 
-    @computed get selectedUnit(): Unit|undefined {
+    @computed get selectedUnit(): Unit | undefined {
         if ('unit' in this.state)
             return this.state.unit
         else
@@ -322,13 +324,14 @@ export class TouchInterface {
 
     @action selectUnit(unit: Unit) {
         this.state = { type: 'selectedUnit', unit: unit }
+        this.board.ui.sounds.selectUnit.play()
     }
 
     @action prepareTapMove(plan: UnitMovePlan) {
         this.state = {
             type: 'tapMove',
             plan: plan
-        }        
+        }
     }
 }
 
