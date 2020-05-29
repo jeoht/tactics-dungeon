@@ -183,23 +183,24 @@ enum FurnitureEnum {
     MoonBlueRings
 }
 
-export const Furniture: Record<keyof typeof FurnitureEnum, number> = (() => {
+function mapTileSection<T>(enumObj: T, startIndex: number, subcols: number): Record<keyof T, number> {
     const cols = 55
-    // Starts 28 to 41
 
     const mapping: Record<string, number> = {}
-    for (const key in FurnitureEnum) {
+    for (const key in enumObj) {
         if (_.isString(key)) {
-            let num = FurnitureEnum[key] as any as number
-            const subcol = num % 14
-            const row = Math.floor(num / 14)
+            let num = enumObj[key] as any as number
+            const subcol = num % subcols
+            const row = Math.floor(num / subcols)
 
-            const index = (cols * row) + 28 + subcol
+            const index = (cols * row) + startIndex + subcol
             mapping[key] = index
         }
     }
-    return mapping
-})()
+    return mapping as Record<keyof T, number>
+}
+
+export const Furniture = mapTileSection(FurnitureEnum, 28, 14)
 
 // Starts 43 to 54
 export enum Plants {
