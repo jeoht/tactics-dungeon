@@ -6,7 +6,7 @@ import { Peep } from "./Peep"
 import { dijkstra, dijkstraRange } from "./pathfinding"
 import { Floor } from "./Floor"
 import { PointVector } from "./PointVector"
-import { Item, Scroll, loadItem } from "./Item"
+import { Item, Scroll, loadItem, Potion } from "./Item"
 
 export enum Team {
     Player = "Player",
@@ -283,5 +283,27 @@ export class Unit {
             this.cell.floor.event({ type: 'openChest', unit: this, targetCell: cell })
             this.cell.floor.event({ type: 'pickupItem', unit: this, item: item })
         }
+    }
+
+    @computed get consumables() {
+        return this.inventory.filter(i => i instanceof Scroll || i instanceof Potion)
+    }
+
+    @action heal(amount: number) {
+        this.health = Math.min(this.maxHealth, this.health + amount)
+    }
+
+    @action removeItem(item: Item) {
+        const i = this.inventory.indexOf(item)
+        if (i !== -1) {
+            this.inventory.splice(i, 1)
+        }
+    }
+
+    @action useItem(item: Item) {
+        if (item.effectId === 'healing') {
+            this.heal(10)
+        }
+        this.removeItem(item)
     }
 }
