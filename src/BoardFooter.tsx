@@ -5,22 +5,29 @@ import React = require("react")
 
 import { FloorContext } from "./GameView"
 import { Unit } from "./Unit"
+import { Item } from "./Item"
 
 const ActionChoices = observer(function ActionChoices(props: { unit: Unit }) {
     const { unit } = props
     const { ui } = useContext(FloorContext)
     const touch = ui.board!.touch
 
-    const teleport = action(() => {
-        touch.state = { type: 'targetAbility', unit: unit, ability: 'teleport' }
-    })
-
     const openNearby = action(() => {
         unit.openNearby()
     })
 
+    const useItem = action((item: Item) => {
+        if (item.effectId === 'teleport') {
+            touch.state = { type: 'targetAbility', unit: unit, ability: 'teleport' }
+        } else {
+            unit.useItem(item)
+        }
+    })
+
     return <ul className="ActionChoices">
-        {unit.inventory.length ? <li onClick={teleport}>Teleport x1</li> : <li className="disabled">Teleport x0</li>}
+        {unit.consumables.map((item, i) => <li key={i} onClick={() => useItem(item)}>
+            {item.name}
+        </li>)}
         {unit.canOpenNearby && <li onClick={openNearby}>Open</li>}
     </ul>
 })
