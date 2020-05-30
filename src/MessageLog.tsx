@@ -20,6 +20,14 @@ function transcribeEvent(ev: FloorEvent, i: number) {
                 {ev.unit.displayName} was defeated
             </>
         }
+    } else if (ev.type === 'openChest') {
+        return <>
+            {ev.unit.displayName} opened a chest
+        </>
+    } else if (ev.type === 'pickupItem') {
+        return <>
+            {ev.unit.displayName} now has {ev.item.name}
+        </>
     } else {
         return null
     }
@@ -31,7 +39,7 @@ export const MessageLog = observer(function MessageLog() {
     const events = ui.board.messageEvents
 
     const messages = []
-    for (let i = events.length-1; i > 0; i--) {
+    for (let i = events.length - 1; i > 0; i--) {
         const ev = events[i]
 
         const msg = transcribeEvent(ev, i)

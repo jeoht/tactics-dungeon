@@ -80,6 +80,8 @@ export class EventPlayer {
             setTimeout(() => ui.goto('floorCleared'), 500)
         } else if (event.type === 'floorFailed') {
             setTimeout(() => ui.goto('titleScreen'), 500)
+        } else {
+            board.mlog(event)
         }
     }
 }

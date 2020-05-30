@@ -7,6 +7,7 @@ import { AI } from "./AI"
 import { Biome } from "./Tile"
 import { Peep } from "./Peep"
 import { generateMap } from "./mapGeneration"
+import { Item } from "./Item"
 
 type AttackEvent = {
     type: 'attack'
@@ -50,9 +51,21 @@ type DefeatedEvent = {
     by?: Unit
 }
 
+type OpenChestEvent = {
+    type: 'openChest'
+    unit: Unit
+    targetCell: Cell
+}
+
+type PickupItemEvent = {
+    type: 'pickupItem'
+    unit: Unit
+    item: Item
+}
+
 type BasicFloorEventType = 'floorCleared' | 'floorFailed'
 
-export type FloorEvent = { type: BasicFloorEventType } | AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent | DefeatedEvent
+export type FloorEvent = { type: BasicFloorEventType } | AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent | DefeatedEvent | OpenChestEvent | PickupItemEvent
 
 export class Floor {
     @observable cells: Cell[]

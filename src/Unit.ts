@@ -6,6 +6,7 @@ import { Peep } from "./Peep"
 import { dijkstra, dijkstraRange } from "./pathfinding"
 import { Floor } from "./Floor"
 import { PointVector } from "./PointVector"
+import { Item, Scroll, loadItem } from "./Item"
 
 export enum Team {
     Player = "Player",
@@ -17,14 +18,15 @@ export class Unit {
     @observable team: Team
     @observable moved: boolean
     @observable moveRange: number
-    @observable inventory: string[]
+    @observable inventory: Item[]
     @observable health: number
     @observable maxHealth: number
 
     static load(floor: Floor, save: Unit['save']) {
         return new Unit(floor, Peep.load(save.peep), {
+            ..._.omit(save, 'peep'),
             pos: new PointVector(save.x, save.y),
-            ..._.omit(save, 'peep', 'pos')
+            inventory: save.inventory.map(loadItem)
         })
     }
 
@@ -37,7 +39,7 @@ export class Unit {
         this.team = props.team ?? Team.Enemy
         this.moved = props.moved ?? false
         this.moveRange = props.moveRange ?? 3
-        this.inventory = props.inventory ?? ['teleport']
+        this.inventory = props.inventory ?? [Scroll.create("teleport")]
         this.health = props.health ?? 10
         this.maxHealth = props.maxHealth ?? 10
     }
@@ -50,7 +52,7 @@ export class Unit {
             team: this.team,
             moved: this.moved,
             moveRange: this.moveRange,
-            inventory: this.inventory,
+            inventory: this.inventory.map(i => i.save),
             health: this.health,
             maxHealth: this.maxHealth
         }
@@ -269,13 +271,17 @@ export class Unit {
     }
 
     @computed get canOpenNearby(): boolean {
-        return this.cell.neighbors.some(cell => cell.chest)
+        return this.cell.neighbors.some(cell => cell.chest && cell.chest.item)
     }
 
     @action openNearby() {
         const cell = this.cell.neighbors.find(c => c.chest)
-        if (cell && cell.chest) {
-            cell.chest.itemId = null
+        if (cell && cell.chest && cell.chest.item) {
+            const { item } = cell.chest
+            this.inventory.push(item)
+            cell.chest.item = null
+            this.cell.floor.event({ type: 'openChest', unit: this, targetCell: cell })
+            this.cell.floor.event({ type: 'pickupItem', unit: this, item: item })
         }
     }
 }
