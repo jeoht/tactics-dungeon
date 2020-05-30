@@ -86,3 +86,7 @@ export function loadItem(save: Item['save']): Item {
 }
 
 export type Item = Potion | Scroll
+
+export function isItem(thing: any): thing is Item {
+    return thing instanceof Potion || thing instanceof Scroll
+}
