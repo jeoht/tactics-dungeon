@@ -2,7 +2,7 @@ import { observable, computed, action } from "mobx"
 import _ = require("lodash")
 
 import { Cell } from "./Cell"
-import { Peep, Class } from "./Peep"
+import { Peep } from "./Peep"
 import { dijkstra, dijkstraRange } from "./pathfinding"
 import { Floor } from "./Floor"
 import { PointVector } from "./PointVector"
@@ -13,18 +13,33 @@ export enum Team {
 }
 
 export class Unit {
-    floor: Floor
-    peep: Peep
     @observable pos: PointVector
-    @observable team: Team = Team.Enemy
-    @observable moved: boolean = false
-    @observable moveRange: number = 3
-    @observable inventory: string[] = ['teleport']
-    @observable health: number = 10
-    @observable maxHealth: number = 10
+    @observable team: Team
+    @observable moved: boolean
+    @observable moveRange: number
+    @observable inventory: string[]
+    @observable health: number
+    @observable maxHealth: number
 
-    @computed get defeated() {
-        return this.health <= 0
+    static load(floor: Floor, save: Unit['save']) {
+        return new Unit(floor, Peep.load(save.peep), {
+            pos: new PointVector(save.x, save.y),
+            ..._.omit(save, 'peep', 'pos')
+        })
+    }
+
+    static create(floor: Floor, peep: Peep, props: { pos: PointVector, team: Team }) {
+        return new Unit(floor, peep, props)
+    }
+
+    constructor(readonly floor: Floor, readonly peep: Peep, props: Partial<Unit>) {
+        this.pos = props.pos ?? new PointVector(0, 0)
+        this.team = props.team ?? Team.Enemy
+        this.moved = props.moved ?? false
+        this.moveRange = props.moveRange ?? 3
+        this.inventory = props.inventory ?? ['teleport']
+        this.health = props.health ?? 10
+        this.maxHealth = props.maxHealth ?? 10
     }
 
     @computed get save() {
@@ -41,24 +56,15 @@ export class Unit {
         }
     }
 
+    @computed get defeated() {
+        return this.health <= 0
+    }
+
     @computed get displayName() {
         if (this.team === Team.Player) {
             return this.peep.name
         } else {
             return this.peep.class.name
-        }
-    }
-
-    constructor(floor: Floor, props: { pos: PointVector, peep: Peep, team: Team } | Unit['save']) {
-        this.floor = floor
-        if ('x' in props) {
-            _.extend(this, props)
-            this.pos = new PointVector(props.x, props.y)
-            this.peep = new Peep(props.peep)
-        } else {
-            this.peep = props.peep
-            this.pos = props.pos
-            this.team = props.team
         }
     }
 

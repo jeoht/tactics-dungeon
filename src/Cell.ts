@@ -9,21 +9,24 @@ import { Placeable } from "./Placeable"
 import { Chest } from "./Chest"
 
 export class Cell {
-    readonly floor: Floor
-    readonly pos: PointVector
-    readonly random: number = Math.random()
-    @observable blocks: Block[]
+    @observable blocks: Block[] = []
     @observable contents: Placeable[] = []
+    random: number
 
-    constructor(floor: Floor, props: { pos: PointVector, blocks: Block[] } | Cell['save']) {
-        this.floor = floor
-        this.blocks = props.blocks
-        if ('random' in props) {
-            this.pos = new PointVector(props.x, props.y)
-            this.random = props.random
-        } else {
-            this.pos = props.pos
-        }
+    static load(floor: Floor, save: Cell['save']): Cell {
+        const cell = new Cell(floor, new PointVector(save.x, save.y), { random: save.random })
+        cell.blocks = save.blocks
+        return cell
+    }
+
+    static create(floor: Floor, props: { pos: PointVector, blocks: Block[] }): Cell {
+        const cell = new Cell(floor, props.pos)
+        cell.blocks = props.blocks
+        return cell
+    }
+
+    constructor(readonly floor: Floor, readonly pos: PointVector, props: { random?: number } = {}) {
+        this.random = props.random ?? Math.random()
     }
 
     @computed get biome() {

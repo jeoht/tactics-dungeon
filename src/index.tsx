@@ -18,7 +18,6 @@ import { loadMusic } from './music'
  */
 mobx.configure({ enforceActions: 'observed' })
 
-
 declare global {
     interface Window {
         game: Game
@@ -26,7 +25,7 @@ declare global {
 }
 
 async function main() {
-    const world = new World()
+    const world = World.create()
     const assets = new Assets()
     const assetLoad = assets.load()
     const soundLoad = loadSounds()

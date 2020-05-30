@@ -1,7 +1,7 @@
 import { Assets } from "./Assets"
 import { World } from "./World"
 import { UI } from "./UI"
-import { computed, toJS, autorun, action } from "mobx"
+import { computed, toJS, autorun, action, observable } from "mobx"
 import { Floor } from "./Floor"
 
 declare const window: any
@@ -22,18 +22,18 @@ class Debug {
     @computed get lastEvent() {
         const { floor } = this.game.world
         if (floor)
-            return toJS(floor.eventLog[floor.eventLog.length-1])
+            return toJS(floor.eventLog[floor.eventLog.length - 1])
         else
             return undefined
     }
 }
 
 export class Game {
-    world: World
+    @observable.ref world: World
     ui: UI
     debug: Debug
 
-    constructor(world: World, ui: UI, save: Game['save']|null) {
+    constructor(world: World, ui: UI, save: Game['save'] | null) {
         this.world = world
         this.ui = ui
         this.debug = new Debug(this)
@@ -60,7 +60,7 @@ export class Game {
     }
 
     @action load(save: Game['save']) {
-        this.world.load(save.world)
+        this.world = World.load(save.world)
         this.ui.screen = save.screen
     }
 
