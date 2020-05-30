@@ -33,7 +33,7 @@ export function generateMap(map: Floor, opts: MapgenOpts) {
     for (let i = 0; i < width; i++) {
         for (let j = 0; j < height; j++) {
             const pos = new PointVector(i, j)
-            const cell = new Cell(map, { pos, blocks: [] })
+            const cell = Cell.create(map, { pos, blocks: [] })
             map.cells.push(cell)
         }
     }
@@ -55,7 +55,7 @@ export function generateMap(map: Floor, opts: MapgenOpts) {
         if (cell === downstairCell) continue
 
         cell.blocks = [Block.Floor]
-        map.spawnUnit(new Peep({ class: Class.Skeleton }), { cell: cell, team: Team.Enemy })
+        map.spawnUnit(Peep.create({ class: Class.Skeleton }), { cell: cell, team: Team.Enemy })
         enemies--
         if (enemies === 0) break
     }

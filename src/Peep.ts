@@ -103,11 +103,10 @@ export type ClassId = keyof typeof Class
  * attached to any position on an active map
  */
 export class Peep {
-    id: string
     @observable name: string
     @observable gender: Gender
     @observable classId: ClassId
-    @observable level: number = 2
+    @observable level: number
     @observable learnedAbilityIds: AbilityId[] = []
     @observable weaponType: 'bow' | 'sword' = 'sword'
 
@@ -116,21 +115,23 @@ export class Peep {
     item1?: Consumable
     item2?: Consumable
 
-    constructor(props: UnitSpec | Peep['save']) {
-        if ('classId' in props) {
-            this.id = props.id
-            this.name = props.name
-            this.gender = props.gender
-            this.classId = props.classId
-            this.level = props.level
-            this.learnedAbilityIds = props.learnedAbilityIds
-        } else {
-            this.id = uuid()
-            this.classId = props.class ? props.class.id : Class.Rookie.id
-            this.gender = props.gender || randomGender()
-            this.name = props.name || randomName(this.gender)
-        }
-        this.name = randomName(this.gender)
+    static load(save: Peep['save']) {
+        return new Peep(save.id, save)
+    }
+
+    static create(props: Partial<Peep>) {
+        return new Peep(uuid(), {
+            classId: props.class?.id,
+            ...props
+        })
+    }
+
+    constructor(readonly id: string, props: Partial<Peep>) {
+        this.classId = props.classId || Class.Rookie.id
+        this.gender = props.gender || randomGender()
+        this.name = props.name || randomName(this.gender)
+        this.level = props.level || 1
+        this.learnedAbilityIds = props.learnedAbilityIds || []
     }
 
     @computed get save() {

@@ -54,19 +54,43 @@ type DefeatedEvent = {
     by?: Unit
 }
 
-type BasicFloorEventType = 'floorCleared'|'floorFailed'
+type BasicFloorEventType = 'floorCleared' | 'floorFailed'
 
 export type FloorEvent = { type: BasicFloorEventType } | AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent | DefeatedEvent
 
 export class Floor {
-    @observable cells: Cell[] = []
-    @observable units: Unit[] = []
-    @observable eventLog: FloorEvent[] = []
-    ai: AI
-    disposers: IReactionDisposer[]  = []
-    @observable phase: Team = Team.Player
-    biome: Biome = Biome.Stone
+    @observable cells: Cell[]
+    @observable units: Unit[]
+    @observable phase: Team
+    biome: Biome
     seed: string
+
+    @observable eventLog: FloorEvent[] = []
+    disposers: IReactionDisposer[] = []
+    ai: AI
+
+
+    static load(save: Partial<Floor['save']>): Floor {
+        const floor = new Floor(_.omit(save, 'cells', 'units'))
+        floor.cells = save.cells ? save.cells.map(c => Cell.load(floor, c)) : []
+        floor.units = save.units ? save.units.map(u => Unit.load(floor, u)) : []
+        return floor
+    }
+
+    static create(props: { seed: string, peeps: Peep[] }) {
+        const floor = new Floor(props)
+        generateMap(floor, { peeps: props.peeps })
+        return floor
+    }
+
+    constructor(props: Partial<Floor> = {}) {
+        this.biome = props.biome ?? Biome.Stone
+        this.cells = []
+        this.units = []
+        this.phase = props.phase ?? Team.Player
+        this.seed = props.seed ?? Math.random().toString()
+        this.ai = new AI(this, Team.Enemy)
+    }
 
     @computed get save() {
         return {
@@ -76,21 +100,6 @@ export class Floor {
             phase: this.phase,
             seed: this.seed
         }
-    }
-
-    constructor(props: { seed: string, peeps: Peep[] } | Floor['save']) {
-        if ('cells' in props) {
-            this.biome = props.biome
-            this.cells = props.cells.map(c => new Cell(this, c))
-            this.units = props.units.map(u => new Unit(this, u))
-            this.phase = props.phase
-            this.seed = props.seed || Math.random().toString()
-        } else {
-            this.seed = props.seed
-            generateMap(this, { peeps: props.peeps })
-        }
-    
-        this.ai = new AI(this, Team.Enemy)
     }
 
     prepare() {
@@ -110,6 +119,7 @@ export class Floor {
 
         // Turn ends
         this.disposers.push(autorun(() => {
+            console.log(this.units)
             if (this.units.length && this.units.filter(u => u.team === this.phase).every(u => u.moved)) {
                 this.endPhase()
             }
@@ -140,25 +150,25 @@ export class Floor {
         return this.cells.filter(c => c.pathable && !c.unit)
     }
 
-    @computed get unitsByPos(): {[key: string]: Unit|undefined} {
+    @computed get unitsByPos(): { [key: string]: Unit | undefined } {
         return _.keyBy(this.units, u => u.pos.key)
     }
 
-    @computed get cellsByPos(): {[key: string]: Cell|undefined} {
+    @computed get cellsByPos(): { [key: string]: Cell | undefined } {
         return _.keyBy(this.cells, c => c.pos.key)
     }
 
-    cellAt(pos: PointVector): Cell|undefined {
+    cellAt(pos: PointVector): Cell | undefined {
         return this.cellsByPos[pos.key]
     }
 
-    unitAt(pos: PointVector): Unit|undefined {
+    unitAt(pos: PointVector): Unit | undefined {
         return this.unitsByPos[pos.key]
     }
 
     spawnUnit(peep: Peep, props: { cell?: Cell, team: Team }): Unit {
         const cell = props.cell || _.sample(this.unoccupiedCells) as Cell
-        const unit = new Unit(this, { pos: cell.pos, peep: peep, team: props.team })
+        const unit = Unit.create(this, peep, { pos: cell.pos, team: props.team })
         this.units.push(unit)
         return unit
     }
@@ -167,7 +177,7 @@ export class Floor {
         this.units = this.units.filter(u => u !== unit)
     }
 
-    @action event(event: FloorEvent|BasicFloorEventType) {
+    @action event(event: FloorEvent | BasicFloorEventType) {
         if (typeof event === "string") {
             this.eventLog.push({ type: event })
         } else {
