@@ -6,7 +6,7 @@ import React = require("react")
 import { FloorContext } from "./GameView"
 import { Unit } from "./Unit"
 
-function ActionChoices(props: { unit: Unit }) {
+const ActionChoices = observer(function ActionChoices(props: { unit: Unit }) {
     const { unit } = props
     const { ui } = useContext(FloorContext)
     const touch = ui.board!.touch
@@ -15,10 +15,15 @@ function ActionChoices(props: { unit: Unit }) {
         touch.state = { type: 'targetAbility', unit: unit, ability: 'teleport' }
     })
 
-    return useObserver(() => <ul className="ActionChoices">
+    const openNearby = action(() => {
+        unit.openNearby()
+    })
+
+    return <ul className="ActionChoices">
         {unit.inventory.length ? <li onClick={teleport}>Teleport x1</li> : <li className="disabled">Teleport x0</li>}
-    </ul>)
-}
+        {unit.canOpenNearby && <li onClick={openNearby}>Open</li>}
+    </ul>
+})
 
 const TargetAbilityInfo = observer(function TargetAbilityInfo() {
     return <div className="TargetAbilityInfo">
