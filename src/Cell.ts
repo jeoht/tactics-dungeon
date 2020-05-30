@@ -5,8 +5,9 @@ import { Unit } from "./Unit"
 import { Floor } from "./Floor"
 import { Block } from "./MapBase"
 import { bresenham } from "./pathfinding"
-import { Placeable } from "./Placeable"
 import { Chest } from "./Chest"
+
+type Placeable = Chest
 
 export class Cell {
     @observable blocks: Block[] = []
@@ -16,6 +17,9 @@ export class Cell {
     static load(floor: Floor, save: Cell['save']): Cell {
         const cell = new Cell(floor, new PointVector(save.x, save.y), { random: save.random })
         cell.blocks = save.blocks
+        cell.contents = (save.contents ?? []).map(c => {
+            return Chest.load(c)
+        })
         return cell
     }
 
@@ -42,7 +46,8 @@ export class Cell {
             x: this.pos.x,
             y: this.pos.y,
             blocks: this.blocks,
-            random: this.random
+            random: this.random,
+            contents: this.contents.map(c => c.save)
         }
     }
 
@@ -63,7 +68,7 @@ export class Cell {
     }
 
     @computed get pathable() {
-        return !this.isWall
+        return !this.isWall && !this.contents.some(c => c.blocksMovement)
     }
 
     @computed get neighbors(): Cell[] {
@@ -102,10 +107,11 @@ export class Cell {
     }
 
     @action add(thing: Placeable) {
-        if (thing.cell) {
-            thing.cell.remove(thing)
-        }
-        thing.cell = this
+        // if ('cell' in thing) {
+        //     if (thing.cell)
+        //         thing.cell.remove(thing)
+        //     thing.cell = this
+        // }
         this.contents.push(thing)
     }
 

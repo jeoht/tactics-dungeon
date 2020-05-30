@@ -5,6 +5,7 @@ import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
 import { Structure, Furniture } from "./Tile"
 import { Block } from "./MapBase"
+import { Chest } from "./Chest"
 
 export class CellSprite {
     board: CanvasBoard
@@ -114,7 +115,9 @@ export class CellSprite {
         }
 
         for (const c of this.cell.contents) {
-            this.drawTile(ctx, Furniture.Chest)
+            if (c instanceof Chest) {
+                this.drawTile(ctx, c.itemId ? Furniture.Chest : Furniture.ChestOpen)
+            }
         }
     }
 

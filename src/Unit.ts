@@ -267,4 +267,15 @@ export class Unit {
     isEnemy(other: Unit): boolean {
         return other.team !== this.team
     }
+
+    @computed get canOpenNearby(): boolean {
+        return this.cell.neighbors.some(cell => cell.chest)
+    }
+
+    @action openNearby() {
+        const cell = this.cell.neighbors.find(c => c.chest)
+        if (cell && cell.chest) {
+            cell.chest.itemId = null
+        }
+    }
 }

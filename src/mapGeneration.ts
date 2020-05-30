@@ -46,7 +46,7 @@ export function generateMap(map: Floor, opts: MapgenOpts) {
 
     const cell = rng.sampleFind(map.cells, cell => cell.pathable)
     if (cell) {
-        cell.add(new Chest())
+        cell.add(Chest.create())
     }
 
 

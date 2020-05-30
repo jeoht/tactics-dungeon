@@ -1,16 +1,12 @@
-import { GameView } from "./GameView"
 import { observable, computed, action, autorun, IReactionDisposer } from "mobx"
 import { Cell } from "./Cell"
 import { PointVector } from "./PointVector"
 import _ = require("lodash")
 import { Unit, Team } from "./Unit"
 import { AI } from "./AI"
-import { BOARD_COLS, BOARD_ROWS } from "./settings"
-import { Structure, Biome } from "./Tile"
-import { Class, Peep } from "./Peep"
-import { Block, floorOne, MapBase } from "./MapBase"
+import { Biome } from "./Tile"
+import { Peep } from "./Peep"
 import { generateMap } from "./mapGeneration"
-import { World } from "./World"
 
 type AttackEvent = {
     type: 'attack'
@@ -69,7 +65,6 @@ export class Floor {
     disposers: IReactionDisposer[] = []
     ai: AI
 
-
     static load(save: Partial<Floor['save']>): Floor {
         const floor = new Floor(_.omit(save, 'cells', 'units'))
         floor.cells = save.cells ? save.cells.map(c => Cell.load(floor, c)) : []
@@ -119,7 +114,6 @@ export class Floor {
 
         // Turn ends
         this.disposers.push(autorun(() => {
-            console.log(this.units)
             if (this.units.length && this.units.filter(u => u.team === this.phase).every(u => u.moved)) {
                 this.endPhase()
             }
