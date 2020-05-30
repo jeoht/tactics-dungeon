@@ -9,6 +9,7 @@ import { Peep, Class } from "./Peep";
 import { Team } from "./Unit";
 import { RNG } from "./RNG";
 import { Chest } from "./Chest";
+import { Potion } from "./Item";
 
 function randomBlocks(rng: RNG): Block[] {
     if (rng.random() > 0.8) {
@@ -46,7 +47,7 @@ export function generateMap(map: Floor, opts: MapgenOpts) {
 
     const cell = rng.sampleFind(map.cells, cell => cell.pathable)
     if (cell) {
-        cell.add(Chest.create())
+        cell.add(Chest.create(Potion.create("healing")))
     }
 
 

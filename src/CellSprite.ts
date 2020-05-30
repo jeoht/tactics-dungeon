@@ -116,7 +116,7 @@ export class CellSprite {
 
         for (const c of this.cell.contents) {
             if (c instanceof Chest) {
-                this.drawTile(ctx, c.itemId ? Furniture.Chest : Furniture.ChestOpen)
+                this.drawTile(ctx, c.item ? Furniture.Chest : Furniture.ChestOpen)
             }
         }
     }
