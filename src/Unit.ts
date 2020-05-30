@@ -270,6 +270,11 @@ export class Unit {
         return other.team !== this.team
     }
 
+    @action receive(item: Item) {
+        this.inventory.push(item)
+        this.cell.floor.event({ type: 'pickupItem', unit: this, item: item })
+    }
+
     @computed get canOpenNearby(): boolean {
         return this.cell.neighbors.some(cell => cell.chest && cell.chest.item)
     }
@@ -277,11 +282,10 @@ export class Unit {
     @action openNearby() {
         const cell = this.cell.neighbors.find(c => c.chest)
         if (cell && cell.chest && cell.chest.item) {
-            const { item } = cell.chest
-            this.inventory.push(item)
-            cell.chest.item = null
             this.cell.floor.event({ type: 'openChest', unit: this, targetCell: cell })
-            this.cell.floor.event({ type: 'pickupItem', unit: this, item: item })
+            const { item } = cell.chest
+            cell.chest.item = null
+            this.receive(item)
         }
     }
 
@@ -305,5 +309,17 @@ export class Unit {
             this.heal(10)
         }
         this.removeItem(item)
+    }
+
+    @computed get canPickupBelow(): boolean {
+        return !!this.cell.items.length
+    }
+
+    @action pickupBelow() {
+        if (this.cell.items.length) {
+            const item = this.cell.items[0]
+            this.cell.remove(item)
+            this.receive(item)
+        }
     }
 }

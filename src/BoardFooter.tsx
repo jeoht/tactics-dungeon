@@ -28,6 +28,7 @@ const ActionChoices = observer(function ActionChoices(props: { unit: Unit }) {
         {unit.consumables.map((item, i) => <li key={i} onClick={() => useItem(item)}>
             {item.name}
         </li>)}
+        {unit.canPickupBelow && <li onClick={() => unit.pickupBelow()}>Get Item</li>}
         {unit.canOpenNearby && <li onClick={openNearby}>Open</li>}
     </ul>
 })

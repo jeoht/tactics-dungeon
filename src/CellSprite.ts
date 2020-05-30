@@ -6,6 +6,7 @@ import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
 import { Structure, Furniture } from "./Tile"
 import { Block } from "./MapBase"
 import { Chest } from "./Chest"
+import { Potion } from "./Item"
 
 export class CellSprite {
     board: CanvasBoard
@@ -117,6 +118,10 @@ export class CellSprite {
         for (const c of this.cell.contents) {
             if (c instanceof Chest) {
                 this.drawTile(ctx, c.item ? Furniture.Chest : Furniture.ChestOpen)
+            } else if (c instanceof Potion) {
+                if (c.effectId === 'healing') {
+                    this.drawTile(ctx, Furniture.VaseBlue)
+                }
             }
         }
     }

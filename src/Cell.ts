@@ -6,8 +6,9 @@ import { Floor } from "./Floor"
 import { Block } from "./MapBase"
 import { bresenham } from "./pathfinding"
 import { Chest } from "./Chest"
+import { Item, loadItem, isItem } from "./Item"
 
-type Placeable = Chest
+type Placeable = (Chest | Item) & { blocksMovement?: boolean }
 
 export class Cell {
     @observable blocks: Block[] = []
@@ -18,7 +19,10 @@ export class Cell {
         const cell = new Cell(floor, new PointVector(save.x, save.y), { random: save.random })
         cell.blocks = save.blocks
         cell.contents = (save.contents ?? []).map(c => {
-            return Chest.load(c)
+            if (c.type === 'chest')
+                return Chest.load(c as Chest['save'])
+            else
+                return loadItem(c as Item['save'])
         })
         return cell
     }
@@ -103,7 +107,11 @@ export class Cell {
     }
 
     @computed get chest(): Chest | undefined {
-        return this.contents.find(c => c instanceof Chest)
+        return this.contents.find(c => c instanceof Chest) as Chest
+    }
+
+    @computed get items(): Item[] {
+        return this.contents.filter(c => isItem(c)) as Item[]
     }
 
     @action add(thing: Placeable) {
