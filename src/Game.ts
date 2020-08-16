@@ -1,32 +1,7 @@
-import { Assets } from "./Assets"
 import { World } from "./World"
 import { UI } from "./UI"
 import { computed, toJS, autorun, action, observable } from "mobx"
-import { Floor } from "./Floor"
-
-declare const window: any
-
-class Debug {
-    game: Game
-    constructor(game: Game) {
-        this.game = game
-        window.debug = this
-        window.game = game
-        window.world = game.world
-        window.ui = game.ui
-
-        autorun(() => window.floor = game.world.floor)
-        autorun(() => window.board = game.ui.board)
-    }
-
-    @computed get lastEvent() {
-        const { floor } = this.game.world
-        if (floor)
-            return toJS(floor.eventLog[floor.eventLog.length - 1])
-        else
-            return undefined
-    }
-}
+import { Debug } from "./Debug"
 
 export class Game {
     @observable.ref world: World
