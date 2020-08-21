@@ -125,8 +125,9 @@ export class Unit {
     }
 
     canAttackCellFrom(cell: Cell, target: Cell) {
-        const line = cell.lineOfSight(target)
-        return !!(line && line.length <= this.attackRange)
+        return cell.isAdjacentTo(target)
+        // const line = cell.lineOfSight(target)
+        // return !!(line && line.length <= this.attackRange)
     }
 
     canAttackFromHere(enemy: Unit): boolean {

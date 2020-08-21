@@ -8,6 +8,19 @@ import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
 import { Cell } from "./Cell"
 
+/** Just the necessary info to execute a move plan */
+export type UnitMovePlan = {
+    /** The unit being moved */
+    unit: Unit
+    /** The current path the unit will follow on plan execution */
+    path: Cell[]
+    /** Enemy the unit will attack */
+    attacking?: Unit
+}
+
+/**
+ * When a player is dragging a unit around, this holds the state
+ */
 export class UnitDragState {
     type: 'unitDrag' = 'unitDrag'
     board: CanvasBoard
@@ -15,7 +28,7 @@ export class UnitDragState {
     cursorOffset: ScreenVector
     @observable cursorPos: ScreenVector
     @observable path: Cell[]
-    @observable targetCell?: Cell
+    @observable attackingCell?: Cell
 
     constructor(board: CanvasBoard, cursorPos: ScreenVector, unit: Unit) {
         this.board = board
@@ -33,7 +46,7 @@ export class UnitDragState {
         return {
             unit: this.unit,
             path: this.path,
-            attacking: this.targetCell?.unit
+            attacking: this.attackingCell?.unit
         }
     }
 
@@ -41,36 +54,41 @@ export class UnitDragState {
         return this.path[this.path.length - 1] || this.unit.cell
     }
 
+    /** Update our movement plan based on the player's drag cursor */
     @action update(cursorPos: ScreenVector) {
         this.cursorPos = cursorPos
-        const cell = this.cursorCell
-        const { unit, finalPathCell } = this
-        const enemy = cell.unit && unit.isEnemy(cell.unit) ? cell.unit : undefined
+        const { cursorCell, finalPathCell } = this
+        const { unit } = this
+        const enemyAtCursor = cursorCell.unit && unit.isEnemy(cursorCell.unit) ? cursorCell.unit : undefined
 
-        const path = unit.getPathToOccupyThisTurn(cell)
-        if (path && cell !== unit.cell) {
-            // Standard path to occupy cursor position
-            this.path = path
-            this.targetCell = cell
-            return
+        this.attackingCell = undefined
+        if (cursorCell === unit.cell) {
+            this.path = []
+        } else if (enemyAtCursor) {
+            if (unit.canAttackFrom(finalPathCell, enemyAtCursor)) {
+                // Current path works fine
+                this.attackingCell = cursorCell
+                return
+            }
+
+            // Try and repath to attack enemy at cursor cell
+            const attackPath = unit.getPathToAttackThisTurn(enemyAtCursor)
+            if (attackPath) {
+                this.path = attackPath
+                this.attackingCell = cursorCell
+                return
+            }
+        } else {
+            const path = unit.getPathToOccupyThisTurn(cursorCell)
+            if (path && cursorCell !== unit.cell) {
+                // Standard path to occupy cursor position
+                this.path = path
+                // this.targetCell = cursorCell
+                return
+            }
         }
 
-        if (!enemy)
-            return
 
-        // if (unit.canAttackFrom(finalPathCell, enemy)) {
-        //     // Current path works fine
-        //     this.targetCell = cell
-        //     return
-        // }
-
-        const attackPath = unit.getPathToAttackThisTurn(enemy)
-        if (attackPath) {
-            // Repath to attack enemy at cursor position
-            this.path = attackPath
-            this.targetCell = cell
-            return
-        }
     }
 }
 
@@ -81,18 +99,6 @@ export type TapMoveState = {
     type: 'tapMove'
     plan: UnitMovePlan
 }
-
-
-
-export type UnitMovePlan = {
-    /** The unit being moved */
-    unit: Unit
-    /** The current path the unit will follow on plan execution */
-    path: Cell[]
-    /** Enemy the unit will attack */
-    attacking?: Unit
-}
-
 
 export class TouchInterface {
     board: CanvasBoard
@@ -188,8 +194,9 @@ export class TouchInterface {
             return
         }
 
-        if (drag.cursorCell === drag.targetCell)
+        if (drag.plan.path.length || drag.plan.attacking)
             this.executeMovePlan(drag.plan)
+        // if (drag.cursorCell === drag.attackingCell)
         this.gotoBoard()
     }
 
