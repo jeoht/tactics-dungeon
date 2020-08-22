@@ -1,5 +1,6 @@
 import { Tileset } from "./Tileset"
 import { ImageRefiner } from "./ImageRefiner"
+import { TileRef } from "./Tile"
 
 export class Assets {
     world!: Tileset
@@ -48,6 +49,15 @@ export class Assets {
         canvas.width = tileset.tileWidth
         canvas.height = tileset.tileHeight
         tileset.drawTile(ctx, tileIndex, 0, 0, canvas.width, canvas.height)
+        return canvas.toDataURL()
+    }
+
+    tileToDataUrl2(tile: TileRef): string {
+        const tileset = (this as any)[tile.tileset] as Tileset
+        const { canvas, ctx } = this.imgRefiner
+        canvas.width = tileset.tileWidth
+        canvas.height = tileset.tileHeight
+        tileset.drawTile(ctx, tile.index, 0, 0, canvas.width, canvas.height)
         return canvas.toDataURL()
     }
 }

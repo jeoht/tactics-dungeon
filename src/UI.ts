@@ -12,7 +12,7 @@ export type PeepScreenRef = {
     tab: 'equipment' | 'abilities'
 }
 
-export type SimpleScreenId = 'titleScreen' | 'dungeon' | 'board' | 'enemyPhase' | 'event' | 'floorCleared' | 'team' | 'help'
+export type SimpleScreenId = 'titleScreen' | 'chooseTeam' | 'dungeon' | 'board' | 'enemyPhase' | 'event' | 'floorCleared' | 'team' | 'help'
 export type ScreenRef = { id: SimpleScreenId } | PeepScreenRef
 
 export class UI {
