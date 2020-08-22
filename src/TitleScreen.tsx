@@ -7,7 +7,7 @@ import { useContext } from "react"
 
 function TitleScreenBG() {
     const { game } = useContext(GameContext)
-    const ref = React.createRef<HTMLCanvasElement>()    
+    const ref = React.createRef<HTMLCanvasElement>()
 
     React.useEffect(() => {
         if (!ref.current) return
@@ -20,28 +20,28 @@ function TitleScreenBG() {
             const styleWidth = canvas.parentElement!.offsetWidth
             const styleHeight = canvas.parentElement!.offsetHeight
             const scale = window.devicePixelRatio
-    
+
             const boardWidth = 6
             canvas.width = boardWidth * CELL_WIDTH * scale
 
 
-            const boardHeight = Math.ceil(styleHeight / (CELL_HEIGHT*scale)) * (canvas.width/styleWidth)
+            const boardHeight = Math.ceil(styleHeight / (CELL_HEIGHT * scale)) * (canvas.width / styleWidth)
             canvas.height = boardHeight * CELL_HEIGHT * scale
 
             ctx.scale(scale, scale)
             ctx.clearRect(0, 0, canvas.width, canvas.height)
 
             function randomTile() {
-                return TILESET_BIOME_COLS*0 + 3 + Math.floor(Math.random()*3)
+                return TILESET_BIOME_COLS * 0 + 3 + Math.floor(Math.random() * 3)
             }
-            
+
             for (let x = 0; x < boardWidth; x++) {
                 for (let y = 0; y < boardHeight; y++) {
-                    const sx = x*CELL_WIDTH
-                    const sy = y*CELL_HEIGHT
+                    const sx = x * CELL_WIDTH
+                    const sy = y * CELL_HEIGHT
                     game.ui.assets.world.drawTile(ctx, randomTile(), sx, sy, CELL_WIDTH, CELL_HEIGHT)
                 }
-            } 
+            }
         }
 
         window.addEventListener("resize", onResize)
@@ -60,11 +60,11 @@ export function TitleScreen() {
 
     const newGame = action(() => {
         world.newGame()
-        ui.goto('dungeon')
+        ui.goto('chooseTeam')
     })
 
     return <div className="TitleScreen">
-        <TitleScreenBG/>
+        <TitleScreenBG />
         <h1>
             <div className="tactics">Tactics</div>
             <div className="dungeon">Dungeon</div>

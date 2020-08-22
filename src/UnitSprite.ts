@@ -125,10 +125,10 @@ export class UnitSprite implements SceneObject {
         tileset.drawTile(ctx, 396, pos.x, pos.y, this.width, this.height) // Shadow
         tileset.drawTile(ctx, tile, pos.x, pos.y, this.width, this.height)
 
-        const itemset = this.board.ui.assets.iconitems
-        ctx.fillStyle = unit.peep.weaponType === 'bow' ? "green" : "red"
-        ctx.fillRect(this.topLeft.x, this.topLeft.y, 7, 7)
-        itemset.drawTile(ctx, unit.peep.weaponType === 'bow' ? 190 : 209, this.topLeft.x + 1, this.topLeft.y + 1, 5, 5)
+        // const itemset = this.board.ui.assets.iconitems
+        // ctx.fillStyle = unit.peep.weaponType === 'bow' ? "green" : "red"
+        // ctx.fillRect(this.topLeft.x, this.topLeft.y, 7, 7)
+        // itemset.drawTile(ctx, unit.peep.weaponType === 'bow' ? 190 : 209, this.topLeft.x + 1, this.topLeft.y + 1, 5, 5)
 
         ctx.globalAlpha = 1
     }
@@ -215,7 +215,7 @@ export class UnitSprite implements SceneObject {
         ctx.lineTo(p.x, p.y)
         ctx.lineTo(p.x + 5, p.y)
         ctx.stroke()
-        
+
         p = this.bottomRight.addXY(-2, -2)
         ctx.beginPath()
         ctx.moveTo(p.x, p.y - 5)
@@ -240,10 +240,10 @@ export class UnitSprite implements SceneObject {
 
         const barHeight = 1.5
         const padWidth = 2
-        const barWidth = width - padWidth*2 - 5
+        const barWidth = width - padWidth * 2 - 5
         const fillWidth = unit.fracHealth * barWidth
-        ctx.fillRect(bottomLeft.x + padWidth + 5, bottomLeft.y-barHeight-1, fillWidth, barHeight)
-        ctx.strokeRect(bottomLeft.x + padWidth + 5, bottomLeft.y-barHeight-1, barWidth, barHeight)
+        ctx.fillRect(bottomLeft.x + padWidth + 5, bottomLeft.y - barHeight - 1, fillWidth, barHeight)
+        ctx.strokeRect(bottomLeft.x + padWidth + 5, bottomLeft.y - barHeight - 1, barWidth, barHeight)
 
         if (this.unit.team === Team.Player) {
             ctx.fillStyle = "rgba(86, 194, 236, 0.9)"
@@ -254,7 +254,7 @@ export class UnitSprite implements SceneObject {
         ctx.textAlign = 'left'
         ctx.textBaseline = 'middle'
         ctx.font = "bold 5px pixelmix"
-        ctx.fillText(unit.health.toString().padStart(2, '0'), bottomLeft.x, bottomLeft.y-barHeight-1)
+        ctx.fillText(unit.health.toString().padStart(2, '0'), bottomLeft.x, bottomLeft.y - barHeight - 1)
 
     }
 }   

@@ -273,7 +273,10 @@ export enum Biome {
     Sandstone
 }
 
-export enum Creature {
+// Every second row of the creature tileset is 
+// a second frame of the creature directly above
+export enum CreatureSequence {
+    // ROW 1
     SunPaladin = 0,
     Ranger,
     Sniper,
@@ -292,6 +295,8 @@ export enum Creature {
     Warrior2,
     Fencer2,
     Cleric2,
+
+    // ROW 3
     Rogue,
     Rookie,
     Guy,
@@ -310,6 +315,8 @@ export enum Creature {
     Pikeman2,
     Pikewoman2,
     PikeHelmet2,
+
+    // ROW 5
     Rogue2,
     Rookie2,
     Guy2,
@@ -328,6 +335,8 @@ export enum Creature {
     Pikeman4,
     Pikewoman4,
     PikeHelmet4,
+
+    // ROW 7
     SinisterGirl,
     SinisterGuy,
     Dwarf,
@@ -346,6 +355,8 @@ export enum Creature {
     GelfSwordShield2,
     GelfArcher2,
     GelfPole2,
+
+    // ROW 9
     SnelfSword,
     SnelfSwordShield,
     SnelfArcher,
@@ -364,6 +375,8 @@ export enum Creature {
     Halfling2,
     HalfingHat,
     HalflingOld,
+
+    // ROW 11
     Werewolf,
     WerewolfYellow,
     WerewolfRed,
@@ -382,6 +395,8 @@ export enum Creature {
     Djinn,
     EvilTree,
     Mimic,
+
+    // ROW 13
     JellyPurple,
     JellyGreen,
     Bat,
@@ -400,6 +415,8 @@ export enum Creature {
     Bird,
     BirdBlue,
     BirdBlack,
+
+    // ROW 15
     GoblinSword,
     GoblinArcher,
     GoblinSwordHelmet,
@@ -418,6 +435,8 @@ export enum Creature {
     BeastyBrown,
     BeastyBlue,
     BeastyGrey,
+
+    // ROW 17
     Zombie,
     ZombieHeadless,
     Skeleton,
@@ -436,6 +455,8 @@ export enum Creature {
     Witch,
     WitchBlue,
     WitchGreen,
+
+    // ROW 19
     DragonRed,
     DragonPurple,
     DragonOrange,
@@ -454,6 +475,8 @@ export enum Creature {
     TwoHeadedOgre2,
     Fairy,
     Imp,
+
+    // ROW 21
     OrbThingBlue,
     OrbThingMagenta,
     Bulb,
@@ -473,3 +496,25 @@ export enum Creature {
     FireRed,
     FireBlue
 }
+
+export type TileRef = {
+    tileset: string
+    index: number
+}
+
+export const Creature = (() => {
+    const tilesByName: Record<string, TileRef> = {}
+
+    let offset = 0
+    for (const key in CreatureSequence) {
+        const creatureIndex = (CreatureSequence[key] as any) as number | string
+        if (_.isString(creatureIndex)) continue
+
+        if (creatureIndex % 18 === 0)
+            offset += 18
+
+        tilesByName[key] = { tileset: 'creatures', index: offset + creatureIndex }
+    }
+
+    return tilesByName as Record<keyof typeof CreatureSequence, TileRef>
+})()
