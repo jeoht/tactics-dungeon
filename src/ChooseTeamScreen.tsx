@@ -179,10 +179,7 @@ function InfoBox(props: { choice: Choice }) {
     return <InfoBoxDiv>
         <h2>{choice.name}</h2>
         <ul>
-            <li>He's a bird. Some kind of pigeon?</li>
-            <li>Can fly over difficult terrain and stuff</li>
-            <li>Might be good at singing</li>
-            <li>Beware peck</li>
+            <li>Should be centered on the li element</li>
         </ul>
     </InfoBoxDiv>
 }
