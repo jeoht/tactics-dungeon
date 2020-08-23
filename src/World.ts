@@ -1,8 +1,9 @@
 import _ = require("lodash")
-import { Class, Peep } from "./Peep"
+import { Peep } from "./Peep"
 import { Floor } from "./Floor"
 import { action, observable, computed } from "mobx"
 import { Inventory } from "./Inventory"
+import { PeepKind } from "./PeepKind"
 
 export class World {
     @observable peeps: Peep[]
@@ -71,7 +72,7 @@ export class World {
         this.peeps = []
         this.inventory = new Inventory()
         for (let i of _.range(4)) {
-            this.peeps.push(Peep.create({ class: Class.Esper }))
+            this.peeps.push(Peep.create({ kind: PeepKind.Esper }))
         }
 
         this.floorId = `1-1`

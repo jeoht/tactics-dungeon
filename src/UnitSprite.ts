@@ -15,7 +15,6 @@ export class UnitSprite implements SceneObject {
     board: CanvasBoard
     unit: Unit
     @observable pos: ScreenVector
-    tileset: Tileset
     moved: boolean = false
     alpha: number = 1
 
@@ -24,7 +23,6 @@ export class UnitSprite implements SceneObject {
         this.unit = unit
         this.moved = unit.moved
         this.pos = this.cell.pos
-        this.tileset = board.ui.assets.creatures
     }
 
     get timestamp() {
@@ -38,6 +36,10 @@ export class UnitSprite implements SceneObject {
         damage: number,
         resolve: () => void
     } | null = null
+
+    @computed get tileset() {
+        return this.board.ui.assets.getTileset(this.unit.tile.tilesetId)
+    }
 
     @computed get width() {
         return this.tileset.tileWidth
@@ -116,8 +118,7 @@ export class UnitSprite implements SceneObject {
         const { board, unit, moved, pos, timestamp } = this
         const altTile = timestamp % 500 >= 250
 
-        const row = Math.floor(unit.tileIndex / this.tileset.columns)
-        const tileIndex = unit.tileIndex + (row * this.tileset.columns)
+        const tileIndex = unit.tile.index
         const tile = tileIndex + (altTile ? this.tileset.columns : 0)
         const tileset = moved ? board.ui.assets.grayscaleCreatures : board.ui.assets.creatures
 

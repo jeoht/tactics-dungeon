@@ -66,7 +66,7 @@ export class Unit {
         if (this.team === Team.Player) {
             return this.peep.name
         } else {
-            return this.peep.class.name
+            return this.peep.kind.name
         }
     }
 
@@ -82,7 +82,7 @@ export class Unit {
         this.pos = cell.pos
     }
 
-    get tileIndex() { return this.peep.tileIndex }
+    get tile() { return this.peep.tile }
 
     /** Move along a given path, constrained by this unit's ability to do so */
     moveAlong(path: Cell[]) {

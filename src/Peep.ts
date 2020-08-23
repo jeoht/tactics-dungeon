@@ -3,9 +3,10 @@ import { nameByRace } from "fantasy-name-generator"
 import _ = require("lodash")
 
 import { uuid } from './util'
-import { Creature } from "./Tile"
+import { Creature, TileRef } from "./Tile"
 import { Weapon } from "./Weapon"
 import { Consumable } from "./Consumable"
+import { PeepKind, PeepKindId } from "./PeepKind"
 
 interface AbilityDef {
     name: string
@@ -46,57 +47,6 @@ export namespace Ability {
 
 export type AbilityId = keyof typeof Ability
 
-interface ClassDef {
-    name: string
-    abilities: { level: number, ability: Ability }[]
-    tileIndex: number
-}
-
-export class Class {
-    name: string
-    abilities: { level: number, ability: Ability }[]
-    tileIndex: number
-
-    constructor(def: ClassDef) {
-        this.name = def.name
-        this.abilities = def.abilities
-        this.tileIndex = def.tileIndex
-    }
-
-    @computed get id(): ClassId {
-        return this.name.replace(/ /g, '') as ClassId
-    }
-}
-
-export namespace Class {
-    export const Rookie = new Class({
-        name: "Rookie",
-        tileIndex: 47,
-        abilities: []
-    })
-    export const Esper = new Class({
-        name: "Esper",
-        tileIndex: 3,
-        abilities: [
-            { level: 1, ability: Ability.SenseThoughts },
-            { level: 2, ability: Ability.KineticHold },
-            { level: 2, ability: Ability.EmpathicBond },
-        ]
-    })
-    export const SunPaladin = new Class({
-        name: "Sun Paladin",
-        tileIndex: Creature.SunPaladin,
-        abilities: []
-    })
-    export const Skeleton = new Class({
-        name: "Skeleton",
-        abilities: [],
-        tileIndex: Creature.Skeleton
-    })
-}
-
-export type ClassId = keyof typeof Class
-
 
 /** 
  * Represents a unit's base state, before they're actually
@@ -104,8 +54,7 @@ export type ClassId = keyof typeof Class
  */
 export class Peep {
     @observable name: string
-    @observable gender: Gender
-    @observable classId: ClassId
+    @observable kindId: PeepKindId
     @observable level: number
     @observable learnedAbilityIds: AbilityId[] = []
     @observable weaponType: 'bow' | 'sword' = 'sword'
@@ -121,15 +70,14 @@ export class Peep {
 
     static create(props: Partial<Peep>) {
         return new Peep(uuid(), {
-            classId: props.class?.id,
+            kindId: props.kind?.id,
             ...props
         })
     }
 
     constructor(readonly id: string, props: Partial<Peep>) {
-        this.classId = props.classId || Class.Rookie.id
-        this.gender = props.gender || randomGender()
-        this.name = props.name || randomName(this.gender)
+        this.kindId = props.kindId || PeepKind.Bird.id
+        this.name = props.name || randomName()
         this.level = props.level || 1
         this.learnedAbilityIds = props.learnedAbilityIds || []
     }
@@ -138,58 +86,49 @@ export class Peep {
         return {
             id: this.id,
             name: this.name,
-            gender: this.gender,
-            classId: this.classId,
+            kindId: this.kindId,
             level: this.level,
             learnedAbilityIds: this.learnedAbilityIds
         }
     }
 
-    @computed get class(): Class {
-        return Class[this.classId]
+    @computed get kind(): PeepKind {
+        return PeepKind[this.kindId]
     }
 
-    set class(klass: Class) {
-        this.classId = klass.id
+    set kind(kind: PeepKind) {
+        this.kindId = kind.id
     }
 
-    @computed get tileIndex(): number {
-        return this.class.tileIndex
+    @computed get tile(): TileRef {
+        return this.kind.tile
     }
 
-    @computed get canPromote(): boolean {
-        return this.class === Class.Rookie && this.level > 1
-    }
+    // @computed get learnedAbilities(): Set<Ability> {
+    //     return new Set(this.learnedAbilityIds.map(id => Ability[id]))
+    // }
 
-    @computed get learnedAbilities(): Set<Ability> {
-        return new Set(this.learnedAbilityIds.map(id => Ability[id]))
-    }
+    // @computed get abilityLevels(): { level: number, abilities: Ability[] }[] {
+    //     const grouped = _(this.class.abilities).groupBy(d => d.level).value()
 
-    @computed get abilityLevels(): { level: number, abilities: Ability[] }[] {
-        const grouped = _(this.class.abilities).groupBy(d => d.level).value()
+    //     const abilityLevels = []
+    //     for (const level of _(grouped).keys().sortBy().value()) {
+    //         abilityLevels.push({
+    //             level: parseInt(level),
+    //             abilities: grouped[level].map(d => d.ability)
+    //         })
+    //     }
 
-        const abilityLevels = []
-        for (const level of _(grouped).keys().sortBy().value()) {
-            abilityLevels.push({
-                level: parseInt(level),
-                abilities: grouped[level].map(d => d.ability)
-            })
-        }
+    //     return abilityLevels
+    // }
 
-        return abilityLevels
-    }
+    // @action learn(ability: Ability) {
+    //     this.learnedAbilityIds.push(ability.id)
+    // }
 
-    @action promote() {
-        this.class = Class.Esper
-    }
-
-    @action learn(ability: Ability) {
-        this.learnedAbilityIds.push(ability.id)
-    }
-
-    knows(ability: Ability) {
-        return this.learnedAbilities.has(ability)
-    }
+    // knows(ability: Ability) {
+    //     return this.learnedAbilities.has(ability)
+    // }
 }
 
 export enum Gender {
@@ -212,7 +151,7 @@ function randomGender(): Gender {
         return _.sample(_.values(Gender)) as Gender
 }
 
-function randomName(gender: Gender): string {
+function randomName(gender?: Gender): string {
     if (gender === Gender.Boy)
         return nameByRace("human", { gender: "male" }) as string
     else if (gender === Gender.Girl)
@@ -222,7 +161,6 @@ function randomName(gender: Gender): string {
 }
 
 export type UnitSpec = {
-    class?: Class
+    kind?: PeepKind
     name?: string
-    gender?: Gender
 }

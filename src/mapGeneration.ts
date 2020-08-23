@@ -5,11 +5,12 @@ import _ = require("lodash");
 import { Floor } from "./Floor";
 import { Cell } from "./Cell";
 import { PointVector } from "./PointVector";
-import { Peep, Class } from "./Peep";
+import { Peep } from "./Peep";
 import { Team } from "./Unit";
 import { RNG } from "./RNG";
 import { Chest } from "./Chest";
 import { Potion } from "./Item";
+import { PeepKind } from "./PeepKind";
 
 function randomBlocks(rng: RNG): Block[] {
     if (rng.random() > 0.8) {
@@ -60,7 +61,7 @@ export function generateMap(map: Floor, opts: MapgenOpts) {
         if (cell === downstairCell) continue
 
         cell.blocks = [Block.Floor]
-        map.spawnUnit(Peep.create({ class: Class.Skeleton }), { cell: cell, team: Team.Enemy })
+        map.spawnUnit(Peep.create({ kind: PeepKind.Skeleton }), { cell: cell, team: Team.Enemy })
         enemies--
         if (enemies === 0) break
     }

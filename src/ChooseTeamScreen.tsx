@@ -7,24 +7,28 @@ import { Creature, TileRef } from "./Tile"
 import React = require("react")
 import { useLocalStore, useObserver } from "mobx-react-lite"
 import classNames = require("classnames")
+import { PeepKind } from "./PeepKind"
+import { World } from "./World"
+import { Peep } from "./Peep"
+import { UI } from "./UI"
 
 const ChooseTeamDiv = styled.div`
     h1 {
-        font-size: 2rem; 
+        font-size: 1rem; 
         text-align: center;
-        padding: 2rem;
+        padding: 1rem;
     }
 
     ul.team {
         list-style-type: none;
         display: flex;
         justify-content: space-between;
-        margin-top: 1rem;
-        padding: 0 2rem;
+        margin-top: 0.5rem;
+        padding: 0 1rem;
 
         li {
-            width: calc(4rem + 1.5rem);
-            height: calc(4rem + 1.5rem);
+            width: calc(2rem + 0.75rem);
+            height: calc(2rem + 0.75rem);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -82,6 +86,11 @@ const ChooseTeamDiv = styled.div`
             opacity: 0.8;
         }
     }
+
+    button {
+        width: 100%;
+        font-size: 1rem;
+    }
 `
 
 
@@ -92,56 +101,24 @@ type Choice = {
 }
 
 const CHOICES: Choice[] = [
-    {
-        name: "Ranger",
-        tile: Creature.Ranger
-    },
-    {
-        name: "Sun Paladin",
-        tile: Creature.SunPaladin
-    },
-    {
-        name: "Esper",
-        tile: Creature.Esper
-    },
-    {
-        name: "Druid",
-        tile: Creature.Druid
-    },
-    {
-        name: "Bird",
-        tile: Creature.Bird
-    },
-    {
-        name: "Some Guy",
-        tile: Creature.PikeHelmet2
-    },
-    {
-        name: "Witch",
-        tile: Creature.Witch
-    },
-    {
-        name: "Vampire",
-        tile: Creature.VampireRed,
-        locked: true
-    },
-    {
-        name: "Demon",
-        tile: Creature.DemonRed,
-        locked: true
-    },
-    {
-        name: "Drow Mage",
-        tile: Creature.DrowMage,
-        locked: true
-    },
+    PeepKind.SunPaladin,
+    PeepKind.Esper,
+    PeepKind.Ranger,
+    PeepKind.Sniper,
+    PeepKind.Bird
 ]
 
 class ChooseTeamState {
-    @observable.ref highlight: Choice | null = CHOICES[4]
+    @observable.ref highlight: Choice | null = null
     @observable team: (Choice | null)[] = [null, null, null, null]
 
+    constructor(readonly ui: UI, readonly world: World) {
+    }
+
     @action choose(choice: Choice) {
+        if (this.team.includes(choice))
+            return
+
         for (let i = 0; i < this.team.length; i++) {
             if (this.team[i] === null) {
                 this.team[i] = choice
@@ -150,8 +127,25 @@ class ChooseTeamState {
         }
     }
 
+    @action unchoose(choice: Choice) {
+        for (let i = 0; i < this.team.length; i++) {
+            if (this.team[i] === choice) {
+                this.team[i] = null
+            }
+        }
+    }
+
     @action setHighlight(choice: Choice) {
         this.highlight = choice
+    }
+
+    @action.bound startGame() {
+        if (this.team.includes(null))
+            return
+
+        const team = this.team as PeepKind[]
+        this.world.peeps = team.map(choice => Peep.create({ kind: choice }))
+        this.ui.goto('dungeon')
     }
 }
 
@@ -187,27 +181,28 @@ function InfoBox(props: { choice: Choice }) {
 export function ChooseTeamScreen() {
     const { world, ui } = useContext(GameContext)
 
-    const state = useLocalStore(() => new ChooseTeamState())
+    const state = useLocalStore(() => new ChooseTeamState(ui, world))
 
     return useObserver(() => <ChooseTeamDiv>
         <h1>
             Choose Your Team
         </h1>
         <ul className="team">
-            {state.team.map((choice, i) => <li key={i}>
-                {choice === null ? "Empty" : <img src={ui.assets.tileToDataUrl2(choice.tile)} />}
+            {state.team.map((choice, i) => <li key={i} onClick={() => choice && state.unchoose(choice)}>
+                {choice === null ? "Empty" : <img src={ui.assets.tileToDataUrl(choice.tile)} />}
             </li>)}
             {/* Chosen team goes here */}
         </ul>
         <ul className="choices">
             {CHOICES.map(choice => {
-                const dataUrl = ui.assets.tileToDataUrl2(choice.tile)
+                const dataUrl = ui.assets.tileToDataUrl(choice.tile)
 
-                return <li className={classNames(choice.locked && "locked", (choice === state.highlight) && 'highlight')} key={choice.name} onClick={() => state.setHighlight(choice)}>
+                return <li className={classNames(choice.locked && "locked", (choice === state.highlight) && 'highlight')} key={choice.name} onClick={() => state.choose(choice)}>
                     <img src={dataUrl} />
                 </li>
             })}
         </ul>
         {state.highlight && <InfoBox choice={state.highlight} />}
-    </ChooseTeamDiv>)
+        <button className="btn" onClick={state.startGame} disabled={state.team.includes(null)}>Start</button>
+    </ChooseTeamDiv >)
 }

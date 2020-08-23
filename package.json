@@ -4,7 +4,7 @@
     "dev": "webpack-dev-server",
     "build": "rm -rf build/* && webpack -p && cap copy",
     "predeploy": "yarn build",
-    "deploy": "gh-pages -d build"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@capacitor/cli": "^2.1.0",

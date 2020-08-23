@@ -498,7 +498,7 @@ export enum CreatureSequence {
 }
 
 export type TileRef = {
-    tileset: string
+    tilesetId: string
     index: number
 }
 
@@ -510,10 +510,10 @@ export const Creature = (() => {
         const creatureIndex = (CreatureSequence[key] as any) as number | string
         if (_.isString(creatureIndex)) continue
 
-        if (creatureIndex % 18 === 0)
+        if (creatureIndex > 0 && creatureIndex % 18 === 0)
             offset += 18
 
-        tilesByName[key] = { tileset: 'creatures', index: offset + creatureIndex }
+        tilesByName[key] = { tilesetId: 'creatures', index: offset + creatureIndex }
     }
 
     return tilesByName as Record<keyof typeof CreatureSequence, TileRef>
