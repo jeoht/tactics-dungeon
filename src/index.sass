@@ -1,19 +1,17 @@
 @import "node_modules/bootstrap/scss/bootstrap.scss"
 
 @font-face
-	font-family: "Pixeled"
-	src: url("/Pixeled.ttf")
-
-@font-face
-	font-family: "pixelmix"
-	src: url("/pixelmix.ttf")
+	font-family: "pixelfont"
+	src: url("/pixelfont.ttf")
 
 html, body
 	margin: 0
 	height: 100%
-	font-family: "pixelmix"
+	font-family: "pixelfont"
 	font-size: 12px
 	font-weight: 400
+	font-smooth: never
+	-webkit-font-smoothing: none
 
 body
 	width: 100%
@@ -27,6 +25,7 @@ body
 	position: fixed
 	display: flex
 	justify-content: center
+	vertical-align: middle
 
 #root
 	position: relative

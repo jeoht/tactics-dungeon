@@ -3,3 +3,4 @@ build
 node_modules
 .awcache
 .netlify
+.DS_Store
