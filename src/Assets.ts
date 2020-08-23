@@ -43,17 +43,12 @@ export class Assets {
         this.iconitems = new Tileset(iconic, 16, 16)
     }
 
-
-    tileToDataUrl(tileset: Tileset, tileIndex: number): string {
-        const { canvas, ctx } = this.imgRefiner
-        canvas.width = tileset.tileWidth
-        canvas.height = tileset.tileHeight
-        tileset.drawTile(ctx, tileIndex, 0, 0, canvas.width, canvas.height)
-        return canvas.toDataURL()
+    getTileset(tilesetId: string) {
+        return (this as any)[tilesetId] as Tileset
     }
 
-    tileToDataUrl2(tile: TileRef): string {
-        const tileset = (this as any)[tile.tileset] as Tileset
+    tileToDataUrl(tile: TileRef): string {
+        const tileset = this.getTileset(tile.tilesetId)
         const { canvas, ctx } = this.imgRefiner
         canvas.width = tileset.tileWidth
         canvas.height = tileset.tileHeight
