@@ -314,10 +314,10 @@ export class TouchInterface {
             // Draw the unit at the current cursor position
             if (drag) {
                 const pos = drag.cursorPos.subtract(drag.cursorOffset)
-                board.ui.assets.creatures.drawTile(ctx, plan.unit.tileIndex, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
+                board.ui.assets.creatures.drawTile(ctx, plan.unit.tile.index, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
             } else if (finalPathCell) {
                 const pos = board.get(finalPathCell).pos
-                board.ui.assets.creatures.drawTile(ctx, plan.unit.tileIndex, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
+                board.ui.assets.creatures.drawTile(ctx, plan.unit.tile.index, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
             }
         }
     }

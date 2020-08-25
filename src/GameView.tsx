@@ -86,20 +86,20 @@ function CurrentScreen() {
             return <TeamScreen />
         } else if (ui.screen.id === 'peep') {
             return <PeepScreen peepId={ui.screen.peepId} tab={ui.screen.tab} />
-        } else if (world.floor) {
+        } else {
+            if (!world.floor)
+                throw new Error(`No floor for screen ${ui.screen.id}`)
             const context = { ui: ui, world: world, floor: world.floor }
             return <FloorContext.Provider value={context}>
                 <BoardHeader />
                 <div className="boardContainer">
                     <BoardCanvas />
-                    <MessageLog />
+                    {/* <MessageLog /> */}
                 </div>
                 <BoardFooter />
                 {ui.screen.id === 'floorCleared' && <FloorCleared />}
                 {ui.screen.id === 'help' && <HelpOverlay />}
             </FloorContext.Provider>
-        } else {
-            return null
         }
     })
 }
