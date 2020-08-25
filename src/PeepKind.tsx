@@ -4,15 +4,23 @@ import { computed } from "mobx"
 interface PeepKindDef {
     name: string
     tile: TileRef
+    attackRange?: number
 }
 
 export class PeepKind {
-    name: string
-    tile: TileRef
+    constructor(readonly def: PeepKindDef) {
+    }
 
-    constructor(def: PeepKindDef) {
-        this.name = def.name
-        this.tile = def.tile
+    get name(): string {
+        return this.def.name
+    }
+
+    get tile(): TileRef {
+        return this.def.tile
+    }
+
+    get attackRange(): number {
+        return this.def.attackRange || 1
     }
 
     @computed get id(): PeepKindId {
@@ -35,7 +43,8 @@ export namespace PeepKind {
     })
     export const Sniper = new PeepKind({
         name: "Sniper",
-        tile: Creature.Sniper
+        tile: Creature.Sniper,
+        attackRange: 2
     })
     export const Bird = new PeepKind({
         name: "Bird",

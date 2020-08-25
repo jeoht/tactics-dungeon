@@ -36,7 +36,7 @@ export class Game {
 
     @action load(save: Game['save']) {
         this.world = World.load(save.world)
-        this.ui.screen = save.screen
+        this.ui.goto(save.screen)
     }
 
     @action clearSave() {

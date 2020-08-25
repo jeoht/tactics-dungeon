@@ -11,9 +11,9 @@ export class Debug {
         this.game = game
         window.debug = this
         window.game = game
-        window.world = game.world
         window.ui = game.ui
 
+        autorun(() => window.world = game.world)
         autorun(() => window.floor = game.world.floor)
         autorun(() => window.board = game.ui.board)
     }

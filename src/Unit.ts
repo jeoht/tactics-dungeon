@@ -71,7 +71,7 @@ export class Unit {
     }
 
     @computed get attackRange(): number {
-        return this.peep.weaponType === 'bow' ? 3 : 1
+        return this.peep.kind.attackRange
     }
 
     @computed get cell(): Cell {
@@ -125,7 +125,11 @@ export class Unit {
     }
 
     canAttackCellFrom(cell: Cell, target: Cell) {
-        return cell.isAdjacentTo(target)
+        if (this.attackRange === 1)
+            return cell.isAdjacentTo(target)
+        else {
+            return cell.pos.manhattanDistance(target.pos) === this.attackRange
+        }
         // const line = cell.lineOfSight(target)
         // return !!(line && line.length <= this.attackRange)
     }

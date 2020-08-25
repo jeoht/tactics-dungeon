@@ -38,8 +38,6 @@ async function main() {
     const save = JSON.parse(localStorage.getItem('save') || "null")
     const game = new Game(world, ui, save)
 
-
-
     const root = document.querySelector("#root")!
     ReactDOM.render(<GameView game={game} />, root)
 
