@@ -44,7 +44,11 @@ export class Assets {
     }
 
     getTileset(tilesetId: string) {
-        return (this as any)[tilesetId] as Tileset
+        const tileset = (this as any)[tilesetId] as Tileset | undefined
+        if (!tileset) {
+            throw new Error(`No such tileset ${tilesetId}`)
+        }
+        return tileset
     }
 
     tileToDataUrl(tile: TileRef): string {

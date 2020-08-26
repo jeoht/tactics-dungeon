@@ -150,7 +150,7 @@ export class CanvasBoard implements Tickable {
         }
 
         for (const sprite of this.unitSprites) {
-            sprite.drawHealthBar(ctx)
+            sprite.drawHealthPips(ctx)
         }
 
         touch.draw(ctx)

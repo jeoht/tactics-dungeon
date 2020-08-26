@@ -1,7 +1,6 @@
 import { Unit, Team } from "./Unit"
 import { observable, computed } from "mobx"
 import { ScreenVector } from "./ScreenVector"
-import { Tileset } from "./Tileset"
 import { Cell } from "./Cell"
 import { CanvasBoard } from "./CanvasBoard"
 import { CellSprite } from "./CellSprite"
@@ -225,8 +224,8 @@ export class UnitSprite implements SceneObject {
         ctx.stroke()
     }
 
-    drawHealthBar(ctx: CanvasRenderingContext2D) {
-        const { unit, bottomLeft, width, height } = this
+    drawHealthPips(ctx: CanvasRenderingContext2D) {
+        const { unit, bottomLeft, width } = this
         if (unit.defeated) return
 
         if (this.unit.team === Team.Player) {
@@ -239,12 +238,23 @@ export class UnitSprite implements SceneObject {
             ctx.lineWidth = 0.5
         }
 
-        const barHeight = 1.5
-        const padWidth = 2
-        const barWidth = width - padWidth * 2 - 5
-        const fillWidth = unit.fracHealth * barWidth
-        ctx.fillRect(bottomLeft.x + padWidth + 5, bottomLeft.y - barHeight - 1, fillWidth, barHeight)
-        ctx.strokeRect(bottomLeft.x + padWidth + 5, bottomLeft.y - barHeight - 1, barWidth, barHeight)
+        const pipHeight = 1.5
+        const pips = unit.maxHealth
+        const filledPips = unit.health
+        const spacing = 1
+        const pipWidth = (width / pips) - spacing
+
+        for (let i = 0; i < pips; i++) {
+            const pipLeft = bottomLeft.x + i * pipWidth + i * spacing
+
+            ctx.strokeRect(pipLeft, bottomLeft.y - pipHeight, pipWidth, pipHeight)
+            if (i < filledPips)
+                ctx.fillRect(pipLeft, bottomLeft.y - pipHeight, pipWidth, pipHeight)
+        }
+        // ctx.fillRect(bottomLeft.x + padWidth + 5, bottomLeft.y - barHeight - 1, fillWidth, barHeight)
+        // ctx.strokeRect(bottomLeft.x + padWidth + 5, bottomLeft.y - barHeight - 1, barWidth, barHeight)
+
+        // Now do the text
 
         if (this.unit.team === Team.Player) {
             ctx.fillStyle = "rgba(86, 194, 236, 0.9)"
@@ -254,8 +264,7 @@ export class UnitSprite implements SceneObject {
 
         ctx.textAlign = 'left'
         ctx.textBaseline = 'middle'
-        ctx.font = "bold 5px pixelmix"
-        ctx.fillText(unit.health.toString().padStart(2, '0'), bottomLeft.x, bottomLeft.y - barHeight - 1)
-
+        ctx.font = "bold 5px pixelfont"
+        ctx.fillText(unit.health.toString(), bottomLeft.x, bottomLeft.y - pipHeight)
     }
 }   
