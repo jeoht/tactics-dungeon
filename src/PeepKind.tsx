@@ -5,6 +5,7 @@ interface PeepKindDef {
     name: string
     tile: TileRef
     attackRange?: number
+    maxHealth?: number
 }
 
 export class PeepKind {
@@ -23,6 +24,10 @@ export class PeepKind {
         return this.def.attackRange || 1
     }
 
+    get maxHealth(): number {
+        return this.def.maxHealth || 3
+    }
+
     @computed get id(): PeepKindId {
         return this.name.replace(/ /g, '') as PeepKindId
     }
@@ -35,7 +40,8 @@ export namespace PeepKind {
     })
     export const SunPaladin = new PeepKind({
         name: "Sun Paladin",
-        tile: Creature.SunPaladin
+        tile: Creature.SunPaladin,
+        maxHealth: 5
     })
     export const Ranger = new PeepKind({
         name: "Ranger",
@@ -48,12 +54,14 @@ export namespace PeepKind {
     })
     export const Bird = new PeepKind({
         name: "Bird",
-        tile: Creature.Bird
+        tile: Creature.Bird,
+        maxHealth: 2
     })
 
     export const Skeleton = new PeepKind({
         name: "Skeleton",
-        tile: Creature.Skeleton
+        tile: Creature.Skeleton,
+        maxHealth: 2
     })
 }
 

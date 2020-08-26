@@ -225,7 +225,7 @@ export class UnitSprite implements SceneObject {
     }
 
     drawHealthPips(ctx: CanvasRenderingContext2D) {
-        const { unit, bottomLeft, width } = this
+        const { unit, bottomLeft, bottomRight } = this
         if (unit.defeated) return
 
         if (this.unit.team === Team.Player) {
@@ -241,11 +241,16 @@ export class UnitSprite implements SceneObject {
         const pipHeight = 1.5
         const pips = unit.maxHealth
         const filledPips = unit.health
-        const spacing = 1
-        const pipWidth = (width / pips) - spacing
+
+        const spacing = 2
+        const pipsStartX = bottomLeft.x + spacing
+        const pipsEndX = bottomRight.x
+        const pipsTotalWidth = pipsEndX - pipsStartX
+
+        const pipWidth = (pipsTotalWidth / pips) - spacing
 
         for (let i = 0; i < pips; i++) {
-            const pipLeft = bottomLeft.x + i * pipWidth + i * spacing
+            const pipLeft = pipsStartX + i * pipWidth + i * spacing
 
             ctx.strokeRect(pipLeft, bottomLeft.y - pipHeight, pipWidth, pipHeight)
             if (i < filledPips)
@@ -264,7 +269,7 @@ export class UnitSprite implements SceneObject {
 
         ctx.textAlign = 'left'
         ctx.textBaseline = 'middle'
-        ctx.font = "bold 5px pixelfont"
-        ctx.fillText(unit.health.toString(), bottomLeft.x, bottomLeft.y - pipHeight)
+        ctx.font = "bold 0.2rem pixelfont"
+        ctx.fillText(unit.health.toString(), bottomLeft.x, bottomLeft.y - pipHeight - 2)
     }
 }   

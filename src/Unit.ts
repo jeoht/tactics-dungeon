@@ -19,8 +19,7 @@ export class Unit {
     @observable moved: boolean
     @observable moveRange: number
     @observable inventory: Item[]
-    @observable health: number
-    @observable maxHealth: number
+    @observable damage: number
 
     static load(floor: Floor, save: Unit['save']) {
         return new Unit(floor, Peep.load(save.peep), {
@@ -40,8 +39,7 @@ export class Unit {
         this.moved = props.moved ?? false
         this.moveRange = props.moveRange ?? 3
         this.inventory = props.inventory ?? [Scroll.create("teleport")]
-        this.health = props.health ?? 3
-        this.maxHealth = props.maxHealth ?? 3
+        this.damage = props.damage ?? 0
     }
 
     @computed get save() {
@@ -53,9 +51,16 @@ export class Unit {
             moved: this.moved,
             moveRange: this.moveRange,
             inventory: this.inventory.map(i => i.save),
-            health: this.health,
-            maxHealth: this.maxHealth
+            damage: this.damage
         }
+    }
+
+    @computed get maxHealth() {
+        return this.peep.kind.maxHealth
+    }
+
+    @computed get health() {
+        return this.maxHealth - this.damage
     }
 
     @computed get defeated() {
@@ -199,13 +204,13 @@ export class Unit {
         const damage = 1
         this.cell.floor.event({ type: 'attack', unit: this, target: enemy, damage: damage })
 
-        enemy.health -= damage
+        enemy.damage += damage
         if (enemy.health <= 0) {
-            enemy.defeat(this)
+            enemy.defeatedBy(this)
         }
     }
 
-    @action defeat(by?: Unit) {
+    @action defeatedBy(by?: Unit) {
         const { floor } = this
         floor.event({ type: 'defeated', unit: this, by: by })
         floor.removeUnit(this)
@@ -299,7 +304,7 @@ export class Unit {
     }
 
     @action heal(amount: number) {
-        this.health = Math.min(this.maxHealth, this.health + amount)
+        this.damage = Math.max(0, this.damage - amount)
     }
 
     @action removeItem(item: Item) {
