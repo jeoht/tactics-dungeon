@@ -46,15 +46,15 @@ export function generateMap(map: Floor, opts: MapgenOpts) {
     const downstairCell = rng.sampleBest(map.cells, c => Math.min(height, c.pos.manhattanDistance(upstairCell.pos)))
     downstairCell.blocks = [Block.Floor, Block.DownStair]
 
-    let cell = rng.sampleFind(map.cells, cell => cell.pathable)
-    if (cell) {
-        cell.add(Chest.create(Potion.create("healing")))
-    }
+    // let cell = rng.sampleFind(map.cells, cell => cell.pathable)
+    // if (cell) {
+    //     cell.add(Chest.create(Potion.create("healing")))
+    // }
 
-    cell = rng.sampleFind(map.cells, cell => cell.pathable)
-    if (cell) {
-        cell.add(Potion.create("healing"))
-    }
+    // cell = rng.sampleFind(map.cells, cell => cell.pathable)
+    // if (cell) {
+    //     cell.add(Potion.create("healing"))
+    // }
 
     let enemies = 4
     for (const cell of _.sortBy(map.cells, c => c.pos.manhattanDistance(downstairCell.pos))) {
