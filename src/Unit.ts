@@ -40,8 +40,8 @@ export class Unit {
         this.moved = props.moved ?? false
         this.moveRange = props.moveRange ?? 3
         this.inventory = props.inventory ?? [Scroll.create("teleport")]
-        this.health = props.health ?? 10
-        this.maxHealth = props.maxHealth ?? 10
+        this.health = props.health ?? 3
+        this.maxHealth = props.maxHealth ?? 3
     }
 
     @computed get save() {
@@ -154,7 +154,7 @@ export class Unit {
         return this.cell.floor.units.filter(u => u.team === this.team)
     }
 
-    /** Find all cells which this unit could occupy in a single move. */
+    /** Find all cells which this unit could occupy in a single m   ove. */
     @computed get reachableUnoccupiedCells(): Cell[] {
         return dijkstraRange({
             start: this.cell,
@@ -196,7 +196,7 @@ export class Unit {
     }
 
     @action attack(enemy: Unit) {
-        const damage = 4
+        const damage = 1
         this.cell.floor.event({ type: 'attack', unit: this, target: enemy, damage: damage })
 
         enemy.health -= damage

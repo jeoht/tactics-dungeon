@@ -8,6 +8,6 @@ export function PeepBadge(props: { peep: Peep }) {
     const { peep } = props
     const { ui } = useContext(GameContext)
 
-    const dataUrl = ui.assets.tileToDataUrl(ui.assets.creatures, peep.tileIndex)
-    return <img src={dataUrl}/>
+    const dataUrl = ui.assets.tileToDataUrl(peep.tile)
+    return <img src={dataUrl} />
 }
