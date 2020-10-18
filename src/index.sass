@@ -141,53 +141,6 @@ canvas#board
 	li
 		margin-bottom: 1rem
 
-.FloorCleared
-	@extend .overlay
-	color: #feffa8
-	display: flex
-	flex-direction: column
-	align-items: center
-
-	text-align: center
-	h1
-		font-size: 2rem
-		padding-top: 3rem
-
-	.floor
-		animation: pop 0.25s ease-in-out
-
-	@keyframes pop
-		0%
-			opacity: 0
-
-		50%
-			opacity: 0.5
-			transform: scale(1.25)
-
-	.cleared
-		transform: translateX(-500px)
-		animation: zoomin 0.1s ease-in-out forwards
-		animation-delay: 0.5s
-
-	@keyframes zoomin
-		0%
-			opacity: 0
-			transform: translateX(-500px)
-		50%
-			transform: translateX(-250px)
-		100%
-			opacity: 1
-			transform: translateX(0px)
-
-	.items
-		p
-			color: white
-			font-size: 0.9rem
-
-	.continue
-		margin-top: 5rem
-		font-size: 0.9rem
-
 .td-btn
 	border: 0
 	border-radius: 4px
@@ -196,22 +149,6 @@ canvas#board
 	background: none
 	color: #feffa8
 	font: inherit
-
-.unitReports
-	color: white
-	font-size: 0.8rem
-	text-align: left
-
-	td:first-child
-		display: flex
-		align-items: center
-		padding-right: 1rem
-
-	img
-		padding-right: 0.3rem
-
-	.levelUp
-		color: #feffa8
 
 .PeepScreen
 	background: rgba(0, 0, 0, 0.8)

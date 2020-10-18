@@ -13,7 +13,7 @@ export type PeepScreenRef = {
 }
 
 export type SimpleScreenId = 'titleScreen' | 'chooseTeam' | 'dungeon' | 'board' | 'enemyPhase' | 'event' | 'floorCleared' | 'team' | 'help'
-export type ScreenRef = { id: SimpleScreenId } | PeepScreenRef
+export type ScreenRef = { id: SimpleScreenId } | PeepScreenRef | { id: 'upgrade', peepId: string }
 
 export class UI {
     @observable screen: ScreenRef = { id: 'titleScreen' }

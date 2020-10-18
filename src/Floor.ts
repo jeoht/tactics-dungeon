@@ -67,16 +67,19 @@ type BasicFloorEventType = 'floorCleared' | 'floorFailed'
 
 export type FloorEvent = { type: BasicFloorEventType } | AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent | DefeatedEvent | OpenChestEvent | PickupItemEvent
 
+/** An active floor in gameplay */
 export class Floor {
     @observable cells: Cell[]
     @observable units: Unit[]
     @observable phase: Team
     biome: Biome
     seed: string
-
     @observable eventLog: FloorEvent[] = []
     disposers: IReactionDisposer[] = []
     ai: AI
+
+    /** Set when the floor is completed or failed */
+    finished: boolean = false
 
     static load(save: Partial<Floor['save']>): Floor {
         const floor = new Floor(_.omit(save, 'cells', 'units'))
@@ -113,14 +116,14 @@ export class Floor {
     prepare() {
         // Victory condition
         this.disposers.push(autorun(() => {
-            if (this.units.length && this.units.every(u => u.team === Team.Player)) {
+            if (this.units.length && this.units.every(u => u.team === Team.Player) && !this.complete) {
                 this.event('floorCleared')
             }
         }))
 
         // Loss condition
         this.disposers.push(autorun(() => {
-            if (this.units.length && this.units.every(u => u.team === Team.Enemy)) {
+            if (this.units.length && this.units.every(u => u.team === Team.Enemy) && !this.complete) {
                 this.event('floorFailed')
             }
         }))
