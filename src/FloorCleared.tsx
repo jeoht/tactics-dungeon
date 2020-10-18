@@ -4,40 +4,126 @@ import { action } from "mobx"
 
 import { Unit } from "./Unit"
 import { PeepBadge } from "./PeepBadge"
-import { GameContext, FloorContext } from "./GameView"
+import { FloorContext } from "./GameView"
+import styled from "styled-components"
+import { Overlay } from "./Overlay"
 
 function UnitReport(props: { unit: Unit }) {
+    const { ui } = useContext(FloorContext)
     const { unit } = props
 
-    return <tr className="UnitReport">
-        <td><PeepBadge peep={unit.peep}/> {unit.peep.name}</td>
-        <td><span className="levelUp">Level Up!</span></td>
-    </tr>
+    return <li onClick={() => ui.goto({ id: 'upgrade', peepId: unit.peep.id })}>
+        <PeepBadge peep={unit.peep} /> {unit.peep.name}
+    </li>
 }
+
+const FloorClearedDiv = styled.div`
+	color: #feffa8;
+    height: 100%;
+	display: flex;
+	align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    > div {
+        flex-grow: 1;
+    }
+
+	h1 {
+		font-size: 2rem;
+    }
+
+	.floor {
+		animation: pop 0.25s ease-in-out;
+    }
+
+	@keyframes pop {
+		0% {
+			opacity: 0;
+        }
+		50% {
+			opacity: 0.5;
+			transform: scale(1.25);
+        }
+    }
+
+
+	.cleared {
+		transform: translateX(-500px);
+		animation: zoomin 0.1s ease-in-out forwards;
+		animation-delay: 0.5s;
+    }
+
+	@keyframes zoomin {
+		0% {
+			opacity: 0;
+			transform: translateX(-500px);
+        }
+		50% {
+			transform: translateX(-250px);
+        }
+		100% {
+			opacity: 1;
+			transform: translateX(0px);
+        }
+    }
+
+	.items p {
+        color: white;
+        font-size: 0.9rem;
+    }
+
+	.continue {
+		margin-top: 5rem;
+		font-size: 0.9rem;
+    }
+
+    ul {
+        list-style-type: none;
+        width: 100%;
+        max-width: 90vw;
+        margin: auto;
+        padding: 0;
+    }
+
+    li {
+        color: white;
+        font-size: 0.8rem;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.8rem;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        background: #000;
+
+        img {
+            padding-right: 0.3rem;
+            width: 2rem;
+        }
+    }
+`
 
 export function FloorCleared() {
     const { ui, floor } = useContext(FloorContext)
 
-    const onwards = action(() => {
-        ui.goto('dungeon')
-    })
-
-    return <div className="FloorCleared">
-        <h1>
-            <div className="floor">Floor 1</div>
-            <div className="cleared">Cleared!</div>
-        </h1>
-        <table className="unitReports">
-            <tbody>
-                {floor.playerUnits.map((u, i) => <UnitReport key={i} unit={u}/>)}
-            </tbody>
-        </table>
-        {/* <section className="items">
-            <h3>Items</h3>
-            <p>No items acquired.</p>
-        </section> */}
-        <button onClick={onwards} className="btn continue">
-            Continue
-        </button>
-    </div>
+    return <Overlay>
+        <FloorClearedDiv>
+            <div>
+                <h1>
+                    <div className="floor">Floor 1</div>
+                    <div className="cleared">Cleared!</div>
+                </h1>
+                <p>Choose a character to upgrade</p>
+                <ul>
+                    {floor.playerUnits.map((u, i) => <UnitReport key={i} unit={u} />)}
+                </ul>
+            </div>
+            {/* <section className="items">
+                <h3>Items</h3>
+                <p>No items acquired.</p>
+            </section> */}
+        </FloorClearedDiv>
+    </Overlay>
 }

@@ -24,11 +24,11 @@ function AbilitiesTab(props: { peep: Peep }) {
                     <p>{ability.description}</p>
                 </button>)}
             </section>)}
-        </div>    
+        </div>
     })
 }
 
-type EquipmentSlot = 'weapon'|'item1'|'item2'
+type EquipmentSlot = 'weapon' | 'item1' | 'item2'
 
 function EquipmentPicker(props: { peep: Peep, slot: EquipmentSlot, done: () => void }) {
     const { peep, slot, done } = props
@@ -42,7 +42,7 @@ function EquipmentPicker(props: { peep: Peep, slot: EquipmentSlot, done: () => v
     }
 
     return <div className="EquipmentPicker overlay">
-        <button className="back" onClick={done}/>
+        <button className="back" onClick={done} />
         <ul>
             {stacks.map(stack => <li key={stack.item.id}>
 
@@ -58,7 +58,7 @@ function EquipmentTab(props: { peep: Peep }) {
 
     return useObserver(() => {
         return <div className="EquipmentTab">
-            {state.editingSlot && <EquipmentPicker peep={peep} slot={state.editingSlot} done={action(() => state.editingSlot = undefined)}/>}
+            {state.editingSlot && <EquipmentPicker peep={peep} slot={state.editingSlot} done={action(() => state.editingSlot = undefined)} />}
             <section>
                 <h3>Weapon</h3>
                 <button className="btn ability" onClick={action(() => state.editingSlot = 'weapon')}>
@@ -95,7 +95,7 @@ function EquipmentTab(props: { peep: Peep }) {
     })
 }
 
-export function PeepScreen(props: { peepId: string, tab: 'equipment'|'abilities' }) {
+export function PeepScreen(props: { peepId: string, tab: 'equipment' | 'abilities' }) {
     const { peepId, tab } = props
     const { world, ui } = useContext(GameContext)
     const peep = world.peeps.find(p => p.id === peepId)!
@@ -107,27 +107,27 @@ export function PeepScreen(props: { peepId: string, tab: 'equipment'|'abilities'
     const back = () => ui.goto('team')
     const gotoEquipment = () => ui.goto({ id: 'peep', peepId: peepId, tab: 'equipment' })
     const gotoAbilities = () => ui.goto({ id: 'peep', peepId: peepId, tab: 'abilities' })
-    const promote = () => peep.promote()
+    // const promote = () => peep.promote()
 
     return useObserver(() => {
         return <div className="menu PeepScreen">
             <header className="d-flex align-items-center">
-                <button className="back" onClick={back}/>
-                <PeepBadge peep={peep}/>
+                <button className="back" onClick={back} />
+                <PeepBadge peep={peep} />
                 <div>
-                    <input className="name" type="text" value={peep.name} onChange={changeName}/>
-                    <br/><span className={`unitClass ${peep.class.name.replace(' ', '')}`}>{peep.class.name}</span>
+                    <input className="name" type="text" value={peep.name} onChange={changeName} />
+                    <br /><span className={`unitClass ${peep.kind.name.replace(' ', '')}`}>{peep.kind.name}</span>
                     {}
                 </div>
             </header>
-            {peep.canPromote && <section>
+            {/* {peep.canPromote && <section>
                 <button className="btn promote" onClick={promote}>Promote Unit</button>
             </section>}
             <div className="tabs">
                 <button onClick={gotoEquipment}>Equipment</button>
                 <button onClick={gotoAbilities}>Abilities</button>
             </div>
-            {tab === 'equipment' ? <EquipmentTab peep={peep}/> : <AbilitiesTab peep={peep}/>}
+            {tab === 'equipment' ? <EquipmentTab peep={peep}/> : <AbilitiesTab peep={peep}/>} */}
         </div>
     })
 }
