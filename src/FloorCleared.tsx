@@ -26,6 +26,7 @@ const FloorClearedDiv = styled.div`
     text-align: center;
 
     > div {
+        margin-top: -1rem;
         flex-grow: 1;
     }
 
@@ -95,7 +96,7 @@ const FloorClearedDiv = styled.div`
         justify-content: center;
         margin-bottom: 0.8rem;
         padding: 1rem;
-        border: 1px solid #ccc;
+        border: 0.1rem solid #999;
         background: #000;
 
         img {

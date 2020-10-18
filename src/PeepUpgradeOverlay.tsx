@@ -13,7 +13,6 @@ const PeepUpgradeDiv = styled.div`
     justify-content: center;
 
     > div {
-        border: 1px solid #ccc;
         width: 100%;
         max-width: 90vw;
     }
@@ -25,6 +24,7 @@ const PeepUpgradeDiv = styled.div`
         display: flex;
         align-items: center;
         justify-content: center;
+        margin-bottom: 0.5rem;
 
         img {
             width: 1.2rem;
@@ -39,18 +39,29 @@ const PeepUpgradeDiv = styled.div`
     }
 
     li {
-        background-color: #333;
-        padding: 0.2rem;
+        background-color: #000;
+        padding: 1rem 0.8rem;
+        border: 0.1rem solid #999;
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.8rem;
+
+        img {
+            min-width: 1.8rem;
+            min-height: 1.8rem;
+            margin-right: 0.5rem;
+        }
+
+        h4 {
+            font-size: 1rem;
+        }
+
+        p {
+            font-size: 0.5rem;
+            margin: 0;
+        }
     }
 
-    h4 {
-        font-size: 1rem;
-    }
-
-    p {
-        font-size: 0.5rem;
-        margin: 0;
-    }
 `
 
 export function PeepUpgradeOverlay(props: { peepId: string }) {
@@ -60,9 +71,19 @@ export function PeepUpgradeOverlay(props: { peepId: string }) {
     const upgrades = [
         {
             name: "Counter",
-            desc: "Strike back against melee attacks."
+            desc: "Strike back against melee attacks.",
+            icon: ui.assets.tileToDataUrl({ tilesetId: 'items', index: 209 })
         },
-
+        {
+            name: "Swap",
+            desc: "Move into an ally to swap places.",
+            icon: ui.assets.tileToDataUrl({ tilesetId: 'items', index: 227 })
+        },
+        {
+            name: "Sunburst",
+            desc: "Once per floor, deal 1 damage in radius 2 around unit.",
+            icon: ui.assets.tileToDataUrl({ tilesetId: 'items', index: 101 })
+        }
     ]
 
     const doUpgrade = action((upgrade: any) => {
@@ -77,7 +98,7 @@ export function PeepUpgradeOverlay(props: { peepId: string }) {
                 </header>
                 <ul>
                     {upgrades.map(upgrade => <li onClick={() => doUpgrade(upgrade)} key={upgrade.name}>
-
+                        <img src={upgrade.icon} />
                         <div>
                             <h4>{upgrade.name}</h4>
                             <p>{upgrade.desc}</p>
