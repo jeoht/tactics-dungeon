@@ -18,6 +18,7 @@ import { TeamScreen } from './TeamScreen'
 import { MessageLog } from './MessageLog'
 import { ChooseTeamScreen } from './ChooseTeamScreen'
 import { PeepUpgradeOverlay } from './PeepUpgradeOverlay'
+import { FloorIntroOverlay } from './FloorIntroOverlay'
 
 export const GameContext = React.createContext<{ game: Game, ui: UI, world: World }>({} as any)
 export const FloorContext = React.createContext<{ ui: UI, world: World, floor: Floor }>({} as any)
@@ -100,6 +101,7 @@ function CurrentScreen() {
                 <BoardFooter />
                 {ui.screen.id === 'floorCleared' && <FloorCleared />}
                 {ui.screen.id === 'upgrade' && <PeepUpgradeOverlay peepId={ui.screen.peepId} />}
+                {ui.screen.id === 'floorIntro' && <FloorIntroOverlay />}
                 {ui.screen.id === 'help' && <HelpOverlay />}
             </FloorContext.Provider>
         }
