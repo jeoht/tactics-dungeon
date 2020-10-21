@@ -1,4 +1,4 @@
-import { action } from "mobx"
+import { action, observable } from "mobx"
 
 export interface Tickable {
     start?(): void
@@ -7,24 +7,24 @@ export interface Tickable {
 }
 
 export class TimeReactor {
-    now: number = 0
+    @observable now: number = 0
     tickables: Tickable[] = []
     frameResolvers: ((deltaTime: number) => void)[] = []
 
-    animationHandle: number|null = null
+    animationHandle: number | null = null
     @action start() {
         if (this.animationHandle != null)
             cancelAnimationFrame(this.animationHandle)
 
-        let lastFrame: number|null = null
-        const frame = (timestamp: number) => {
+        let lastFrame: number | null = null
+        const frame = action((timestamp: number) => {
             this.now = timestamp
-            const deltaTime = lastFrame === null ? 0 : timestamp-lastFrame
+            const deltaTime = lastFrame === null ? 0 : timestamp - lastFrame
 
             const frameResolvers = this.frameResolvers
             this.frameResolvers = []
 
-            for (let i = this.tickables.length-1; i >= 0; i--) {
+            for (let i = this.tickables.length - 1; i >= 0; i--) {
                 this.tickables[i].frame(deltaTime)
             }
 
@@ -35,10 +35,10 @@ export class TimeReactor {
                 resolve(deltaTime)
             }
             this.frameResolvers.reverse()
-            
+
             lastFrame = timestamp
             this.animationHandle = requestAnimationFrame(frame)
-        }
+        })
         this.animationHandle = requestAnimationFrame(frame)
     }
 
