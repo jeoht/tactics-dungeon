@@ -88,7 +88,7 @@ const FloorClearedDiv = styled.div`
     }
 
     li {
-        color: white;
+        color: #eee;
         font-size: 0.8rem;
         text-align: left;
         display: flex;
@@ -96,8 +96,8 @@ const FloorClearedDiv = styled.div`
         justify-content: center;
         margin-bottom: 0.8rem;
         padding: 1rem;
-        border: 0.1rem solid #999;
-        background: #000;
+        background-color: #222;
+        border: 2px solid #666;
 
         img {
             padding-right: 0.3rem;

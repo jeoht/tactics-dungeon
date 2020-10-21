@@ -11,6 +11,7 @@ const PeepUpgradeDiv = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #eee;
 
     > div {
         width: 100%;
@@ -39,17 +40,17 @@ const PeepUpgradeDiv = styled.div`
     }
 
     li {
-        background-color: #000;
+        background-color: #222;
+        border: 2px solid #666;
         padding: 1rem 0.8rem;
-        border: 0.1rem solid #999;
         display: flex;
         align-items: center;
         margin-bottom: 0.8rem;
 
         img {
-            min-width: 1.8rem;
-            min-height: 1.8rem;
-            margin-right: 0.5rem;
+            min-width: 1.5rem;
+            min-height: 1.5rem;
+            margin-right: 0.8rem;
         }
 
         h4 {
