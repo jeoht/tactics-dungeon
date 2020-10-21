@@ -9,12 +9,9 @@ import { Tickable } from "./TimeReactor"
 import { useLocalStore, useObserver } from "mobx-react-lite"
 import { UI } from "./UI"
 import _ = require("lodash")
+import { BobbleCreatureImage } from "./BobbleCreatureImg"
+import { Creature } from "./Tile"
 
-const FloorIntroDiv = styled.div`
-    height: 100%;
-    font-size: 1.5em;
-    padding: 1rem;
-`
 
 // First Minister of the Lich Republic
 // The people of this great nation did not conquer death merely to face obliteration at the whim of some unelected council of gods.
@@ -35,9 +32,9 @@ class TextRevealer {
             (ch, i, parent) => {
                 // Reveal speed can vary depending on context
                 if (parent && parent.type === 'strong')
-                    total += 200
+                    total += 150
                 else
-                    total += 25
+                    total += 30
 
                 msToReachChar.push(total)
                 return ch
@@ -84,7 +81,7 @@ function mapCharacters(el: React.ReactNode, callback: (ch: string, i: number, pa
             }
         } else if (_.isArray(node)) {
             return node.map(n => crawl(n, parent))
-        } else if (_.isObject(node) && 'props' in node && 'children' in node.props && node.props.children.length) {
+        } else if (_.isObject(node) && 'props' in node && 'children' in node.props) {
             const newEl = React.cloneElement(node, { children: crawl(node.props.children, node) })
             return newEl
         } else {
@@ -95,15 +92,35 @@ function mapCharacters(el: React.ReactNode, callback: (ch: string, i: number, pa
     return crawl(el)
 }
 
+const FloorIntroDiv = styled.div`
+    height: 100%;
+    font-size: 1.5em;
+    padding: 1rem;
+    text-align: center;
+
+    img {
+        width: 2rem;
+    }
+`
+
 export function FloorIntroOverlay() {
     const { ui } = useContext(FloorContext)
 
-    const fullText = <div>We do not recognize the authority of an <strong>unelected</strong> council to terminate the multiverse.</div>,
+    const fullText = <div>
+        <BobbleCreatureImage tile={Creature.LichMaster} />
+        <p>This is an outrage!</p>
+        <p>Parliament does not recognize the authority of an <strong>unelected</strong> deity to terminate the multiverse.</p>
+        <p>The people of our great nation have conquered death before, and we will do so again.</p>
+
+        <p>The Hon. Dauðlevik, MP</p>
+        <p>Member for Greenwich Barrow</p>
+        <p>First Minister of the Lich Republic</p>
+    </div>
     const state = useLocalStore(() => new TextRevealer(ui, fullText))
 
     return useObserver(() => <Overlay>
         <FloorIntroDiv>
-            {state.revealedText}
+            {fullText}
         </FloorIntroDiv>
     </Overlay>)
 }
