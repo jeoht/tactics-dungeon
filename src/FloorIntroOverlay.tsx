@@ -17,45 +17,87 @@ import { Creature } from "./Tile"
 // The people of this great nation did not conquer death merely to face obliteration at the whim of some unelected council of gods.
 // My constituents demand action and the government has a mandate to answer!
 
-class TextRevealer {
+class TextRevealer implements Tickable {
     startTime: number
+    @observable.ref revealedText: React.ReactNode
+    msToReachChar: number[]
 
     constructor(readonly ui: UI, readonly fullText: React.ReactNode) {
         this.startTime = ui.time.now
+        this.msToReachChar = mapCharactersToRevealTime(this.fullText)
+        ui.time.add(this)
     }
 
-    @computed get msToReachChar(): number[] {
-        const msToReachChar: number[] = []
-        let total = 0
-        mapCharacters(
-            this.fullText,
-            (ch, i, parent) => {
-                // Reveal speed can vary depending on context
-                if (parent && parent.type === 'strong')
-                    total += 150
-                else
-                    total += 30
-
-                msToReachChar.push(total)
-                return ch
-            }
-        )
-        return msToReachChar
-    }
-
-    @computed get revealedText(): React.ReactNode {
+    @action frame() {
         const timePassed = this.ui.time.now - this.startTime
-        return mapCharacters(
+        this.revealedText = mapCharacters(
             this.fullText,
             (ch, i) => {
                 if (timePassed >= this.msToReachChar[i]) {
-                    return <span>{ch}</span>
+                    return <span key={`ch-${i}`}>{ch}</span>
                 } else {
-                    return <span style={{ opacity: 0 }}>{ch}</span>
+                    return <span key={`ch-${i}`} style={{ opacity: 0 }}>{ch}</span>
                 }
             }
         )
     }
+}
+
+function defaultDelayBefore(node: React.ReactNode): number {
+    if (_.isString(node) && node.length === 1) {
+        return 40
+    } else if (_.isObject(node) && 'type' in node && node.type === 'p') {
+        return 500
+    } else {
+        return 0
+    }
+}
+
+function defaultDelayAfter(node: React.ReactNode): number {
+    if (node === ',') {
+        return 200
+    } else {
+        return 0
+    }
+}
+
+function mapCharactersToRevealTime(startNode: React.ReactNode): number[] {
+    const msToReachChar: number[] = []
+    let charIndex = 0
+    let total = 0
+
+    function crawl(node: React.ReactNode, opts: RevealOptions = {}): React.ReactNode {
+        const delayBefore = opts.delayBefore || defaultDelayBefore
+        const delayAfter = opts.delayAfter || defaultDelayAfter
+        total += delayBefore(node)
+
+        if (_.isString(node)) {
+            if (node.length === 1) {
+                msToReachChar[charIndex] = total
+                charIndex += 1
+            } else {
+                Array.from(node).map(n => crawl(n, opts))
+            }
+        } else if (_.isArray(node)) {
+            node.map(n => crawl(n, opts))
+        } else if (_.isObject(node) && 'props' in node) {
+            if (node.type === Reveal) {
+                if (_.isNumber(node.props.delay)) {
+                    total += node.props.delay
+                }
+
+                opts = Object.assign({}, node.props)
+            }
+            if ('children' in node.props)
+                crawl(node.props.children, opts)
+        }
+
+        total += delayAfter(node)
+    }
+
+    crawl(startNode)
+
+    return msToReachChar
 }
 
 /**
@@ -67,22 +109,24 @@ class TextRevealer {
  * So we use this function which maps over the sequence of characters in a JSX tree
  * while preserving the tree structure.
  */
-function mapCharacters(el: React.ReactNode, callback: (ch: string, i: number, parent?: React.ReactElement) => React.ReactNode): React.ReactNode {
+function mapCharacters(el: React.ReactNode, callback: (ch: string, i: number) => React.ReactNode): React.ReactNode {
     let charIndex = 0
+    let i = 0
 
-    function crawl(node: React.ReactNode, parent?: React.ReactElement): React.ReactNode {
+    function crawl(node: React.ReactNode): React.ReactNode {
         if (_.isString(node)) {
             if (node.length === 1) {
-                const result = callback(node, charIndex, parent)
+                const result = callback(node, charIndex)
                 charIndex += 1
                 return result
             } else {
-                return crawl(Array.from(node), parent)
+                return crawl(Array.from(node))
             }
         } else if (_.isArray(node)) {
-            return node.map(n => crawl(n, parent))
+            return node.map(n => crawl(n))
         } else if (_.isObject(node) && 'props' in node && 'children' in node.props) {
-            const newEl = React.cloneElement(node, { children: crawl(node.props.children, node) })
+            const newEl = React.cloneElement(node, { key: `el-${i}`, children: crawl(node.props.children) })
+            i += 1
             return newEl
         } else {
             return node
@@ -90,6 +134,18 @@ function mapCharacters(el: React.ReactNode, callback: (ch: string, i: number, pa
     }
 
     return crawl(el)
+}
+
+
+type RevealOptions = {
+    delay?: number
+    delayBefore?: ((node: React.ReactNode) => number)
+    delayAfter?: ((node: React.ReactNode) => number)
+}
+
+
+function Reveal(props: React.PropsWithChildren<RevealOptions>) {
+    return <>{props.children}</>
 }
 
 const FloorIntroDiv = styled.div`
@@ -100,6 +156,17 @@ const FloorIntroDiv = styled.div`
 
     img {
         width: 2rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .outrage {
+        font-size: 1.5em;
+        margin-bottom: 1rem;
+    }
+
+    .titles {
+        color: #c10fdf;
     }
 `
 
@@ -108,19 +175,23 @@ export function FloorIntroOverlay() {
 
     const fullText = <div>
         <BobbleCreatureImage tile={Creature.LichMaster} />
-        <p>This is an outrage!</p>
-        <p>Parliament does not recognize the authority of an <strong>unelected</strong> deity to terminate the multiverse.</p>
+        <div className="outrage">
+            <Reveal delay={1000} />
+            <Reveal delayBefore={n => n === ' ' ? 500 : 0}>This is an <strong>outrage!</strong></Reveal>
+        </div>
+        <p>Parliament does not recognize the authority of an <strong><Reveal delayBefore={n => 100}>unelected</Reveal></strong> deity to terminate the multiverse.</p>
         <p>The people of our great nation have conquered death before, and we will do so again.</p>
 
-        <p>The Hon. Dauðlevik, MP</p>
-        <p>Member for Greenwich Barrow</p>
-        <p>First Minister of the Lich Republic</p>
+        <Reveal delayBefore={n => n.type === 'p' ? 1000 : 0}>
+            <p className="titles">- The Hon. Dauðlevik MP</p>
+            <p className="titles">Member for Greenwich Barrow and First Minister of the Lich Republic</p>
+        </Reveal>
     </div>
     const state = useLocalStore(() => new TextRevealer(ui, fullText))
 
     return useObserver(() => <Overlay>
         <FloorIntroDiv>
-            {fullText}
+            {state.revealedText}
         </FloorIntroDiv>
     </Overlay>)
 }
