@@ -153,6 +153,7 @@ const FloorIntroDiv = styled.div`
     font-size: 1.5em;
     padding: 1rem;
     text-align: center;
+    word-break: break-word;
 
     img {
         width: 2rem;
@@ -174,19 +175,25 @@ export function FloorIntroOverlay() {
     const { ui } = useContext(FloorContext)
 
     const fullText = <div>
-        <BobbleCreatureImage tile={Creature.LichMaster} />
-        <div className="outrage">
+        <BobbleCreatureImage tile={Creature.Mimic} />
+        <p>
             <Reveal delay={1000} />
-            <Reveal delayBefore={n => n === ' ' ? 500 : 0}>This is an <strong>outrage!</strong></Reveal>
-        </div>
-        <p>Parliament does not recognize the authority of an <strong><Reveal delayBefore={n => 100}>unelected</Reveal></strong> deity to terminate the multiverse.</p>
-        <p>The people of our great nation have conquered death before, and we will do so again.</p>
-
-        <Reveal delayBefore={n => n.type === 'p' ? 1000 : 0}>
-            <p className="titles">- The Hon. Dauðlevik MP</p>
-            <p className="titles">Member for Greenwich Barrow and First Minister of the Lich Republic</p>
-        </Reveal>
+            <Reveal delayBefore={n => n === ' ' ? 500 : 0}>om nom nom</Reveal>
+        </p>
+        <p>
+            <Reveal delayBefore={n => 15}>omnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnom</Reveal><Reveal delayBefore={n => 50}>nomnomnom</Reveal>
+        </p>
+        <p><Reveal delayBefore={n => 100}>omnomnomnom</Reveal></p>
+        <p>
+            <Reveal delayBefore={n => 100}>ommmm</Reveal>
+            <Reveal delayBefore={n => 5}>nomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnomnom</Reveal>
+        </p>
+        <p>
+            <Reveal delayBefore={n => n === ' ' ? 100 : 0}>nom</Reveal>
+        </p>
     </div>
+
+
     const state = useLocalStore(() => new TextRevealer(ui, fullText))
 
     return useObserver(() => <Overlay>
