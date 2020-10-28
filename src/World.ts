@@ -72,7 +72,7 @@ export class World {
         this.peeps = []
         this.inventory = new Inventory()
         for (let i of _.range(4)) {
-            this.peeps.push(Peep.create({ kind: PeepKind.Esper }))
+            this.peeps.push(Peep.create({ kind: PeepKind.Rookie }))
         }
 
         this.floorId = `1-1`
