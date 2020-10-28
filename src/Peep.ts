@@ -3,7 +3,7 @@ import { nameByRace } from "fantasy-name-generator"
 import _ = require("lodash")
 
 import { uuid } from './util'
-import { Creature, TileRef } from "./Tile"
+import { Creature, Structure, TileRef } from "./Tile"
 import { Weapon } from "./Weapon"
 import { Consumable } from "./Consumable"
 import { PeepKind, PeepKindId } from "./PeepKind"
@@ -11,14 +11,24 @@ import { PeepKind, PeepKindId } from "./PeepKind"
 interface AbilityDef {
     name: string
     description: string
+    tile?: TileRef
+    maxLevel?: number
 }
 
 export class Ability {
     name: string
     description: string
-    constructor(def: AbilityDef) {
+    constructor(readonly def: AbilityDef) {
         this.name = def.name
         this.description = def.description
+    }
+
+    get tile() {
+        return this.def.tile || Creature.Bat
+    }
+
+    get maxLevel() {
+        return this.def.maxLevel || 1
     }
 
     @computed get id(): AbilityId {
@@ -41,7 +51,8 @@ export namespace Ability {
     })
     export const ForceWall = new Ability({
         name: "Force Wall",
-        description: `Once per encounter, generate a wall of psychic force across a target line that prevents all movement for a turn.`
+        description: `Once per encounter, generate a wall of psychic force across a target line that prevents all movement for a turn.`,
+        tile: { tilesetId: 'world', index: Structure.Wall }
     })
 }
 
@@ -56,7 +67,7 @@ export class Peep {
     @observable name: string
     @observable kindId: PeepKindId
     @observable level: number
-    @observable learnedAbilityIds: AbilityId[] = []
+    @observable abilityLevels: { [abilityId: string]: number | undefined }
     @observable weaponType: 'bow' | 'sword' = 'sword'
 
     // Equipment
@@ -79,7 +90,7 @@ export class Peep {
         this.kindId = props.kindId || PeepKind.Bird.id
         this.name = props.name || randomName()
         this.level = props.level || 1
-        this.learnedAbilityIds = props.learnedAbilityIds || []
+        this.abilityLevels = props.abilityLevels || {}
     }
 
     @computed get save() {
@@ -88,7 +99,7 @@ export class Peep {
             name: this.name,
             kindId: this.kindId,
             level: this.level,
-            learnedAbilityIds: this.learnedAbilityIds
+            abilityLevels: this.abilityLevels
         }
     }
 
@@ -104,9 +115,26 @@ export class Peep {
         return this.kind.tile
     }
 
-    // @computed get learnedAbilities(): Set<Ability> {
-    //     return new Set(this.learnedAbilityIds.map(id => Ability[id]))
-    // }
+    @computed get learnedAbilities(): Ability[] {
+        const learnedAbilityIds = Object.keys(this.abilityLevels).filter(k => this.abilityLevels[k]! > 0) as AbilityId[]
+        return learnedAbilityIds.map(id => Ability[id])
+    }
+
+    getAbilityLevel(ability: Ability) {
+        return this.abilityLevels[ability.id] || 0
+    }
+
+    @computed get learnableNewAbilities() {
+        if (this.kind === PeepKind.Esper) {
+            return [Ability.ForceWall]
+        } else {
+            return []
+        }
+    }
+
+    @computed get levelableAbilities() {
+        return this.learnedAbilities.filter(a => this.getAbilityLevel(a) < a.maxLevel)
+    }
 
     // @computed get abilityLevels(): { level: number, abilities: Ability[] }[] {
     //     const grouped = _(this.class.abilities).groupBy(d => d.level).value()

@@ -71,13 +71,12 @@ const PeepUpgradeDiv = styled.div`
 
 type PotentialUpgrade = {
     name: string
-    desc: string
-    icon: TileRef
+    description: string
+    tile: TileRef
 }
 
 function getUpgradesFor(peep: Peep): PotentialUpgrade[] {
-    if (peep.kind.promotionOptions.length) {
-    }
+    return peep.learnableNewAbilities
     return [
         {
             name: "Counter",
@@ -137,7 +136,7 @@ export function PeepUpgradeOverlay(props: { peepId: string }) {
     })
 
     return <Overlay>
-        {peep.kind.promotionOptions.length && <PeepPromoter peep={peep} />}
+        {!!peep.kind.promotionOptions.length && <PeepPromoter peep={peep} />}
         {!peep.kind.promotionOptions.length && <PeepUpgradeDiv>
             <div>
                 <header>
@@ -145,10 +144,10 @@ export function PeepUpgradeOverlay(props: { peepId: string }) {
                 </header>
                 <ul>
                     {upgrades.map(upgrade => <li onClick={() => doUpgrade(upgrade)} key={upgrade.name}>
-                        <img src={ui.assets.tileToDataUrl(upgrade.icon)} />
+                        <img src={ui.assets.tileToDataUrl(upgrade.tile)} />
                         <div>
                             <h4>{upgrade.name}</h4>
-                            <p>{upgrade.desc}</p>
+                            <p>{upgrade.description}</p>
                         </div>
                     </li>)}
                 </ul>
