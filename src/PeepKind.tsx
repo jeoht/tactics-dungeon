@@ -34,6 +34,10 @@ export class PeepKind {
 }
 
 export namespace PeepKind {
+    export const Rookie = new PeepKind({
+        name: "Rookie",
+        tile: Creature.Rookie
+    })
     export const Esper = new PeepKind({
         name: "Esper",
         tile: Creature.Esper

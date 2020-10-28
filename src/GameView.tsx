@@ -16,7 +16,6 @@ import { ActiveFloor } from './Floor'
 import { PeepScreen } from './PeepScreen'
 import { TeamScreen } from './TeamScreen'
 import { MessageLog } from './MessageLog'
-import { ChooseTeamScreen } from './ChooseTeamScreen'
 import { PeepUpgradeOverlay } from './PeepUpgradeOverlay'
 import { FloorIntroOverlay } from './FloorIntroOverlay'
 
@@ -80,8 +79,6 @@ function CurrentScreen() {
     return useObserver(() => {
         if (ui.screen.id === 'titleScreen') {
             return <TitleScreen />
-        } else if (ui.screen.id === 'chooseTeam') {
-            return <ChooseTeamScreen />
         } else if (ui.screen.id === 'dungeon') {
             return <DungeonScreen />
         } else if (ui.screen.id === 'team') {
