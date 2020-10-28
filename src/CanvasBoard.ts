@@ -137,6 +137,13 @@ export class CanvasBoard implements Tickable {
             sprite.drawInfoUnderlay(ctx)
         }
 
+        // Draw danger area where enemies can attack next turn
+        ctx.fillStyle = "rgba(255, 48, 48, 0.3)"
+        for (const cell of this.floor.enemyAttackableCells) {
+            const spos = this.get(cell).pos
+            ctx.fillRect(spos.x, spos.y, CELL_WIDTH, CELL_HEIGHT)
+        }
+
         for (const sprite of this.unitSprites) {
             sprite.draw(ctx)
         }

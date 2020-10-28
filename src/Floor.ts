@@ -156,8 +156,22 @@ export class ActiveFloor {
         return this.units.filter(u => u.team === Team.Player)
     }
 
+    @computed get enemyUnits(): Unit[] {
+        return this.units.filter(u => u.team !== Team.Player)
+    }
+
     @computed get unoccupiedCells(): Cell[] {
         return this.cells.filter(c => c.pathable && !c.unit)
+    }
+
+    @computed get enemyAttackableCells(): Set<Cell> {
+        const set = new Set<Cell>()
+        for (const unit of this.enemyUnits) {
+            for (const cell of unit.attackableCells) {
+                set.add(cell)
+            }
+        }
+        return set
     }
 
     @computed get unitsByPos(): { [key: string]: Unit | undefined } {
