@@ -10,13 +10,13 @@ import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
 import { CellSprite } from "./CellSprite"
 import { Tickable } from "./TimeReactor"
-import { Floor, FloorEvent } from "./Floor"
+import { ActiveFloor, FloorEvent } from "./Floor"
 import { PointVector } from "./PointVector"
 import { EventPlayer } from "./EventPlayer"
 
 export class CanvasBoard implements Tickable {
     ui: UI
-    floor: Floor
+    floor: ActiveFloor
     canvas: HTMLCanvasElement
     ctx: CanvasRenderingContext2D
     touch: TouchInterface
@@ -26,7 +26,7 @@ export class CanvasBoard implements Tickable {
     damageTexts: DamageText[] = []
     @observable messageEvents: FloorEvent[] = []
 
-    constructor(floor: Floor, ui: UI, canvas: HTMLCanvasElement) {
+    constructor(floor: ActiveFloor, ui: UI, canvas: HTMLCanvasElement) {
         this.floor = floor
         this.ui = ui
         this.canvas = canvas
@@ -80,8 +80,8 @@ export class CanvasBoard implements Tickable {
         return map
     }
 
-    get(model: Cell): CellSprite;
-    get(model: Unit): UnitSprite;
+    get(model: Cell): CellSprite
+    get(model: Unit): UnitSprite
     get(model: Cell | Unit): CellSprite | UnitSprite {
         if (model instanceof Cell) {
             return this.spritesByCell.get(model)!

@@ -65,6 +65,7 @@ const PeepUpgradeDiv = styled.div`
 
 `
 
+
 export function PeepUpgradeOverlay(props: { peepId: string }) {
     const { ui, world } = useContext(FloorContext)
     const peep = world.peeps.find(p => p.id === props.peepId)!

@@ -4,7 +4,7 @@ import _ = require("lodash")
 import { Cell } from "./Cell"
 import { Peep } from "./Peep"
 import { dijkstra, dijkstraRange } from "./pathfinding"
-import { Floor } from "./Floor"
+import { ActiveFloor } from "./Floor"
 import { PointVector } from "./PointVector"
 import { Item, Scroll, loadItem, Potion } from "./Item"
 
@@ -21,7 +21,7 @@ export class Unit {
     @observable inventory: Item[]
     @observable damage: number
 
-    static load(floor: Floor, save: Unit['save']) {
+    static load(floor: ActiveFloor, save: Unit['save']) {
         return new Unit(floor, Peep.load(save.peep), {
             ..._.omit(save, 'peep'),
             pos: new PointVector(save.x, save.y),
@@ -29,11 +29,11 @@ export class Unit {
         })
     }
 
-    static create(floor: Floor, peep: Peep, props: { pos: PointVector, team: Team }) {
+    static create(floor: ActiveFloor, peep: Peep, props: { pos: PointVector, team: Team }) {
         return new Unit(floor, peep, props)
     }
 
-    constructor(readonly floor: Floor, readonly peep: Peep, props: Partial<Unit>) {
+    constructor(readonly floor: ActiveFloor, readonly peep: Peep, props: Partial<Unit>) {
         this.pos = props.pos ?? new PointVector(0, 0)
         this.team = props.team ?? Team.Enemy
         this.moved = props.moved ?? false

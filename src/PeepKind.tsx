@@ -63,6 +63,16 @@ export namespace PeepKind {
         tile: Creature.Skeleton,
         maxHealth: 2
     })
+    export const SkeletonArcher = new PeepKind({
+        name: "SkeletonArcher",
+        tile: Creature.SkeletonArcher,
+        maxHealth: 2
+    })
+    export const SkeletonWarrior = new PeepKind({
+        name: "SkeletonWarrior",
+        tile: Creature.SkeletonEquipped,
+        maxHealth: 3
+    })
 }
 
 export type PeepKindId = keyof typeof PeepKind

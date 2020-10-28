@@ -60,7 +60,7 @@ export function TitleScreen() {
 
     const newGame = action(() => {
         world.newGame()
-        ui.goto('chooseTeam')
+        ui.goto('board')
     })
 
     return <div className="TitleScreen">

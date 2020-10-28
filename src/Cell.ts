@@ -2,7 +2,7 @@ import { observable, computed, action } from "mobx"
 
 import { PointVector } from "./PointVector"
 import { Unit } from "./Unit"
-import { Floor } from "./Floor"
+import { ActiveFloor } from "./Floor"
 import { Block } from "./MapBase"
 import { bresenham } from "./pathfinding"
 import { Chest } from "./Chest"
@@ -15,7 +15,7 @@ export class Cell {
     @observable contents: Placeable[] = []
     random: number
 
-    static load(floor: Floor, save: Cell['save']): Cell {
+    static load(floor: ActiveFloor, save: Cell['save']): Cell {
         const cell = new Cell(floor, new PointVector(save.x, save.y), { random: save.random })
         cell.blocks = save.blocks
         cell.contents = (save.contents ?? []).map(c => {
@@ -27,13 +27,13 @@ export class Cell {
         return cell
     }
 
-    static create(floor: Floor, props: { pos: PointVector, blocks: Block[] }): Cell {
+    static create(floor: ActiveFloor, props: { pos: PointVector, blocks: Block[] }): Cell {
         const cell = new Cell(floor, props.pos)
         cell.blocks = props.blocks
         return cell
     }
 
-    constructor(readonly floor: Floor, readonly pos: PointVector, props: { random?: number } = {}) {
+    constructor(readonly floor: ActiveFloor, readonly pos: PointVector, props: { random?: number } = {}) {
         this.random = props.random ?? Math.random()
     }
 
