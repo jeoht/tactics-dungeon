@@ -31,6 +31,19 @@ export class PeepKind {
     @computed get id(): PeepKindId {
         return this.name.replace(/ /g, '') as PeepKindId
     }
+
+    @computed get promotionOptions(): PeepKind[] {
+        if (this === PeepKind.Rookie) {
+            return [
+                PeepKind.Esper,
+                PeepKind.SunPaladin,
+                PeepKind.Ranger,
+                PeepKind.Sniper
+            ]
+        } else {
+            return []
+        }
+    }
 }
 
 export namespace PeepKind {
