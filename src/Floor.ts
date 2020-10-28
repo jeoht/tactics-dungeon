@@ -68,7 +68,7 @@ type BasicFloorEventType = 'floorCleared' | 'floorFailed'
 export type FloorEvent = { type: BasicFloorEventType } | AttackEvent | PathMoveEvent | TeleportEvent | EndMoveEvent | StartPhaseEvent | EndPhaseEvent | DefeatedEvent | OpenChestEvent | PickupItemEvent
 
 /** An active floor in gameplay */
-export class Floor {
+export class ActiveFloor {
     @observable cells: Cell[]
     @observable units: Unit[]
     @observable phase: Team
@@ -81,20 +81,20 @@ export class Floor {
     /** Set when the floor is completed or failed */
     finished: boolean = false
 
-    static load(save: Partial<Floor['save']>): Floor {
-        const floor = new Floor(_.omit(save, 'cells', 'units'))
+    static load(save: Partial<ActiveFloor['save']>): ActiveFloor {
+        const floor = new ActiveFloor(_.omit(save, 'cells', 'units'))
         floor.cells = save.cells ? save.cells.map(c => Cell.load(floor, c)) : []
         floor.units = save.units ? save.units.map(u => Unit.load(floor, u)) : []
         return floor
     }
 
     static create(props: { seed: string, peeps: Peep[] }) {
-        const floor = new Floor(props)
+        const floor = new ActiveFloor(props)
         generateMap(floor, { peeps: props.peeps })
         return floor
     }
 
-    constructor(props: Partial<Floor> = {}) {
+    constructor(props: Partial<ActiveFloor> = {}) {
         this.biome = props.biome ?? Biome.Stone
         this.cells = []
         this.units = []

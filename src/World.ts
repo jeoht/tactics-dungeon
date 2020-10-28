@@ -1,6 +1,6 @@
 import _ = require("lodash")
 import { Peep } from "./Peep"
-import { Floor } from "./Floor"
+import { ActiveFloor } from "./Floor"
 import { action, observable, computed } from "mobx"
 import { Inventory } from "./Inventory"
 import { PeepKind } from "./PeepKind"
@@ -8,7 +8,7 @@ import { PeepKind } from "./PeepKind"
 export class World {
     @observable peeps: Peep[]
     @observable inventory: Inventory = new Inventory()
-    @observable.ref private _floor: Floor | null
+    @observable.ref private _floor: ActiveFloor | null
     @observable floorId: string
     seed: string
 
@@ -18,7 +18,7 @@ export class World {
             inventory: new Inventory(save.inventory),
             floorId: save.floorId,
             seed: save.seed,
-            floor: save.floor ? Floor.load(save.floor) : null
+            floor: save.floor ? ActiveFloor.load(save.floor) : null
         })
         world.floor?.prepare()
         return world
@@ -36,11 +36,11 @@ export class World {
         this._floor = props.floor ?? null
     }
 
-    get floor(): Floor | null {
+    get floor(): ActiveFloor | null {
         return this._floor
     }
 
-    set floor(floor: Floor | null) {
+    set floor(floor: ActiveFloor | null) {
         if (this._floor) this._floor.dispose()
         this._floor = floor
         floor?.prepare()
@@ -65,7 +65,7 @@ export class World {
     }
 
     @action startFloor() {
-        this.floor = Floor.create({ seed: this.seed + this.floorId, peeps: this.peeps })
+        this.floor = ActiveFloor.create({ seed: this.seed + this.floorId, peeps: this.peeps })
     }
 
     @action newGame() {
