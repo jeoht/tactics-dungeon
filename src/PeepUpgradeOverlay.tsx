@@ -5,6 +5,10 @@ import { FloorContext } from "./GameView"
 import styled from "styled-components"
 import { Overlay } from "./Overlay"
 import { action } from "mobx"
+import { Peep } from "./Peep"
+import { TileRef } from "./Tile"
+import { PeepKind } from "./PeepKind"
+import _ = require("lodash")
 
 const PeepUpgradeDiv = styled.div`
     height: 100%;
@@ -65,42 +69,83 @@ const PeepUpgradeDiv = styled.div`
 
 `
 
+type PotentialUpgrade = {
+    name: string
+    desc: string
+    icon: TileRef
+}
+
+function getUpgradesFor(peep: Peep): PotentialUpgrade[] {
+    if (peep.kind.promotionOptions.length) {
+    }
+    return [
+        {
+            name: "Counter",
+            desc: "Strike back against melee attacks.",
+            icon: { tilesetId: 'items', index: 209 }
+        },
+        {
+            name: "Swap",
+            desc: "Move into an ally to swap places.",
+            icon: { tilesetId: 'items', index: 227 }
+        },
+        {
+            name: "Sunburst",
+            desc: "Once per floor, deal 1 damage in radius 2 around unit.",
+            icon: { tilesetId: 'items', index: 101 }
+        }
+    ]
+}
+
+function PeepPromoter(props: { peep: Peep }) {
+    const { ui } = useContext(FloorContext)
+    const { peep } = props
+    const kinds = _.sampleSize(peep.kind.promotionOptions, 3)
+
+    const doClassChange = action((kind: PeepKind) => {
+        peep.kind = kind
+        ui.goto('dungeon')
+    })
+
+    return <PeepUpgradeDiv>
+        <div>
+            <header>
+                Choose a class for <PeepBadge peep={peep} /> {peep.name}
+            </header>
+            <ul>
+                {kinds.map(kind => <li onClick={() => doClassChange(kind)} key={kind.id}>
+                    <img src={ui.assets.tileToDataUrl(kind.tile)} />
+                    <div>
+                        <h4>{kind.name}</h4>
+                        <p>Promote {peep.name} to {kind.name}</p>
+                    </div>
+                </li>)}
+            </ul>
+        </div>
+    </PeepUpgradeDiv>
+}
+
 
 export function PeepUpgradeOverlay(props: { peepId: string }) {
     const { ui, world } = useContext(FloorContext)
     const peep = world.peeps.find(p => p.id === props.peepId)!
 
-    const upgrades = [
-        {
-            name: "Counter",
-            desc: "Strike back against melee attacks.",
-            icon: ui.assets.tileToDataUrl({ tilesetId: 'items', index: 209 })
-        },
-        {
-            name: "Swap",
-            desc: "Move into an ally to swap places.",
-            icon: ui.assets.tileToDataUrl({ tilesetId: 'items', index: 227 })
-        },
-        {
-            name: "Sunburst",
-            desc: "Once per floor, deal 1 damage in radius 2 around unit.",
-            icon: ui.assets.tileToDataUrl({ tilesetId: 'items', index: 101 })
-        }
-    ]
+    const upgrades = getUpgradesFor(peep)
 
     const doUpgrade = action((upgrade: any) => {
         ui.goto('dungeon')
     })
 
     return <Overlay>
-        <PeepUpgradeDiv>
+        {peep.kind.promotionOptions.length && <PeepPromoter peep={peep} />}
+        {!peep.kind.promotionOptions.length && <PeepUpgradeDiv>
             <div>
                 <header>
                     Choose new ability for <PeepBadge peep={peep} /> {peep.name}
                 </header>
                 <ul>
                     {upgrades.map(upgrade => <li onClick={() => doUpgrade(upgrade)} key={upgrade.name}>
-                        <img src={upgrade.icon} />
+                        <img src={ui.assets.tileToDataUrl(upgrade.icon)} />
                         <div>
                             <h4>{upgrade.name}</h4>
                             <p>{upgrade.desc}</p>
@@ -108,6 +153,6 @@ export function PeepUpgradeOverlay(props: { peepId: string }) {
                     </li>)}
                 </ul>
             </div>
-        </PeepUpgradeDiv>
+        </PeepUpgradeDiv>}
     </Overlay>
 }
