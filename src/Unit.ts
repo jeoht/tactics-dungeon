@@ -130,6 +130,9 @@ export class Unit {
     }
 
     canAttackCellFrom(cell: Cell, target: Cell) {
+        if (target.isWall)
+            return false
+
         if (this.attackRange === 1)
             return cell.isAdjacentTo(target)
         else {
@@ -159,7 +162,7 @@ export class Unit {
         return this.cell.floor.units.filter(u => u.team === this.team)
     }
 
-    /** Find all cells which this unit could occupy in a single m   ove. */
+    /** Find all cells which this unit could occupy in a single move. */
     @computed get reachableUnoccupiedCells(): Cell[] {
         return dijkstraRange({
             start: this.cell,
@@ -168,7 +171,7 @@ export class Unit {
         }).filter(c => this.canOccupy(c))
     }
 
-    /** Find all cells which the unit can attack in the next turn, but not move into */
+    /** Find all cells which the unit can potentially attack in the next turn, but not move into */
     @computed get attackBorderCells(): Cell[] {
         const reachable = new Set(this.reachableUnoccupiedCells)
         const attackCells: Cell[] = []
@@ -184,6 +187,11 @@ export class Unit {
         }
 
         return attackCells
+    }
+
+    /** Find all cells which the unit can potentially attack in the next turn */
+    @computed get attackableCells(): Set<Cell> {
+        return new Set(this.attackBorderCells.concat(this.reachableUnoccupiedCells))
     }
 
     @computed get enemies() {
