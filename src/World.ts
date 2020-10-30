@@ -3,7 +3,7 @@ import { Peep } from "./Peep"
 import { ActiveFloor } from "./Floor"
 import { action, observable, computed } from "mobx"
 import { Inventory } from "./Inventory"
-import { PeepKind } from "./PeepKind"
+import { PeepKindDefOf } from "./PeepKindDef"
 
 export class World {
     @observable peeps: Peep[]
@@ -72,7 +72,7 @@ export class World {
         this.peeps = []
         this.inventory = new Inventory()
         for (let i of _.range(4)) {
-            this.peeps.push(Peep.create({ kind: PeepKind.Rookie }))
+            this.peeps.push(Peep.create({ kind: PeepKindDefOf.Rookie }))
         }
 
         this.floorId = `1-1`

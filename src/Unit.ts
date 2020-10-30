@@ -17,7 +17,6 @@ export class Unit {
     @observable pos: PointVector
     @observable team: Team
     @observable moved: boolean
-    @observable moveRange: number
     @observable inventory: Item[]
     @observable damage: number
 
@@ -37,7 +36,6 @@ export class Unit {
         this.pos = props.pos ?? new PointVector(0, 0)
         this.team = props.team ?? Team.Enemy
         this.moved = props.moved ?? false
-        this.moveRange = props.moveRange ?? 3
         this.inventory = props.inventory ?? [Scroll.create("teleport")]
         this.damage = props.damage ?? 0
     }
@@ -49,7 +47,6 @@ export class Unit {
             peep: this.peep.save,
             team: this.team,
             moved: this.moved,
-            moveRange: this.moveRange,
             inventory: this.inventory.map(i => i.save),
             damage: this.damage
         }
@@ -81,6 +78,10 @@ export class Unit {
 
     @computed get cell(): Cell {
         return this.floor.cellAt(this.pos)!
+    }
+
+    @computed get moveRange(): number {
+        return 2
     }
 
     set cell(cell: Cell) {

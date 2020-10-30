@@ -6,57 +6,8 @@ import { uuid } from './util'
 import { Creature, Structure, TileRef } from "./Tile"
 import { Weapon } from "./Weapon"
 import { Consumable } from "./Consumable"
-import { PeepKind, PeepKindId } from "./PeepKind"
-
-interface AbilityDef {
-    name: string
-    description: string
-    tile?: TileRef
-    maxLevel?: number
-}
-
-export class Ability {
-    name: string
-    description: string
-    constructor(readonly def: AbilityDef) {
-        this.name = def.name
-        this.description = def.description
-    }
-
-    get tile() {
-        return this.def.tile || Creature.Bat
-    }
-
-    get maxLevel() {
-        return this.def.maxLevel || 1
-    }
-
-    @computed get id(): AbilityId {
-        return this.name.replace(/ /g, '') as AbilityId
-    }
-}
-
-export namespace Ability {
-    export const SenseThoughts = new Ability({
-        name: "Sense Thoughts",
-        description: `Creatures on the next floor are revealed in advance. Only living creatures with minds can be sensed this way.`
-    })
-    export const KineticHold = new Ability({
-        name: "Kinetic Hold",
-        description: `Once per floor, target an enemy within line of sight to reduce their movement range to 0 for one turn.`
-    })
-    export const EmpathicBond = new Ability({
-        name: "Empathic Bond",
-        description: `Activate to bond with a friendly unit. Until deactivated, damage to either unit is split across both.`
-    })
-    export const ForceWall = new Ability({
-        name: "Force Wall",
-        description: `Once per encounter, generate a wall of psychic force across a target line that prevents all movement for a turn.`,
-        tile: { tilesetId: 'world', index: Structure.Wall }
-    })
-}
-
-export type AbilityId = keyof typeof Ability
+import { PeepKindDef, PeepKindDefOf, PeepKindDefId } from "./PeepKindDef"
+import { AbilityDef, AbilityDefOf } from "./AbilityDef"
 
 
 /** 
@@ -65,7 +16,7 @@ export type AbilityId = keyof typeof Ability
  */
 export class Peep {
     @observable name: string
-    @observable kindId: PeepKindId
+    @observable kindId: PeepKindDefId
     @observable level: number
     @observable abilityLevels: { [abilityId: string]: number | undefined }
     @observable weaponType: 'bow' | 'sword' = 'sword'
@@ -87,7 +38,7 @@ export class Peep {
     }
 
     constructor(readonly id: string, props: Partial<Peep>) {
-        this.kindId = props.kindId || PeepKind.Bird.id
+        this.kindId = props.kindId || "Bird"
         this.name = props.name || randomName()
         this.level = props.level || 1
         this.abilityLevels = props.abilityLevels || {}
@@ -103,11 +54,11 @@ export class Peep {
         }
     }
 
-    @computed get kind(): PeepKind {
-        return PeepKind[this.kindId]
+    @computed get kind(): PeepKindDef {
+        return PeepKindDefOf[this.kindId]
     }
 
-    set kind(kind: PeepKind) {
+    set kind(kind: PeepKindDef) {
         this.kindId = kind.id
     }
 
@@ -115,18 +66,18 @@ export class Peep {
         return this.kind.tile
     }
 
-    @computed get learnedAbilities(): Ability[] {
+    @computed get learnedAbilities(): AbilityDef[] {
         const learnedAbilityIds = Object.keys(this.abilityLevels).filter(k => this.abilityLevels[k]! > 0) as AbilityId[]
         return learnedAbilityIds.map(id => Ability[id])
     }
 
-    getAbilityLevel(ability: Ability) {
+    getAbilityLevel(ability: AbilityDef) {
         return this.abilityLevels[ability.id] || 0
     }
 
     @computed get learnableNewAbilities() {
-        if (this.kind === PeepKind.Esper) {
-            return [Ability.ForceWall]
+        if (this.kind === PeepKindDefOf.Esper) {
+            return [AbilityDefOf.ForceWall]
         } else {
             return []
         }

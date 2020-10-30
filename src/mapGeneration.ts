@@ -8,9 +8,7 @@ import { PointVector } from "./PointVector"
 import { Peep } from "./Peep"
 import { Team } from "./Unit"
 import { RNG } from "./RNG"
-import { Chest } from "./Chest"
-import { Potion } from "./Item"
-import { PeepKind } from "./PeepKind"
+import { PeepKindDefOf } from "./PeepKindDef"
 
 function randomBlocks(rng: RNG): Block[] {
     if (rng.random() > 0.8) {
@@ -61,7 +59,7 @@ export function generateMap(floor: ActiveFloor, opts: MapgenOpts) {
         if (cell === downstairCell) continue
 
         cell.blocks = [Block.Floor]
-        floor.spawnUnit(Peep.create({ kind: PeepKind.Skeleton }), { cell: cell, team: Team.Enemy })
+        floor.spawnUnit(Peep.create({ kind: PeepKindDefOf.Skeleton }), { cell: cell, team: Team.Enemy })
         enemies--
         if (enemies === 0) break
     }
