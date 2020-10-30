@@ -4,7 +4,7 @@ import { PointVector } from "./PointVector"
 import _ = require("lodash")
 import { Unit, Team } from "./Unit"
 import { AI } from "./AI"
-import { Biome } from "./Tile"
+import { Biome } from "./TileDef"
 import { Peep } from "./Peep"
 import { generateMap } from "./mapGeneration"
 import { Item } from "./Item"
@@ -116,14 +116,14 @@ export class ActiveFloor {
     prepare() {
         // Victory condition
         this.disposers.push(autorun(() => {
-            if (this.units.length && this.units.every(u => u.team === Team.Player) && !this.complete) {
+            if (this.units.length && this.units.every(u => u.team === Team.Player) && !this.finished) {
                 this.event('floorCleared')
             }
         }))
 
         // Loss condition
         this.disposers.push(autorun(() => {
-            if (this.units.length && this.units.every(u => u.team === Team.Enemy) && !this.complete) {
+            if (this.units.length && this.units.every(u => u.team === Team.Enemy) && !this.finished) {
                 this.event('floorFailed')
             }
         }))

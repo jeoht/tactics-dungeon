@@ -1,4 +1,4 @@
-import { Biome } from "./Tile"
+import { Biome } from "./TileDef"
 import { computed } from "mobx"
 
 // Maps are built out of Blocks
@@ -38,7 +38,7 @@ export class MapBase {
     }
 }
 
-function defineMap(props: { biome?: Biome, layout: string, where: {[ch: string]: Block[]} }) {
+function defineMap(props: { biome?: Biome, layout: string, where: { [ch: string]: Block[] } }) {
     const { layout, where, biome } = props
     const lines = layout.trim().split("\n").map(l => l.trim())
     const width = lines[0].length

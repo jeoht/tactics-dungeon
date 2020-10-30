@@ -1,16 +1,17 @@
-import { Creature, TileRef } from "./Tile"
 import { computed } from "mobx"
 import { defOf } from "./util"
+import type { TileDef } from "./TileDef"
+import { CreatureTileDefOf } from "./CreatureTileDef"
 
 export class PeepKindDef {
     readonly name: string
-    readonly tile: TileRef
+    readonly tile: TileDef
     readonly attackRange: number
     readonly maxHealth: number
 
     constructor(readonly id: PeepKindDefId, props: {
         name: string
-        tile: TileRef
+        tile: TileDef
         attackRange?: number
         maxHealth?: number
     }) {
@@ -37,44 +38,44 @@ export class PeepKindDef {
 const peepKindsJson = {
     Rookie: {
         name: "Rookie",
-        tile: Creature.Rookie
+        tile: CreatureTileDefOf.Rookie
     },
     Esper: {
         name: "Esper",
-        tile: Creature.Esper
+        tile: CreatureTileDefOf.Esper
     },
     SunPaladin: {
         name: "Sun Paladin",
-        tile: Creature.SunPaladin,
+        tile: CreatureTileDefOf.SunPaladin,
         maxHealth: 5
     },
     Ranger: {
         name: "Ranger",
-        tile: Creature.Ranger2
+        tile: CreatureTileDefOf.Ranger2
     },
     Sniper: {
         name: "Sniper",
-        tile: Creature.Sniper,
+        tile: CreatureTileDefOf.Sniper,
         attackRange: 2
     },
     Bird: {
         name: "Bird",
-        tile: Creature.Bird,
+        tile: CreatureTileDefOf.Bird,
         maxHealth: 2
     },
     Skeleton: {
         name: "Skeleton",
-        tile: Creature.Skeleton,
+        tile: CreatureTileDefOf.Skeleton,
         maxHealth: 2
     },
     SkeletonArcher: {
         name: "Skeleton Archer",
-        tile: Creature.SkeletonArcher,
+        tile: CreatureTileDefOf.SkeletonArcher,
         maxHealth: 2
     },
     SkeletonWarrior: {
         name: "Skeleton Warrior",
-        tile: Creature.SkeletonEquipped,
+        tile: CreatureTileDefOf.SkeletonEquipped,
         maxHealth: 3
     }
 }

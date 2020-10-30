@@ -1,21 +1,22 @@
-import { Creature, Structure, TileRef } from "./Tile"
+import { CreatureTileDefOf } from "./CreatureTileDef"
+import { Structure, TileDef } from "./TileDef"
 import { defOf } from "./util"
 
 export class AbilityDef {
     name: string
     description: string
-    tile: TileRef
+    tile: TileDef
     maxLevel: number
 
     constructor(readonly id: AbilityDefId, props: {
         name: string
         description: string
-        tile?: TileRef
+        tile?: TileDef
         maxLevel?: number
     }) {
         this.name = props.name
         this.description = props.description
-        this.tile = props.tile ?? Creature.Bat
+        this.tile = props.tile ?? CreatureTileDefOf.Bat
         this.maxLevel = props.maxLevel ?? 0
     }
 }
