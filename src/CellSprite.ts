@@ -3,7 +3,7 @@ import { ScreenVector } from "./ScreenVector"
 import { Cell } from "./Cell"
 import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
-import { Structure, Furniture } from "./Tile"
+import { Structure } from "./TileDef"
 import { Block } from "./MapBase"
 import { Chest } from "./Chest"
 import { Potion } from "./Item"
@@ -115,15 +115,15 @@ export class CellSprite {
             this.drawTile(ctx, tile)
         }
 
-        for (const c of this.cell.contents) {
-            if (c instanceof Chest) {
-                this.drawTile(ctx, c.item ? Furniture.Chest : Furniture.ChestOpen)
-            } else if (c instanceof Potion) {
-                if (c.effectId === 'healing') {
-                    this.drawTile(ctx, Furniture.VaseBlue)
-                }
-            }
-        }
+        // for (const c of this.cell.contents) {
+        //     if (c instanceof Chest) {
+        //         this.drawTile(ctx, c.item ? Furniture.Chest : Furniture.ChestOpen)
+        //     } else if (c instanceof Potion) {
+        //         if (c.effectId === 'healing') {
+        //             this.drawTile(ctx, Furniture.VaseBlue)
+        //         }
+        //     }
+        // }
     }
 
     fill(ctx: CanvasRenderingContext2D) {

@@ -10,7 +10,7 @@ import { useLocalStore, useObserver } from "mobx-react-lite"
 import { UI } from "./UI"
 import _ = require("lodash")
 import { BobbleCreatureImage } from "./BobbleCreatureImg"
-import { Creature } from "./Tile"
+import { CreatureTileDefOf } from "./CreatureTileDef"
 
 
 // First Minister of the Lich Republic
@@ -175,7 +175,7 @@ export function FloorIntroOverlay() {
     const { ui } = useContext(FloorContext)
 
     const fullText = <div>
-        <BobbleCreatureImage tile={Creature.Mimic} />
+        <BobbleCreatureImage tile={CreatureTileDefOf.Mimic} />
         <p>
             <Reveal delay={1000} />
             <Reveal delayBefore={n => n === ' ' ? 500 : 0}>om nom nom</Reveal>

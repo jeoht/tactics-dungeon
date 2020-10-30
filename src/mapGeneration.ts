@@ -1,6 +1,6 @@
 import { Block } from "./MapBase"
 import { BOARD_ROWS, BOARD_COLS } from "./settings"
-import { Biome } from "./Tile"
+import { Biome } from "./TileDef"
 import _ = require("lodash")
 import { ActiveFloor } from "./Floor"
 import { Cell } from "./Cell"

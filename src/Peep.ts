@@ -3,11 +3,10 @@ import { nameByRace } from "fantasy-name-generator"
 import _ = require("lodash")
 
 import { uuid } from './util'
-import { Creature, Structure, TileRef } from "./Tile"
 import { Weapon } from "./Weapon"
 import { Consumable } from "./Consumable"
 import { PeepKindDef, PeepKindDefOf, PeepKindDefId } from "./PeepKindDef"
-import { AbilityDef, AbilityDefOf } from "./AbilityDef"
+import { AbilityDef, AbilityDefId, AbilityDefOf } from "./AbilityDef"
 
 
 /** 
@@ -62,13 +61,13 @@ export class Peep {
         this.kindId = kind.id
     }
 
-    @computed get tile(): TileRef {
+    @computed get tile() {
         return this.kind.tile
     }
 
     @computed get learnedAbilities(): AbilityDef[] {
-        const learnedAbilityIds = Object.keys(this.abilityLevels).filter(k => this.abilityLevels[k]! > 0) as AbilityId[]
-        return learnedAbilityIds.map(id => Ability[id])
+        const learnedAbilityIds = Object.keys(this.abilityLevels).filter(k => this.abilityLevels[k]! > 0)
+        return learnedAbilityIds.map(id => AbilityDefOf[id as AbilityDefId])
     }
 
     getAbilityLevel(ability: AbilityDef) {
@@ -137,9 +136,4 @@ function randomName(gender?: Gender): string {
         return nameByRace("human", { gender: "female" }) as string
     else
         return nameByRace("human") as string
-}
-
-export type UnitSpec = {
-    kind?: PeepKind
-    name?: string
 }
