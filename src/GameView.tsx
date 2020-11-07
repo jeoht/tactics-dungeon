@@ -9,6 +9,7 @@ import { TitleScreen } from './TitleScreen'
 import { UI } from './UI'
 import { CanvasBoard } from './CanvasBoard'
 import { BoardFooter } from './BoardFooter'
+import { BoardHeader } from './BoardHeader'
 import { World } from './World'
 import { FloorCleared } from './FloorCleared'
 import { HelpOverlay } from './HelpOverlay'
@@ -18,13 +19,10 @@ import { TeamScreen } from './TeamScreen'
 import { MessageLog } from './MessageLog'
 import { PeepUpgradeOverlay } from './PeepUpgradeOverlay'
 import { FloorIntroOverlay } from './FloorIntroOverlay'
+import { DungeonScreen } from './DungeonScreen'
 
 export const GameContext = React.createContext<{ game: Game, ui: UI, world: World }>({} as any)
 export const FloorContext = React.createContext<{ ui: UI, world: World, floor: ActiveFloor }>({} as any)
-
-const BoardHeader = observer(function BoardHeader() {
-    return <header className="BoardHeader" />
-})
 
 function BoardCanvas() {
     const { ui, floor } = useContext(FloorContext)
@@ -50,26 +48,6 @@ function BoardCanvas() {
     return <canvas ref={canvasRef} id="board"></canvas>
 }
 
-function DungeonScreen() {
-    const { ui, world } = useContext(GameContext)
-
-    const nextFloor = action(() => {
-        world.nextFloor()
-        ui.goto('board')
-    })
-    const gotoTeam = () => ui.goto('team')
-
-    return <div className="DungeonScreen">
-        <div className="d-flex mt-4 justify-content-center">
-            <button className="td-btn" onClick={nextFloor}>
-                Next Floor
-            </button>
-            <button className="td-btn" onClick={gotoTeam}>
-                Team
-            </button>
-        </div>
-    </div>
-}
 
 function CurrentScreen() {
     const { ui, world } = useContext(GameContext)
