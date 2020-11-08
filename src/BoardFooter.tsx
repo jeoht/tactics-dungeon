@@ -34,7 +34,7 @@ const ActionChoices = observer(function ActionChoices(props: { unit: Unit }) {
         {unit.consumables.map((item, i) => <li key={i} onClick={() => useItem(item)}>
             {item.name}
         </li>)}
-        {unit.peep.actionAbilities.map(ab => <li key={ab.id} onClick={() => useAbility(ab)}>
+        {unit.peep.actionAbilities.filter(ab => unit.abilityUses[ab.id] > 0).map(ab => <li key={ab.id} onClick={() => useAbility(ab)}>
             {ab.name}
         </li>)}
         {unit.canPickupBelow && <li onClick={() => unit.pickupBelow()}>Get Item</li>}

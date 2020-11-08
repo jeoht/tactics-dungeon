@@ -40,9 +40,13 @@ export class Unit {
         this.moved = props.moved ?? false
         this.inventory = props.inventory ?? [Scroll.create("teleport")]
         this.damage = props.damage ?? 0
-        this.abilityUses = {} as any
-        for (const ability of peep.actionAbilities) {
-            this.abilityUses[ability.id] = 1
+        if (props.abilityUses) {
+            this.abilityUses = props.abilityUses
+        } else {
+            this.abilityUses = {} as any
+            for (const ability of peep.actionAbilities) {
+                this.abilityUses[ability.id] = 1
+            }
         }
     }
 
@@ -347,5 +351,10 @@ export class Unit {
             this.cell.remove(item)
             this.receive(item)
         }
+    }
+
+    @action usedAbility(abilityId: AbilityDefId) {
+        if (abilityId in this.abilityUses)
+            this.abilityUses[abilityId] -= 1
     }
 }
