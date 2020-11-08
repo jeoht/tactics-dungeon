@@ -7,6 +7,7 @@ import { dijkstra, dijkstraRange } from "./pathfinding"
 import { ActiveFloor } from "./Floor"
 import { PointVector } from "./PointVector"
 import { Item, Scroll, loadItem, Potion } from "./Item"
+import { AbilityDefId } from "./AbilityDef"
 
 export enum Team {
     Player = "Player",
@@ -19,6 +20,7 @@ export class Unit {
     @observable moved: boolean
     @observable inventory: Item[]
     @observable damage: number
+    @observable abilityUses: Record<AbilityDefId, number>
 
     static load(floor: ActiveFloor, save: Unit['save']) {
         return new Unit(floor, Peep.load(save.peep), {
@@ -38,6 +40,10 @@ export class Unit {
         this.moved = props.moved ?? false
         this.inventory = props.inventory ?? [Scroll.create("teleport")]
         this.damage = props.damage ?? 0
+        this.abilityUses = {} as any
+        for (const ability of peep.actionAbilities) {
+            this.abilityUses[ability.id] = 1
+        }
     }
 
     @computed get save() {
@@ -48,7 +54,8 @@ export class Unit {
             team: this.team,
             moved: this.moved,
             inventory: this.inventory.map(i => i.save),
-            damage: this.damage
+            damage: this.damage,
+            abilityUses: this.abilityUses
         }
     }
 

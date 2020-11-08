@@ -22,7 +22,7 @@ import { FloorIntroOverlay } from './FloorIntroOverlay'
 import { DungeonScreen } from './DungeonScreen'
 
 export const GameContext = React.createContext<{ game: Game, ui: UI, world: World }>({} as any)
-export const FloorContext = React.createContext<{ ui: UI, world: World, floor: ActiveFloor }>({} as any)
+export const FloorContext = React.createContext<{ ui: UI, world: World, floor: ActiveFloor, board: CanvasBoard }>({} as any)
 
 function BoardCanvas() {
     const { ui, floor } = useContext(FloorContext)
@@ -66,7 +66,7 @@ function CurrentScreen() {
         } else {
             if (!world.floor)
                 throw new Error(`No floor for screen ${ui.screen.id}`)
-            const context = { ui: ui, world: world, floor: world.floor }
+            const context = { ui: ui, world: world, floor: world.floor, board: ui.board! }
             return <FloorContext.Provider value={context}>
                 <BoardHeader />
                 <div className="boardContainer">

@@ -38,6 +38,10 @@ const abilityDefsJson = {
         name: "Force Wall",
         description: `Once per encounter, generate a wall of psychic force across a target line that prevents all movement for a turn.`,
         tile: { tilesetId: 'world', index: Structure.Wall }
+    },
+    Snipe: {
+        name: "Snipe",
+        description: `Once per floor, perform a long-ranged bow attack.`
     }
 }
 

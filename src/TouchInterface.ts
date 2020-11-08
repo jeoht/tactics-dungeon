@@ -7,6 +7,7 @@ import { ScreenVector } from "./ScreenVector"
 import { CanvasBoard } from "./CanvasBoard"
 import { CELL_WIDTH, CELL_HEIGHT } from "./settings"
 import { Cell } from "./Cell"
+import { UnitAction } from "./UnitAction"
 
 /** Just the necessary info to execute a move plan */
 export type UnitMovePlan = {
@@ -94,6 +95,7 @@ export class UnitDragState {
 
 export type SelectedUnitState = { type: 'selectedUnit', unit: Unit }
 export type TargetAbilityState = { type: 'targetAbility', unit: Unit, ability: 'teleport' }
+export type TargetActionState = { type: 'targetAction', unit: Unit, action: UnitAction }
 
 export type TapMoveState = {
     type: 'tapMove'
@@ -103,7 +105,7 @@ export type TapMoveState = {
 export class TouchInterface {
     board: CanvasBoard
     maybeDragUnit: Unit | null = null
-    @observable state: { type: 'board' } | UnitDragState | SelectedUnitState | TargetAbilityState | TapMoveState = { type: 'board' }
+    @observable state: { type: 'board' } | UnitDragState | SelectedUnitState | TargetActionState | TargetAbilityState | TapMoveState = { type: 'board' }
 
     constructor(board: CanvasBoard) {
         this.board = board
@@ -229,6 +231,13 @@ export class TouchInterface {
                         this.gotoBoard()
                     })
                 }
+            } else if (state.type === 'targetAction') {
+                runInAction(() => {
+                    if (state.action.targetRangeCells.includes(cell)) {
+                        state.action.execute(cell)
+                    }
+                    this.gotoBoard()
+                })
             }
         }
     }
@@ -281,7 +290,7 @@ export class TouchInterface {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        const { drag, plan, board } = this
+        const { drag, plan, board, state } = this
 
         if (plan) {
             const sprite = board.get(plan.unit)
@@ -318,6 +327,13 @@ export class TouchInterface {
             } else if (finalPathCell) {
                 const pos = board.get(finalPathCell).pos
                 board.ui.assets.creatures.drawTile(ctx, plan.unit.tile.index, pos.x, pos.y, CELL_WIDTH, CELL_HEIGHT)
+            }
+        }
+
+        if (state.type === 'targetAction') {
+            ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
+            for (const cell of state.action.targetRangeCells) {
+                board.get(cell).fill(ctx)
             }
         }
     }
