@@ -46,6 +46,7 @@ export class SnipeAction implements UnitAction {
             target.defeatedBy(this.unit)
         }
 
+        this.unit.usedAbility('Snipe')
         this.unit.endMove()
     }
 }
