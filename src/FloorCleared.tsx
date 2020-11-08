@@ -107,13 +107,13 @@ const FloorClearedDiv = styled.div`
 `
 
 export function FloorCleared() {
-    const { ui, floor } = useContext(FloorContext)
+    const { world, floor } = useContext(FloorContext)
 
     return <Overlay>
         <FloorClearedDiv>
             <div>
                 <h1>
-                    <div className="floor">Floor 1</div>
+                    <div className="floor">Floor {world.floorDepth}</div>
                     <div className="cleared">Cleared!</div>
                 </h1>
                 <p>Choose a character to upgrade</p>

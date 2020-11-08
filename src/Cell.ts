@@ -152,4 +152,18 @@ export class Cell {
             return line
         }
     }
+
+    lineInDirection(direction: [number, number]): Cell[] {
+        const line: Cell[] = []
+        let cell: Cell | undefined = this
+        while (true) {
+            cell = this.floor.cellAt(cell.pos.addXY(direction[0], direction[1]))
+            if (cell && !cell.isWall) {
+                line.push(cell)
+            } else {
+                break
+            }
+        }
+        return line
+    }
 }

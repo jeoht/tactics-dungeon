@@ -9,6 +9,7 @@ import { Peep } from "./Peep"
 import { TileRef } from "./Tile"
 import { PeepKind } from "./PeepKind"
 import _ = require("lodash")
+import { AbilityDef } from "./AbilityDef"
 
 const PeepUpgradeDiv = styled.div`
     height: 100%;
@@ -131,7 +132,8 @@ export function PeepUpgradeOverlay(props: { peepId: string }) {
 
     const upgrades = getUpgradesFor(peep)
 
-    const doUpgrade = action((upgrade: any) => {
+    const doUpgrade = action((upgrade: AbilityDef) => {
+        peep.abilityLevels[upgrade.id] = 1
         ui.goto('dungeon')
     })
 

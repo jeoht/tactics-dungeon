@@ -77,13 +77,17 @@ export class Peep {
     @computed get learnableNewAbilities() {
         if (this.kind === PeepKindDefOf.Esper) {
             return [AbilityDefOf.ForceWall]
-        } else {
-            return []
+        } else if (this.kind === PeepKindDefOf.Sniper) {
+            return [AbilityDefOf.Snipe]
         }
     }
 
     @computed get levelableAbilities() {
         return this.learnedAbilities.filter(a => this.getAbilityLevel(a) < a.maxLevel)
+    }
+
+    @computed get actionAbilities() {
+        return this.learnedAbilities.filter(a => a)
     }
 
     // @computed get abilityLevels(): { level: number, abilities: Ability[] }[] {

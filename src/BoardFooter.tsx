@@ -1,11 +1,13 @@
 import { observer, useObserver } from "mobx-react-lite"
 import { useContext } from "react"
-import { action } from "mobx"
+import { action, untracked } from "mobx"
 import React = require("react")
 
 import { FloorContext } from "./GameView"
 import { Unit } from "./Unit"
 import { Item } from "./Item"
+import { AbilityDef } from "./AbilityDef"
+import { SnipeAction } from "./UnitAction"
 
 const ActionChoices = observer(function ActionChoices(props: { unit: Unit }) {
     const { unit } = props
@@ -24,9 +26,16 @@ const ActionChoices = observer(function ActionChoices(props: { unit: Unit }) {
         }
     })
 
+    const useAbility = action((ability: AbilityDef) => {
+        touch.state = { type: 'targetAction', unit: unit, action: new SnipeAction(unit) }
+    })
+
     return <ul className="ActionChoices">
         {unit.consumables.map((item, i) => <li key={i} onClick={() => useItem(item)}>
             {item.name}
+        </li>)}
+        {unit.peep.actionAbilities.map(ab => <li key={ab.id} onClick={() => useAbility(ab)}>
+            {ab.name}
         </li>)}
         {unit.canPickupBelow && <li onClick={() => unit.pickupBelow()}>Get Item</li>}
         {unit.canOpenNearby && <li onClick={openNearby}>Open</li>}
@@ -39,6 +48,17 @@ const TargetAbilityInfo = observer(function TargetAbilityInfo() {
         <p>Teleports unit anywhere on the map. One-time use item. Doesn't cost an action.</p>
     </div>
 })
+
+const TargetActionInfo = () => {
+    const { board } = useContext(FloorContext)
+
+    const cancelAction = action(() => {
+        board.touch.state = { type: 'board' }
+    })
+    return <ul className="ActionChoices">
+        <li onClick={cancelAction}>Cancel</li>
+    </ul>
+}
 
 const MainFooter = () => {
     const { ui, world, floor } = useContext(FloorContext)
@@ -75,6 +95,8 @@ export function BoardFooter() {
 
             if (touch.selectedUnit && touch.selectedUnit.playerMove) {
                 return <ActionChoices unit={touch.selectedUnit} />
+            } else if (touch.state.type === 'targetAction') {
+                return <TargetActionInfo />
             } else if (touch.state.type === 'targetAbility') {
                 return <TargetAbilityInfo />
             } else if (touch.state.type === 'board') {

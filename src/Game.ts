@@ -14,12 +14,7 @@ export class Game {
         this.debug = new Debug(this)
 
         if (save) {
-            try {
-                this.load(save)
-            } catch (err) {
-                console.error(err)
-                this.world.newGame()
-            }
+            this.load(save)
         }
 
         autorun(() => {
